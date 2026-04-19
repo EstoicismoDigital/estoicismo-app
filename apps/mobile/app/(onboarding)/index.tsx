@@ -32,7 +32,7 @@ const SLIDES = [
     label: "EMPIEZA HOY",
     title: "Gratis.\nSin tarjeta.",
     subtitle: "3 hábitos · Historial 7 días · Siempre gratis.",
-    textColor: "#FFFFFF",
+    textColor: colors.bg,
   },
 ] as const;
 
@@ -44,8 +44,9 @@ export default function Onboarding() {
 
   function goNext() {
     if (currentIndex < SLIDES.length - 1) {
-      scrollRef.current?.scrollTo({ x: width * (currentIndex + 1), animated: true });
-      setCurrentIndex(currentIndex + 1);
+      const next = currentIndex + 1;
+      setCurrentIndex(next);
+      scrollRef.current?.scrollTo({ x: width * next, animated: true });
     } else {
       router.replace("/(auth)/sign-up");
     }
@@ -59,13 +60,10 @@ export default function Onboarding() {
         pagingEnabled
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => {
-          setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / width));
-        }}
       >
-        {SLIDES.map((slide, i) => (
+        {SLIDES.map((slide) => (
           <View
-            key={i}
+            key={slide.label}
             style={[styles.slide, { width, backgroundColor: slide.bg }]}
           >
             <View style={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
@@ -94,9 +92,9 @@ export default function Onboarding() {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
+          {SLIDES.map((slide, i) => (
             <View
-              key={i}
+              key={slide.label}
               style={[
                 styles.dot,
                 i === currentIndex && styles.dotActive,
@@ -117,8 +115,9 @@ export default function Onboarding() {
             onPress={() => router.replace("/(auth)/sign-in")}
             accessibilityRole="button"
             accessibilityLabel="Ya tengo cuenta, ir a iniciar sesión"
+            style={styles.secondaryAction}
           >
-            <Text variant="muted" style={{ textAlign: "center", marginTop: spacing.md }}>
+            <Text variant="muted" style={{ textAlign: "center" }}>
               Ya tengo cuenta
             </Text>
           </Pressable>
@@ -154,4 +153,10 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.line },
   dotActive: { width: 20, backgroundColor: colors.accent },
   cta: { width: "100%" },
+  secondaryAction: {
+    minHeight: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: spacing.sm,
+  },
 });
