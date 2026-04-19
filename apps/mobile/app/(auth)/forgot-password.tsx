@@ -5,6 +5,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -41,7 +42,13 @@ export default function ForgotPassword() {
       style={{ flex: 1, backgroundColor: colors.bg }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text variant="label" style={{ color: colors.accent }}>RECUPERAR CONTRASEÑA</Text>
         {sent ? (
           <>
@@ -71,6 +78,7 @@ export default function ForgotPassword() {
               placeholderTextColor={colors.muted}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
               autoComplete="email"
               returnKeyType="send"
               onSubmitEditing={handleReset}
@@ -91,13 +99,13 @@ export default function ForgotPassword() {
             />
           </>
         )}
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: spacing.lg },
+  container: { flexGrow: 1, paddingHorizontal: spacing.lg },
   title: { marginTop: spacing.sm, marginBottom: spacing.sm },
   input: {
     height: 52,

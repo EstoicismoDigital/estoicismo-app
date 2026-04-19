@@ -90,10 +90,9 @@ export default function SignIn() {
           onPress={() => router.push("/(auth)/forgot-password")}
           accessibilityRole="button"
           accessibilityLabel="Olvidé mi contraseña"
+          style={{ paddingVertical: 12, alignSelf: "flex-end" }}
         >
-          <Text variant="muted" style={{ textAlign: "right" }}>
-            ¿Olvidaste tu contraseña?
-          </Text>
+          <Text variant="muted">¿Olvidaste tu contraseña?</Text>
         </Pressable>
 
         <Button
@@ -108,6 +107,7 @@ export default function SignIn() {
           onPress={() => router.replace("/(auth)/sign-up")}
           style={{ marginTop: spacing.lg, alignItems: "center" }}
           accessibilityRole="button"
+          accessibilityLabel="Ir a registrarse gratis"
         >
           <Text variant="muted">
             ¿No tienes cuenta?{" "}
