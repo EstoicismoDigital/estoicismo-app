@@ -1,0 +1,5 @@
+{
+  "extends": "@estoicismo/config/tsconfig",
+  "include": ["src/**/*"],
+  "compilerOptions": { "noEmit": true }
+}
