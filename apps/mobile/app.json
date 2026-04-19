@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Estoicismo Digital",
+    "slug": "estoicismo-digital",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "estoicismo",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F1EA"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.estoicismodigital.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F5F1EA"
+      },
+      "package": "com.estoicismodigital.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
