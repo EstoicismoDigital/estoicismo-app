@@ -50,10 +50,10 @@ const variantStyles: Record<ButtonVariant, object> = {
 };
 
 const textColors: Record<ButtonVariant, string> = {
-  primary: "#FFFFFF",
+  primary: colors.bg,
   secondary: colors.ink,
   ghost: colors.accent,
-  danger: "#FFFFFF",
+  danger: colors.bg,
 };
 
 export function Button({ variant = "primary", label, loading = false, disabled, style, ...props }: Props) {
