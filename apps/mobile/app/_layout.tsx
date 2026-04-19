@@ -35,7 +35,6 @@ function AuthGuard({
 
   useEffect(() => {
     if (!fontsLoaded) return;
-    void SplashScreen.hideAsync();
 
     const inAuthGroup = segments[0] === "(auth)";
     const inOnboarding = segments[0] === "(onboarding)";
@@ -63,11 +62,14 @@ export default function RootLayout() {
     JetBrainsMono_500Medium,
   });
 
+  // Hide splash only after fonts are ready — avoids blank-frame between splash and UI
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+    if (fontsLoaded) void SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
+  // Rely solely on onAuthStateChange — it fires INITIAL_SESSION on subscribe,
+  // eliminating the getSession() + onAuthStateChange race condition
+  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {

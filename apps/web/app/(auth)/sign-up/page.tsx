@@ -22,12 +22,12 @@ export default function SignUpPage() {
     const supabase = getSupabaseBrowserClient();
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      setError(error.message);
+      setError("No pudimos crear tu cuenta. Intenta con otro email.");
       setLoading(false);
       return;
     }
+    setLoading(false);
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (

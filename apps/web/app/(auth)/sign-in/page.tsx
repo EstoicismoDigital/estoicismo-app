@@ -23,7 +23,6 @@ export default function SignInPage() {
       return;
     }
     router.push("/dashboard");
-    router.refresh();
   }
 
   return (
@@ -77,10 +76,7 @@ export default function SignInPage() {
 
           {error && (
             <p role="alert" className="text-danger text-sm font-body">
-              {error}{" "}
-              <Link href="/sign-up" className="underline">
-                ¿No tienes cuenta?
-              </Link>
+              {error}
             </p>
           )}
 
