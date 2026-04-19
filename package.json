@@ -1,0 +1,23 @@
+{
+  "name": "estoicismo-app",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:mobile": "turbo dev --filter=mobile",
+    "dev:web": "turbo dev --filter=web",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}
