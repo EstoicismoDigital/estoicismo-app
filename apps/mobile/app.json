@@ -8,6 +8,7 @@
     "scheme": "estoicismo",
     "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#F5F1EA"
     },
@@ -17,6 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F5F1EA"
       },
       "package": "com.estoicismodigital.app"
