@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Flame, MessageSquareText, Pencil, Archive } from "lucide-react";
+import { ArrowLeft, Flame, MessageSquareText, Pencil, Archive, Check } from "lucide-react";
 import {
   fetchHabits,
   fetchHabitLogs,
@@ -22,6 +22,7 @@ import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import {
   useUpdateHabit,
   useArchiveHabit,
+  useToggleHabit,
 } from "../../../../hooks/useHabits";
 import { buildHeatmap } from "../../progreso/ProgresoClient";
 
@@ -120,6 +121,11 @@ export function HabitDetailClient({ habitId }: { habitId: string }) {
 
   const updateM = useUpdateHabit();
   const archiveM = useArchiveHabit();
+  const toggleM = useToggleHabit();
+  const isCompletedToday = useMemo(
+    () => logs.some((l) => l.completed_at === today),
+    [logs, today]
+  );
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
@@ -238,7 +244,26 @@ export function HabitDetailClient({ habitId }: { habitId: string }) {
           </div>
 
           {/* Actions */}
-          <div className="mt-6 flex items-center gap-2">
+          <div className="mt-6 flex items-center gap-2 flex-wrap">
+            {/* Primary: toggle completion for today. Styled to stand out
+                against the dark hero — filled when pending, outlined +
+                check when already done so the "do it again" path is clear. */}
+            <button
+              type="button"
+              onClick={() =>
+                toggleM.mutate({ habitId: habit.id, isCompleted: isCompletedToday })
+              }
+              disabled={toggleM.isPending}
+              aria-pressed={isCompletedToday}
+              className={
+                isCompletedToday
+                  ? "inline-flex items-center gap-1.5 h-10 px-4 rounded-lg border border-success/50 bg-success/15 text-white font-body text-sm hover:bg-success/25 transition-colors disabled:opacity-60"
+                  : "inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out disabled:opacity-60"
+              }
+            >
+              <Check size={14} aria-hidden />
+              {isCompletedToday ? "Hecho hoy" : "Completar hoy"}
+            </button>
             <button
               type="button"
               onClick={() => setEditOpen(true)}
@@ -414,11 +439,14 @@ function SingleHabitHeatmap({
                 aria-label={`${cell.date}: ${done ? "completado" : "sin completar"}`}
                 title={cell.date}
                 className="w-[12px] h-[12px] rounded-[2px] border transition-colors"
+                // Empty in-range cells use the surface token so dark mode
+                // gets dark cells instead of a hard-coded beige. The browser
+                // resolves the CSS var at compute time.
                 style={{
                   backgroundColor: cell.inRange
                     ? done
                       ? color
-                      : "#EDE6DB"
+                      : "rgb(var(--color-bg-alt))"
                     : "transparent",
                   borderColor: isToday ? color : "transparent",
                   outline: isToday ? `1px solid ${color}` : undefined,
