@@ -1,8 +1,9 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { MoreVertical } from "lucide-react";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
 import { WeekStrip } from "./WeekStrip";
+import { HabitContextMenu } from "./HabitContextMenu";
 import { computeStreak, getTodayStr } from "../../lib/dateUtils";
 
 export function HabitRow({
@@ -26,25 +27,6 @@ export function HabitRow({
   const streak = computeStreak(habitLogDates);
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onDocClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") setMenuOpen(false);
-    }
-    document.addEventListener("mousedown", onDocClick);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      document.removeEventListener("mousedown", onDocClick);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, [menuOpen]);
 
   function handleToggle() {
     onToggle(habit, isCompletedToday);
@@ -131,37 +113,12 @@ export function HabitRow({
         </button>
       </div>
 
-      {/* Context menu */}
-      {menuOpen && (
-        <div
-          ref={menuRef}
-          role="menu"
-          className="absolute top-full right-3 mt-1 z-20 bg-bg border border-line rounded-card shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden min-w-[160px] animate-in fade-in slide-in-from-top-1 duration-150"
-        >
-          <button
-            role="menuitem"
-            onClick={() => {
-              setMenuOpen(false);
-              onEdit(habit);
-            }}
-            className="w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors"
-          >
-            Editar
-          </button>
-          <button
-            role="menuitem"
-            onClick={() => {
-              setMenuOpen(false);
-              if (confirm(`¿Archivar "${habit.name}"? Podrás verlo en historial.`)) {
-                onArchive(habit);
-              }
-            }}
-            className="w-full text-left px-4 py-2.5 font-body text-sm text-danger hover:bg-danger/5 transition-colors border-t border-line"
-          >
-            Archivar
-          </button>
-        </div>
-      )}
+      <HabitContextMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onEdit={() => onEdit(habit)}
+        onArchive={() => onArchive(habit)}
+      />
     </div>
   );
 }
