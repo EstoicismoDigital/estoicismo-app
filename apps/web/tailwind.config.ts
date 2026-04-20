@@ -30,6 +30,29 @@ const config: Config = {
         card: "12px",
         modal: "20px",
       },
+      keyframes: {
+        // Celebration pop fired when a habit transitions to "done today".
+        // Peaks at 45% with a slight overshoot to feel snappy-but-not-jumpy,
+        // then settles back to 1 without bouncing again so the row returns
+        // to rest cleanly. Respects prefers-reduced-motion via the media
+        // query below.
+        "habit-pop-done": {
+          "0%": { transform: "scale(1)" },
+          "45%": { transform: "scale(1.18)" },
+          "100%": { transform: "scale(1)" },
+        },
+        // Subtle row-level flash when a habit completes — a radial-ish
+        // background glow that fades from accent-soft back to transparent.
+        "habit-row-glow": {
+          "0%": { boxShadow: "0 0 0 0 rgb(var(--color-accent) / 0.0)" },
+          "40%": { boxShadow: "0 0 0 8px rgb(var(--color-accent) / 0.18)" },
+          "100%": { boxShadow: "0 0 0 0 rgb(var(--color-accent) / 0)" },
+        },
+      },
+      animation: {
+        "habit-pop-done": "habit-pop-done 450ms cubic-bezier(.2,.8,.3,1.1)",
+        "habit-row-glow": "habit-row-glow 600ms ease-out",
+      },
     },
   },
   plugins: [],

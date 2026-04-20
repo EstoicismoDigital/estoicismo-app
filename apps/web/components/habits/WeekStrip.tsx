@@ -80,11 +80,13 @@ export function WeekStrip({
                   "rounded-full block transition-opacity duration-150 ease-out",
                   isFuture && "opacity-25"
                 )}
+                // Use the theme line token so dark mode gets a dark empty
+                // ring instead of a hard-coded light beige.
                 style={{
                   backgroundColor: done ? habit.color : "transparent",
                   borderWidth: done ? 0 : 2,
                   borderStyle: "solid",
-                  borderColor: done ? "transparent" : "#E5E1DA",
+                  borderColor: done ? "transparent" : "rgb(var(--color-line))",
                 }}
                 aria-label={
                   done

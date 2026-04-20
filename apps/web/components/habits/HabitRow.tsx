@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MoreVertical, MessageSquare, MessageSquareText } from "lucide-react";
+import { clsx } from "clsx";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
 import { WeekStrip } from "./WeekStrip";
 import { HabitContextMenu } from "./HabitContextMenu";
@@ -44,6 +45,20 @@ export function HabitRow({
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Celebration pop. We fire a 600ms animation when isCompletedToday
+  // transitions from false to true (done-from-here-in-this-session), not
+  // on mount — otherwise every already-completed habit would animate on
+  // every render. Using a nonce that increments on transition lets the
+  // CSS animation replay even if the user toggles twice quickly.
+  const [completionNonce, setCompletionNonce] = useState(0);
+  const prevDoneRef = useRef(isCompletedToday);
+  useEffect(() => {
+    if (isCompletedToday && !prevDoneRef.current) {
+      setCompletionNonce((n) => n + 1);
+    }
+    prevDoneRef.current = isCompletedToday;
+  }, [isCompletedToday]);
+
   function handleToggle() {
     onToggle(habit, isCompletedToday);
   }
@@ -72,14 +87,27 @@ export function HabitRow({
         onKeyDown={handleKeyDown}
         aria-label={`${habit.name}${isCompletedToday ? " — completado hoy" : ""}`}
         aria-pressed={isCompletedToday}
-        className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-card bg-bg border border-line shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:border-accent/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.99] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 cursor-pointer"
+        // `key` on the glow nonce forces React to remount the animation
+        // state, which re-fires the CSS keyframes when the user toggles
+        // completion (otherwise the animation only plays once per mount).
+        className={clsx(
+          "flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-card bg-bg border border-line shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:border-accent/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.99] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 cursor-pointer motion-reduce:transition-none",
+          completionNonce > 0 && "motion-safe:animate-habit-row-glow"
+        )}
+        key={`row-${completionNonce}`}
       >
         {/* Drag handle — only when the parent provides one */}
         {dragHandle}
 
-        {/* Icon circle */}
+        {/* Icon circle — pops on completion via the keyframe defined in
+            tailwind.config. motion-safe: gate means reduced-motion users
+            get a plain state change with no scale animation. */}
         <div
-          className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-150 ease-out group-hover:scale-105"
+          className={clsx(
+            "flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-150 ease-out group-hover:scale-105",
+            completionNonce > 0 && "motion-safe:animate-habit-pop-done"
+          )}
+          key={`icon-${completionNonce}`}
           style={{
             backgroundColor: `${habit.color}22`,
             color: habit.color,
