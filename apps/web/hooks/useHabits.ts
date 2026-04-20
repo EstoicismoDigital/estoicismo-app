@@ -65,6 +65,17 @@ export function useAllHabitLogs(monthFrom: string, monthTo: string) {
   });
 }
 
+/**
+ * Toggle a habit's completion for a given date (defaults to today when
+ * `date` is omitted). Used by:
+ *   - HabitRow's row-tap + WeekStrip's today button (date = today)
+ *   - WeekStrip's past-day buttons (date = that past day — retroactive
+ *     completion for days in the current week the user forgot to log)
+ *
+ * We do NOT accept arbitrary dates from the future. Callers are
+ * responsible for disabling the UI for future dates; this hook trusts
+ * whatever it's given to keep the API minimal.
+ */
 export function useToggleHabit() {
   const qc = useQueryClient();
   const week = getCurrentWeekDays();
@@ -74,33 +85,35 @@ export function useToggleHabit() {
     mutationFn: async ({
       habitId,
       isCompleted,
+      date,
     }: {
       habitId: string;
       isCompleted: boolean;
+      date?: string;
     }) => {
       const sb = getSupabaseBrowserClient();
-      const today = getTodayStr();
+      const target = date ?? getTodayStr();
       if (isCompleted) {
-        await deleteHabitLog(sb, habitId, today);
+        await deleteHabitLog(sb, habitId, target);
       } else {
         const uid = await getUserId();
-        await insertHabitLog(sb, habitId, uid, today);
+        await insertHabitLog(sb, habitId, uid, target);
       }
     },
-    onMutate: async ({ habitId, isCompleted }) => {
-      const today = getTodayStr();
+    onMutate: async ({ habitId, isCompleted, date }) => {
+      const target = date ?? getTodayStr();
       await qc.cancelQueries({ queryKey: logsKey });
       const prev = qc.getQueryData<HabitLog[]>(logsKey);
       qc.setQueryData<HabitLog[]>(logsKey, (old = []) => {
         if (isCompleted)
-          return old.filter((l) => !(l.habit_id === habitId && l.completed_at === today));
+          return old.filter((l) => !(l.habit_id === habitId && l.completed_at === target));
         return [
           ...old,
           {
-            id: `opt-${habitId}-${today}`,
+            id: `opt-${habitId}-${target}`,
             habit_id: habitId,
             user_id: "",
-            completed_at: today,
+            completed_at: target,
             note: null,
           },
         ];

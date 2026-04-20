@@ -9,7 +9,8 @@ import { HabitRow } from "./HabitRow";
 type Props = {
   habit: Habit;
   logs: HabitLog[];
-  onToggle: (habit: Habit, isCompleted: boolean) => void;
+  /** Pass-through: if `date` is provided, mark that past day; otherwise today. */
+  onToggle: (habit: Habit, isCompleted: boolean, date?: string) => void;
   onEdit: (habit: Habit) => void;
   onArchive: (habit: Habit) => void;
   onNote?: (habit: Habit, currentNote: string | null) => void;

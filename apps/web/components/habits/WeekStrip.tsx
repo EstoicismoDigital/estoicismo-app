@@ -6,11 +6,21 @@ import { getCurrentWeekDays, getTodayStr } from "../../lib/dateUtils";
 export function WeekStrip({
   habit,
   logs,
-  onToggleToday,
+  onToggleDay,
 }: {
   habit: Habit;
   logs: HabitLog[];
-  onToggleToday: () => void;
+  /**
+   * Toggle completion for a specific day in the current week. The current
+   * day gets a prominent accent ring; past days are also tappable so users
+   * can log retroactively for days they forgot. Future days are rendered as
+   * non-interactive placeholders and never invoke this callback.
+   *
+   * `isCompleted` reflects the CURRENT state of the cell (true = already
+   * done, caller should delete the log; false = not done, caller should
+   * insert a log).
+   */
+  onToggleDay: (date: string, isCompleted: boolean) => void;
 }) {
   const week = getCurrentWeekDays();
   const today = getTodayStr();
@@ -49,7 +59,7 @@ export function WeekStrip({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onToggleToday();
+                    onToggleDay(d.date, done);
                   }}
                   aria-label={
                     done ? "Marcar como no hecho hoy" : "Marcar como hecho hoy"
@@ -72,29 +82,59 @@ export function WeekStrip({
             );
           }
 
+          // Future day — non-interactive placeholder. We deliberately do
+          // not let users pre-complete future days: it corrupts streak
+          // math and doesn't correspond to any actual practice happening
+          // yet. The dot just shows that the week extends further.
+          if (isFuture) {
+            return (
+              <div key={d.date} className={baseFlex} aria-hidden>
+                <span
+                  className={clsx(
+                    baseSize,
+                    "rounded-full block opacity-25 transition-opacity duration-150 ease-out"
+                  )}
+                  style={{
+                    backgroundColor: "transparent",
+                    borderWidth: 2,
+                    borderStyle: "solid",
+                    borderColor: "rgb(var(--color-line))",
+                  }}
+                />
+              </div>
+            );
+          }
+
+          // Past day in the current week — interactive so users can mark
+          // retroactive completion. Visually smaller than today (no accent
+          // ring, no offset) and uses the neutral line token when empty so
+          // dark mode gets a dark empty ring.
           return (
-            <div key={d.date} className={baseFlex} aria-hidden={isFuture}>
-              <span
+            <div key={d.date} className={baseFlex}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleDay(d.date, done);
+                }}
+                aria-label={
+                  done
+                    ? `Desmarcar el ${d.date}`
+                    : `Marcar como hecho el ${d.date}`
+                }
+                aria-pressed={done}
                 className={clsx(
                   baseSize,
-                  "rounded-full block transition-opacity duration-150 ease-out",
-                  isFuture && "opacity-25"
+                  "rounded-full transition-all duration-150 ease-out",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+                  "hover:scale-110 active:scale-95"
                 )}
-                // Use the theme line token so dark mode gets a dark empty
-                // ring instead of a hard-coded light beige.
                 style={{
                   backgroundColor: done ? habit.color : "transparent",
                   borderWidth: done ? 0 : 2,
                   borderStyle: "solid",
                   borderColor: done ? "transparent" : "rgb(var(--color-line))",
                 }}
-                aria-label={
-                  done
-                    ? `Completado el ${d.date}`
-                    : isFuture
-                      ? `${d.date} en el futuro`
-                      : `No completado el ${d.date}`
-                }
               />
             </div>
           );

@@ -19,7 +19,12 @@ export function HabitRow({
 }: {
   habit: Habit;
   logs: HabitLog[];
-  onToggle: (habit: Habit, isCompleted: boolean) => void;
+  /**
+   * Toggle habit completion. When `date` is omitted the caller should
+   * default to today (row-tap / today dot); when provided it's a
+   * retroactive completion for a past day in the current week.
+   */
+  onToggle: (habit: Habit, isCompleted: boolean, date?: string) => void;
   onEdit: (habit: Habit) => void;
   onArchive: (habit: Habit) => void;
   /** Optional. Opens the note dialog for today's log. Ignored if habit isn't completed today. */
@@ -61,6 +66,14 @@ export function HabitRow({
 
   function handleToggle() {
     onToggle(habit, isCompletedToday);
+  }
+
+  // Retroactive completion for past days of the current week. WeekStrip
+  // invokes this with the cell's date + its current done-state; we
+  // forward to the parent's onToggle with an explicit date so the
+  // underlying mutation targets the right day instead of today.
+  function handleToggleDay(date: string, wasCompleted: boolean) {
+    onToggle(habit, wasCompleted, date);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -149,7 +162,7 @@ export function HabitRow({
         <WeekStrip
           habit={habit}
           logs={logs}
-          onToggleToday={handleToggle}
+          onToggleDay={handleToggleDay}
         />
 
         {/* Note button — only when completed today and handler provided */}

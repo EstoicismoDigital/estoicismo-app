@@ -279,8 +279,8 @@ export function HabitsDashboard() {
                       <SortableHabitRow
                         habit={habit}
                         logs={logs}
-                        onToggle={(h, isCompleted) =>
-                          toggle.mutate({ habitId: h.id, isCompleted })
+                        onToggle={(h, isCompleted, date) =>
+                          toggle.mutate({ habitId: h.id, isCompleted, date })
                         }
                         onEdit={openEdit}
                         onArchive={requestArchive}
