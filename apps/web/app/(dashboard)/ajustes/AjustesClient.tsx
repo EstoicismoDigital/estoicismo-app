@@ -2,28 +2,64 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Crown, LogOut, Mail, Globe } from "lucide-react";
+import { Crown, LogOut, Mail, Globe, User, Check, X } from "lucide-react";
 import { clsx } from "clsx";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
+import {
+  useUpdateProfile,
+  COMMON_TIMEZONES,
+} from "../../../hooks/useUpdateProfile";
 
 export function AjustesClient({
   email,
   plan,
   timezone,
+  username,
 }: {
   email: string;
   plan: "free" | "premium";
   timezone: string;
+  username: string | null;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const isPremium = plan === "premium";
+  const updateProfile = useUpdateProfile();
+
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(username ?? "");
+  const [tz, setTz] = useState(timezone);
 
   async function handleSignOut() {
-    setLoading(true);
+    setSigningOut(true);
     const sb = getSupabaseBrowserClient();
     await sb.auth.signOut();
     router.push("/sign-in");
+  }
+
+  function handleSaveName() {
+    const trimmed = nameDraft.trim();
+    if (trimmed.length === 0) {
+      updateProfile.mutate(
+        { username: null },
+        { onSuccess: () => setEditingName(false) }
+      );
+      return;
+    }
+    updateProfile.mutate(
+      { username: trimmed },
+      { onSuccess: () => setEditingName(false) }
+    );
+  }
+
+  function handleCancelName() {
+    setNameDraft(username ?? "");
+    setEditingName(false);
+  }
+
+  function handleChangeTz(value: string) {
+    setTz(value);
+    updateProfile.mutate({ timezone: value });
   }
 
   return (
@@ -44,8 +80,64 @@ export function AjustesClient({
             Perfil
           </p>
 
-          <div className="flex flex-col gap-px rounded-card overflow-hidden border border-line">
-            <div className="flex items-center gap-3 px-4 py-4 bg-bg">
+          <div className="flex flex-col rounded-card overflow-hidden border border-line bg-bg">
+            {/* Display name */}
+            <div className="flex items-center gap-3 px-4 py-4">
+              <User size={18} className="text-muted flex-shrink-0" aria-hidden />
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5">
+                  Nombre
+                </p>
+                {editingName ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveName();
+                    }}
+                    className="flex items-center gap-2 mt-1"
+                  >
+                    <input
+                      type="text"
+                      autoFocus
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      placeholder="Tu nombre"
+                      maxLength={40}
+                      className="flex-1 h-10 px-3 rounded-lg border border-line bg-bg-alt font-body text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    <button
+                      type="submit"
+                      disabled={updateProfile.isPending}
+                      aria-label="Guardar nombre"
+                      className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-accent text-white hover:opacity-90 disabled:opacity-40 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelName}
+                      aria-label="Cancelar"
+                      className="inline-flex items-center justify-center h-10 w-10 rounded-lg border border-line text-muted hover:bg-bg-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      <X size={16} />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingName(true)}
+                    className="font-body text-sm text-ink text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+                  >
+                    {username ?? (
+                      <span className="text-muted italic">Añadir nombre</span>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Email (read-only) */}
+            <div className="flex items-center gap-3 px-4 py-4 border-t border-line">
               <Mail size={18} className="text-muted flex-shrink-0" aria-hidden />
               <div className="flex-1 min-w-0">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5">
@@ -54,13 +146,33 @@ export function AjustesClient({
                 <p className="font-body text-sm text-ink truncate">{email}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 px-4 py-4 bg-bg border-t border-line">
+
+            {/* Timezone */}
+            <div className="flex items-center gap-3 px-4 py-4 border-t border-line">
               <Globe size={18} className="text-muted flex-shrink-0" aria-hidden />
               <div className="flex-1 min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5">
+                <label
+                  htmlFor="timezone"
+                  className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5 block"
+                >
                   Zona horaria
-                </p>
-                <p className="font-body text-sm text-ink">{timezone}</p>
+                </label>
+                <select
+                  id="timezone"
+                  value={tz}
+                  onChange={(e) => handleChangeTz(e.target.value)}
+                  disabled={updateProfile.isPending}
+                  className="w-full font-body text-sm text-ink bg-transparent focus:outline-none focus:ring-2 focus:ring-accent rounded cursor-pointer disabled:opacity-60"
+                >
+                  {!COMMON_TIMEZONES.some((t) => t.value === tz) && (
+                    <option value={tz}>{tz}</option>
+                  )}
+                  {COMMON_TIMEZONES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -74,9 +186,7 @@ export function AjustesClient({
           <div
             className={clsx(
               "rounded-card p-5 border flex flex-col sm:flex-row sm:items-center gap-4",
-              isPremium
-                ? "bg-bg-alt border-accent/30"
-                : "bg-bg border-line"
+              isPremium ? "bg-bg-alt border-accent/30" : "bg-bg border-line"
             )}
           >
             <div className="flex items-start gap-3 flex-1">
@@ -123,11 +233,11 @@ export function AjustesClient({
           <button
             type="button"
             onClick={handleSignOut}
-            disabled={loading}
+            disabled={signingOut}
             className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg border border-line text-ink font-body text-sm hover:bg-bg-alt hover:border-accent/30 disabled:opacity-40 transition-colors w-full sm:w-auto self-start"
           >
             <LogOut size={16} />
-            {loading ? "Cerrando sesión..." : "Cerrar sesión"}
+            {signingOut ? "Cerrando sesión..." : "Cerrar sesión"}
           </button>
         </div>
       </section>

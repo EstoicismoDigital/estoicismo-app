@@ -12,15 +12,20 @@ export default async function AjustesPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan, timezone")
+    .select("plan, timezone, username")
     .eq("id", user.id)
-    .single<{ plan: "free" | "premium"; timezone: string }>();
+    .single<{
+      plan: "free" | "premium";
+      timezone: string;
+      username: string | null;
+    }>();
 
   return (
     <AjustesClient
       email={user.email ?? ""}
       plan={profile?.plan ?? "free"}
       timezone={profile?.timezone ?? "UTC"}
+      username={profile?.username ?? null}
     />
   );
 }
