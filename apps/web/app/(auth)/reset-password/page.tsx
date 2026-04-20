@@ -4,21 +4,29 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 
-export default function SignInPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
     setLoading(true);
     const supabase = getSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      setError("Email o contraseña incorrectos.");
+      setError("No pudimos actualizar la contraseña. El link puede haber expirado.");
       setLoading(false);
       return;
     }
@@ -29,47 +37,50 @@ export default function SignInPage() {
     <main className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <p className="font-mono text-xs uppercase tracking-widest text-accent mb-2">
-          ESTOICISMO DIGITAL
+          NUEVA CONTRASEÑA
         </p>
-        <h1 className="font-display text-4xl font-bold text-ink mb-1">
-          Bienvenido de vuelta.
+        <h1 className="font-display text-4xl font-bold text-ink mb-2">
+          Elige una nueva clave.
         </h1>
+        <p className="font-body text-muted text-sm mb-8">
+          Mínimo 8 caracteres.
+        </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="email"
-              className="font-mono text-xs uppercase tracking-widest text-muted"
-            >
-              EMAIL
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              required
-              autoComplete="email"
-              className="h-12 px-4 rounded-lg border border-line bg-bg-alt font-body text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-          </div>
-
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label
               htmlFor="password"
               className="font-mono text-xs uppercase tracking-widest text-muted"
             >
-              CONTRASEÑA
+              NUEVA CONTRASEÑA
             </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Tu contraseña"
+              placeholder="Mínimo 8 caracteres"
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
+              className="h-12 px-4 rounded-lg border border-line bg-bg-alt font-body text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="confirm"
+              className="font-mono text-xs uppercase tracking-widest text-muted"
+            >
+              CONFIRMAR
+            </label>
+            <input
+              id="confirm"
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Repite la contraseña"
+              required
+              autoComplete="new-password"
               className="h-12 px-4 rounded-lg border border-line bg-bg-alt font-body text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -85,22 +96,12 @@ export default function SignInPage() {
             disabled={loading}
             className="h-12 rounded-lg bg-accent text-white font-body font-medium text-base hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
-            {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+            {loading ? "Guardando..." : "Guardar contraseña"}
           </button>
 
           <p className="text-center font-body text-muted text-sm">
-            <Link
-              href="/forgot-password"
-              className="text-muted hover:text-ink hover:underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </p>
-
-          <p className="text-center font-body text-muted text-sm">
-            ¿No tienes cuenta?{" "}
-            <Link href="/sign-up" className="text-accent font-medium hover:underline">
-              Regístrate gratis
+            <Link href="/sign-in" className="text-accent font-medium hover:underline">
+              Volver a inicio de sesión
             </Link>
           </p>
         </form>
