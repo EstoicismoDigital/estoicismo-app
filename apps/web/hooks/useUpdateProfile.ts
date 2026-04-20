@@ -17,11 +17,19 @@ export function useUpdateProfile() {
         data: { user },
       } = await sb.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const { error } = await sb
-        .from("profiles")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update(input as any)
-        .eq("id", user.id);
+      // The local Database type isn't generator-shaped, so sb.rpc/.update
+      // overloads collapse to `never`. Narrow `.from("profiles").update` via a
+      // locally-typed view instead of `any` so we still get type safety on the
+      // payload shape.
+      type ProfilesUpdate = (
+        input: UpdateProfileInput
+      ) => {
+        eq: (column: "id", value: string) => Promise<{ error: unknown }>;
+      };
+      const profilesTable = sb.from("profiles") as unknown as {
+        update: ProfilesUpdate;
+      };
+      const { error } = await profilesTable.update(input).eq("id", user.id);
       if (error) throw error;
     },
     onSuccess: () => {
