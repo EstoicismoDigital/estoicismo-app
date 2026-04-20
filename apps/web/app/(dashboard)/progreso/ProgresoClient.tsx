@@ -11,7 +11,11 @@ import {
   type HabitLog,
 } from "@estoicismo/supabase";
 import { InsightsPanel } from "../../../components/habits/InsightsPanel";
-import { computeStreak, getTodayStr } from "../../../lib/dateUtils";
+import {
+  computeStreak,
+  computeLongestStreak,
+  getTodayStr,
+} from "../../../lib/dateUtils";
 
 function shiftDay(dateStr: string, deltaDays: number): string {
   const d = new Date(dateStr + "T00:00:00");
@@ -65,9 +69,19 @@ export function ProgresoClient() {
       const dates = logs
         .filter((l) => l.habit_id === h.id)
         .map((l) => l.completed_at);
-      return { habit: h, streak: computeStreak(dates), totalLogs: dates.length };
+      return {
+        habit: h,
+        streak: computeStreak(dates),
+        bestStreak: computeLongestStreak(dates),
+        totalLogs: dates.length,
+      };
     });
-    rows.sort((a, b) => b.streak - a.streak || b.totalLogs - a.totalLogs);
+    rows.sort(
+      (a, b) =>
+        b.streak - a.streak ||
+        b.bestStreak - a.bestStreak ||
+        b.totalLogs - a.totalLogs
+    );
     return rows;
   }, [habits, logs]);
 
@@ -119,7 +133,7 @@ export function ProgresoClient() {
                   role="list"
                   aria-label="Rachas por hábito"
                 >
-                  {perHabitStreaks.map(({ habit, streak, totalLogs }) => (
+                  {perHabitStreaks.map(({ habit, streak, bestStreak, totalLogs }) => (
                     <li key={habit.id}>
                       <Link
                         href={`/habitos/${habit.id}`}
@@ -141,6 +155,13 @@ export function ProgresoClient() {
                             {habit.name}
                           </p>
                           <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
+                            {bestStreak > 0 ? (
+                              <>
+                                Mejor: {bestStreak}{" "}
+                                {bestStreak === 1 ? "día" : "días"}
+                                {" · "}
+                              </>
+                            ) : null}
                             {totalLogs}{" "}
                             {totalLogs === 1 ? "registro" : "registros"} en 90d
                           </p>
