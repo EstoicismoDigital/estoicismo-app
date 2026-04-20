@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Habit, HabitLog } from "./types";
 
-type SB = SupabaseClient<Database>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SB = SupabaseClient<Database, any, any>;
 
 export type CreateHabitInput = {
   name: string;
