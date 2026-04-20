@@ -83,7 +83,7 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={loading}
-            className="h-12 rounded-lg bg-accent text-white font-body font-medium text-base hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="h-12 rounded-lg bg-accent text-bg font-body font-medium text-base hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
             {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>

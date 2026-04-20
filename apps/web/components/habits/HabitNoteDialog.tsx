@@ -142,7 +142,7 @@ export function HabitNoteDialog({
             <button
               type="submit"
               disabled={!canSave}
-              className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-accent text-white font-body font-medium text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 ease-out active:scale-[0.98]"
+              className="inline-flex items-center gap-2 h-11 px-6 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 ease-out active:scale-[0.98]"
             >
               {saving && <Loader2 size={16} className="animate-spin" />}
               Guardar

@@ -190,7 +190,7 @@ function PromptCard({ promptIndex }: { promptIndex: number }) {
       </p>
       <Link
         href="/notas"
-        className="inline-flex items-center justify-center gap-1.5 min-h-[44px] h-11 px-5 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="inline-flex items-center justify-center gap-1.5 min-h-[44px] h-11 px-5 rounded-lg bg-ink text-bg font-body text-sm hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <NotebookPen size={14} aria-hidden />
         Ver mis notas
@@ -293,7 +293,7 @@ function EmptyState() {
       </p>
       <Link
         href="/"
-        className="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-accent text-white font-body text-sm hover:opacity-90 transition-opacity"
+        className="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-accent text-bg font-body text-sm hover:opacity-90 transition-opacity"
       >
         Ir a Hoy
       </Link>

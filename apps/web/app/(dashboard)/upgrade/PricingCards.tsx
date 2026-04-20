@@ -100,7 +100,7 @@ export default function PricingCards() {
             type="button"
             onClick={() => handleCheckout("monthly")}
             disabled={loadingPlan !== null}
-            className="mt-auto min-h-[44px] h-12 rounded-lg border border-accent text-accent font-body font-medium text-base hover:bg-accent hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-40 transition-colors"
+            className="mt-auto min-h-[44px] h-12 rounded-lg border border-accent text-accent font-body font-medium text-base hover:bg-accent hover:text-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:opacity-40 transition-colors"
           >
             {loadingPlan === "monthly"
               ? "Redirigiendo..."
@@ -109,7 +109,7 @@ export default function PricingCards() {
         </div>
 
         {/* Annual — recommended */}
-        <div className="relative rounded-card bg-accent text-white p-6 sm:p-8 flex flex-col shadow-lg">
+        <div className="relative rounded-card bg-accent text-bg p-6 sm:p-8 flex flex-col shadow-lg">
           <div className="flex items-start justify-between mb-2">
             <p className="font-mono text-xs uppercase tracking-widest text-white/80">
               ANUAL

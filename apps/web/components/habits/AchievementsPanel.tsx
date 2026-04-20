@@ -93,7 +93,7 @@ export function AchievementsPanel({
             className={clsx(
               "inline-flex items-center min-h-[36px] h-9 px-3 rounded-full font-mono text-[10px] uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
               !showOnlyUnlocked
-                ? "bg-ink text-white"
+                ? "bg-ink text-bg"
                 : "bg-bg-alt text-muted hover:text-ink"
             )}
           >
@@ -107,7 +107,7 @@ export function AchievementsPanel({
             className={clsx(
               "inline-flex items-center min-h-[36px] h-9 px-3 rounded-full font-mono text-[10px] uppercase tracking-widest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
               showOnlyUnlocked
-                ? "bg-ink text-white"
+                ? "bg-ink text-bg"
                 : "bg-bg-alt text-muted hover:text-ink"
             )}
           >
@@ -158,7 +158,7 @@ function BadgeCard({ achievement }: { achievement: Achievement }) {
           className={clsx(
             "inline-flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0",
             achievement.unlocked
-              ? "bg-accent text-white"
+              ? "bg-accent text-bg"
               : "bg-bg-alt text-muted"
           )}
           aria-hidden

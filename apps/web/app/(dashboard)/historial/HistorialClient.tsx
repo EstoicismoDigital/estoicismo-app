@@ -89,7 +89,7 @@ function EmptyArchive() {
       </p>
       <Link
         href="/"
-        className="inline-flex items-center justify-center min-h-[44px] h-12 px-6 rounded-lg bg-ink text-white font-body font-medium text-base hover:opacity-90 transition-opacity"
+        className="inline-flex items-center justify-center min-h-[44px] h-12 px-6 rounded-lg bg-ink text-bg font-body font-medium text-base hover:opacity-90 transition-opacity"
       >
         Volver a mis hábitos
       </Link>

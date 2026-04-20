@@ -72,7 +72,7 @@ function PlanPill({ compact = false }: { compact?: boolean }) {
       className={clsx(
         "inline-flex items-center gap-1.5 rounded-full font-mono uppercase tracking-widest",
         compact ? "px-2 py-0.5 text-[9px]" : "px-2.5 py-1 text-[10px]",
-        isPremium ? "bg-accent text-white" : "bg-line text-muted"
+        isPremium ? "bg-accent text-bg" : "bg-line text-muted"
       )}
     >
       {isPremium ? (

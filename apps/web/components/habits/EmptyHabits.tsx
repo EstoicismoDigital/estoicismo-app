@@ -26,7 +26,7 @@ export function EmptyHabits({ onCreate }: { onCreate: () => void }) {
         <button
           type="button"
           onClick={onCreate}
-          className="inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-accent text-white font-body font-medium text-[15px] hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 min-w-[44px]"
+          className="inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-accent text-bg font-body font-medium text-[15px] hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 min-w-[44px]"
         >
           <Plus size={18} />
           Crear mi primer hábito

@@ -165,7 +165,7 @@ export function HabitDetailClient({ habitId }: { habitId: string }) {
           </h1>
           <Link
             href="/"
-            className="inline-flex items-center h-11 px-5 rounded-lg bg-accent text-white font-body text-sm hover:opacity-90"
+            className="inline-flex items-center h-11 px-5 rounded-lg bg-accent text-bg font-body text-sm hover:opacity-90"
           >
             Volver a Hoy
           </Link>

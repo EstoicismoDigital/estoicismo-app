@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Design tokens. Space-separated RGB channels so Tailwind v3's
+ * `rgb(var(--color-*) / <alpha-value>)` pattern works with classes
+ * like `bg-bg`, `border-line/40`, `text-accent/80`, etc.
+ *
+ * Dark palette is defined but not activated yet — a future
+ * ThemeProvider will toggle the `.dark` class on <html>.
+ */
+:root {
+  --color-bg: 255 255 255;
+  --color-bg-alt: 245 241 234;
+  --color-bg-deep: 10 10 10;
+  --color-ink: 10 10 10;
+  --color-muted: 94 94 94;
+  --color-line: 229 225 218;
+  --color-accent: 139 111 71;
+  --color-accent-soft: 201 168 122;
+  --color-success: 45 122 79;
+  --color-danger: 179 38 30;
+}
+
+.dark {
+  --color-bg: 15 16 20;
+  --color-bg-alt: 26 28 34;
+  --color-bg-deep: 0 0 0;
+  --color-ink: 242 239 232;
+  --color-muted: 155 151 143;
+  --color-line: 43 45 53;
+  --color-accent: 201 168 122;
+  --color-accent-soft: 139 111 71;
+  --color-success: 79 174 114;
+  --color-danger: 235 90 83;
+}

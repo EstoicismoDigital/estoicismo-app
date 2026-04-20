@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,16 +10,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#FFFFFF",
-        "bg-alt": "#F5F1EA",
-        "bg-deep": "#0A0A0A",
-        ink: "#0A0A0A",
-        muted: "#5E5E5E",
-        line: "#E5E1DA",
-        accent: "#8B6F47",
-        "accent-soft": "#C9A87A",
-        success: "#2D7A4F",
-        danger: "#B3261E",
+        bg: "rgb(var(--color-bg) / <alpha-value>)",
+        "bg-alt": "rgb(var(--color-bg-alt) / <alpha-value>)",
+        "bg-deep": "rgb(var(--color-bg-deep) / <alpha-value>)",
+        ink: "rgb(var(--color-ink) / <alpha-value>)",
+        muted: "rgb(var(--color-muted) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-soft": "rgb(var(--color-accent-soft) / <alpha-value>)",
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        danger: "rgb(var(--color-danger) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-lora)", "Georgia", "serif"],

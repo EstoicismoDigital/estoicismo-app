@@ -24,7 +24,7 @@ export default async function UpgradeSuccessPage({
 
         <Link
           href="/"
-          className="inline-flex items-center justify-center min-h-[44px] h-12 px-6 rounded-lg bg-accent text-white font-body font-medium text-base hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 transition-opacity"
+          className="inline-flex items-center justify-center min-h-[44px] h-12 px-6 rounded-lg bg-accent text-bg font-body font-medium text-base hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 transition-opacity"
         >
           Ir a mi dashboard
         </Link>

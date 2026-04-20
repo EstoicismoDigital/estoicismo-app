@@ -61,9 +61,21 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Inline boot script: applies the `dark` class on <html> before React hydrates
+// so the user never sees a flash of the wrong theme (FOUC).
+// Kept as a string so Next.js inlines it verbatim.
+const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}if(d){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${lora.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={`${lora.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="bg-bg text-ink font-body antialiased">
         <QueryProvider>
           {children}

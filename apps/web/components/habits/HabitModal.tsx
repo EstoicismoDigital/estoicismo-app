@@ -303,7 +303,7 @@ export function HabitModal({
                       className={clsx(
                         "flex-1 h-10 rounded-lg border font-mono text-xs font-medium transition-colors duration-150 ease-out min-w-[36px]",
                         selected
-                          ? "border-accent bg-accent text-white"
+                          ? "border-accent bg-accent text-bg"
                           : "border-line text-muted hover:border-accent/40"
                       )}
                     >
@@ -344,7 +344,7 @@ export function HabitModal({
             <button
               type="submit"
               disabled={!canSave || saving}
-              className="inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-accent text-white font-body font-medium text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 ease-out active:scale-[0.98]"
+              className="inline-flex items-center gap-2 h-12 px-6 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 ease-out active:scale-[0.98]"
             >
               {saving && <Loader2 size={16} className="animate-spin" />}
               {editing ? "Guardar" : "Crear hábito"}

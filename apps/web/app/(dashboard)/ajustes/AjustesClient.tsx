@@ -20,6 +20,7 @@ import {
   COMMON_TIMEZONES,
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
+import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 
 export function AjustesClient({
   email,
@@ -120,7 +121,7 @@ export function AjustesClient({
                       type="submit"
                       disabled={updateProfile.isPending}
                       aria-label="Guardar nombre"
-                      className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-accent text-white hover:opacity-90 disabled:opacity-40 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-accent text-bg hover:opacity-90 disabled:opacity-40 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       <Check size={16} />
                     </button>
@@ -204,7 +205,7 @@ export function AjustesClient({
               <span
                 className={clsx(
                   "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                  isPremium ? "bg-accent text-white" : "bg-line text-muted"
+                  isPremium ? "bg-accent text-bg" : "bg-line text-muted"
                 )}
               >
                 <Crown size={16} />
@@ -227,12 +228,29 @@ export function AjustesClient({
             {!isPremium && (
               <Link
                 href="/upgrade"
-                className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg bg-accent text-white font-body font-medium text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
               >
                 <Crown size={14} />
                 Actualizar a Premium
               </Link>
             )}
+          </div>
+        </div>
+
+        {/* Appearance */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Apariencia
+          </p>
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">Tema</h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                Claro, oscuro, o siguiendo a tu sistema. Tu elección se guarda
+                en este navegador.
+              </p>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
 

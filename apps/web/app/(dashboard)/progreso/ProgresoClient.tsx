@@ -281,7 +281,7 @@ function EmptyProgress() {
       </p>
       <a
         href="/"
-        className="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-accent text-white font-body text-sm hover:opacity-90 transition-opacity"
+        className="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-accent text-bg font-body text-sm hover:opacity-90 transition-opacity"
       >
         Ir a Hoy
       </a>
