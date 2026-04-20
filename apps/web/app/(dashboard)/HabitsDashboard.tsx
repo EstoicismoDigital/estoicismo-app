@@ -1,0 +1,177 @@
+"use client";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
+import { DailyHeader } from "../../components/habits/DailyHeader";
+import { HabitRow } from "../../components/habits/HabitRow";
+import { EmptyHabits } from "../../components/habits/EmptyHabits";
+import { HabitModal } from "../../components/habits/HabitModal";
+import {
+  useHabits,
+  useToggleHabit,
+  useCreateHabit,
+  useUpdateHabit,
+  useArchiveHabit,
+} from "../../hooks/useHabits";
+import { useProfile } from "../../hooks/useProfile";
+import { getTodayStr } from "../../lib/dateUtils";
+import type { Habit, CreateHabitInput } from "@estoicismo/supabase";
+
+const FREE_TIER_LIMIT = 3;
+
+function HabitRowSkeleton() {
+  return (
+    <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-card bg-bg border border-line">
+      <div className="w-12 h-12 rounded-full bg-bg-alt animate-pulse" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-2/5 rounded bg-bg-alt animate-pulse" />
+        <div className="h-3 w-1/4 rounded bg-bg-alt/70 animate-pulse" />
+      </div>
+      <div className="hidden sm:flex items-center gap-2">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div
+            key={i}
+            className="w-6 h-6 rounded-full bg-bg-alt animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HabitsDashboard() {
+  const router = useRouter();
+  const { habits, logs, isLoading } = useHabits();
+  const { data: profile } = useProfile();
+  const toggle = useToggleHabit();
+  const createM = useCreateHabit();
+  const updateM = useUpdateHabit();
+  const archiveM = useArchiveHabit();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Habit | null>(null);
+
+  const today = getTodayStr();
+  const completedToday = useMemo(
+    () =>
+      new Set(logs.filter((l) => l.completed_at === today).map((l) => l.habit_id))
+        .size,
+    [logs, today]
+  );
+
+  function openNew() {
+    const isPremium = profile?.plan === "premium";
+    if (!isPremium && habits.length >= FREE_TIER_LIMIT) {
+      router.push("/upgrade");
+      return;
+    }
+    setEditing(null);
+    setModalOpen(true);
+  }
+
+  function openEdit(habit: Habit) {
+    setEditing(habit);
+    setModalOpen(true);
+  }
+
+  async function handleSave(input: CreateHabitInput) {
+    if (editing) {
+      await updateM.mutateAsync({ id: editing.id, input });
+    } else {
+      await createM.mutateAsync(input);
+    }
+    setModalOpen(false);
+    setEditing(null);
+  }
+
+  return (
+    <div className="min-h-screen bg-bg pb-24">
+      <DailyHeader
+        completedToday={completedToday}
+        totalHabits={habits.length}
+      />
+
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="flex items-baseline justify-between mb-5 sm:mb-6">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+              Tus hábitos
+            </p>
+            <h2 className="font-display italic text-2xl sm:text-3xl text-ink">
+              Hoy
+            </h2>
+          </div>
+          {habits.length > 0 && (
+            <button
+              type="button"
+              onClick={openNew}
+              className="hidden sm:inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <Plus size={16} />
+              Nuevo
+            </button>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex flex-col gap-2.5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <HabitRowSkeleton key={i} />
+            ))}
+          </div>
+        ) : habits.length === 0 ? (
+          <EmptyHabits onCreate={openNew} />
+        ) : (
+          <ul className="flex flex-col gap-2.5" role="list">
+            {habits.map((habit) => (
+              <li key={habit.id}>
+                <HabitRow
+                  habit={habit}
+                  logs={logs}
+                  onToggle={(h, isCompleted) =>
+                    toggle.mutate({ habitId: h.id, isCompleted })
+                  }
+                  onEdit={openEdit}
+                  onArchive={(h) => archiveM.mutate(h.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {habits.length > 0 &&
+          profile?.plan !== "premium" &&
+          habits.length >= FREE_TIER_LIMIT && (
+            <p className="text-center font-body text-xs text-muted mt-6">
+              Has alcanzado el límite gratuito. Actualiza a{" "}
+              <a href="/upgrade" className="text-accent font-medium hover:underline">
+                Premium
+              </a>{" "}
+              para añadir más.
+            </p>
+          )}
+      </section>
+
+      {/* FAB */}
+      <button
+        type="button"
+        onClick={openNew}
+        aria-label="Crear nuevo hábito"
+        className="sm:hidden fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full bg-accent text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] flex items-center justify-center hover:opacity-95 active:scale-95 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      >
+        <Plus size={24} />
+      </button>
+
+      <HabitModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditing(null);
+        }}
+        onSave={handleSave}
+        editing={editing}
+        saving={createM.isPending || updateM.isPending}
+      />
+    </div>
+  );
+}
