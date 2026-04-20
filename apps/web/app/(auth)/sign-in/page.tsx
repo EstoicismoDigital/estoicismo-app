@@ -22,7 +22,7 @@ export default function SignInPage() {
       setLoading(false);
       return;
     }
-    router.push("/dashboard");
+    router.push("/");
   }
 
   return (
