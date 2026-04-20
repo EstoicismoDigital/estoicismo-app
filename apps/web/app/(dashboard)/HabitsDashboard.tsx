@@ -42,6 +42,7 @@ import {
 import { useProfile } from "../../hooks/useProfile";
 import { computeStreak, getTodayStr } from "../../lib/dateUtils";
 import { findCrossedMilestone } from "../../lib/streakMilestones";
+import { hapticCelebrate } from "../../lib/haptics";
 import type { Habit, CreateHabitInput } from "@estoicismo/supabase";
 
 const FREE_TIER_LIMIT = 3;
@@ -127,6 +128,7 @@ export function HabitsDashboard() {
         description: "El filósofo actúa, no solo contempla.",
         duration: 4000,
       });
+      hapticCelebrate();
     }
     prevCompleteRef.current = isAllDone;
   }, [completedToday, dueToday]);
@@ -153,6 +155,7 @@ export function HabitsDashboard() {
             description: milestone.description,
             duration: 5500,
           });
+          hapticCelebrate();
         }
       }
     }

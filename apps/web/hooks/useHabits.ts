@@ -16,6 +16,7 @@ import {
 } from "@estoicismo/supabase";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
 import { getCurrentWeekDays, getTodayStr } from "../lib/dateUtils";
+import { hapticSoftBump, hapticTap } from "../lib/haptics";
 
 async function getUserId(): Promise<string> {
   const sb = getSupabaseBrowserClient();
@@ -172,6 +173,15 @@ export function useToggleHabit() {
         }
       }
       toast.error("No se pudo guardar. Intenta de nuevo.");
+    },
+    // Haptic confirmation runs on success (not onMutate) so users don't
+    // feel a buzz for toggles that end up rolling back on network error.
+    // We distinguish complete vs uncomplete — `isCompleted` in the vars
+    // reflects the STATE BEFORE the toggle, so `true` = "was done, now
+    // undoing" (soft bump), `false` = "was undone, now done" (tap).
+    onSuccess: (_d, vars) => {
+      if (vars.isCompleted) hapticSoftBump();
+      else hapticTap();
     },
     onSettled: (_d, _e, vars) => {
       qc.invalidateQueries({ queryKey: ["habit-logs"] });
