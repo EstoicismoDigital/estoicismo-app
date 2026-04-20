@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import * as habitsLib from '../lib/habits';
 import {
+  requestPermissions,
   scheduleHabitNotification,
   cancelHabitNotification,
 } from '../lib/notifications';
@@ -127,7 +128,8 @@ export function useCreateHabit() {
       const userId = await getUserId();
       const habit = await habitsLib.createHabit(userId, input);
       if (input.reminder_time) {
-        await scheduleHabitNotification(habit);
+        const granted = await requestPermissions();
+        if (granted) await scheduleHabitNotification(habit);
       }
       return habit;
     },
@@ -156,7 +158,8 @@ export function useUpdateHabit() {
       const habit = await habitsLib.updateHabit(id, input);
       await cancelHabitNotification(id);
       if (habit.reminder_time) {
-        await scheduleHabitNotification(habit);
+        const granted = await requestPermissions();
+        if (granted) await scheduleHabitNotification(habit);
       }
       return habit;
     },
