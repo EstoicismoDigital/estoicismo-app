@@ -24,17 +24,16 @@ function parseTime(time: string): { hour: number; minute: number } {
   return { hour: h, minute: m };
 }
 
-// Weekday numbers for expo-notifications (1 = Sun, 2 = Mon, ..., 7 = Sat)
-const WEEKLY_DAYS: Record<number, number[]> = {
-  3: [2, 4, 6], // Mon, Wed, Fri
-  4: [2, 3, 5, 6], // Mon, Tue, Thu, Fri
-  5: [2, 3, 4, 5, 6], // Mon–Fri
-};
+// JS getDay() returns 0 (Sun) .. 6 (Sat).
+// expo-notifications weekday is 1 (Sun) .. 7 (Sat).
+function jsDayToExpoWeekday(jsDay: number): number {
+  return ((jsDay % 7) + 1);
+}
 
 /**
  * Schedules local notification(s) for a habit.
- * - Daily habit → one daily notification at reminder_time.
- * - Weekly habit → one notification per active weekday.
+ * - Daily habit or legacy "weekly" string → one daily notification at reminder_time.
+ * - { days: number[] } frequency → one notification per active JS weekday (0=Sun..6=Sat).
  * Cancels any existing notifications for this habit first.
  */
 export async function scheduleHabitNotification(habit: Habit): Promise<void> {
@@ -44,25 +43,35 @@ export async function scheduleHabitNotification(habit: Habit): Promise<void> {
   const { hour, minute } = parseTime(habit.reminder_time);
   const body = `Es hora de: ${habit.icon} ${habit.name}`;
 
-  if (habit.frequency === 'daily') {
+  // Daily: single repeating daily trigger.
+  if (habit.frequency === 'daily' || habit.frequency === 'weekly') {
     await Notifications.scheduleNotificationAsync({
       identifier: `habit-${habit.id}`,
       content: { title: 'Hábito pendiente', body },
       trigger: { type: 'daily', hour, minute } as unknown as Notifications.NotificationTriggerInput,
     });
-  } else {
-    const { times } = habit.frequency as { times: number; period: 'week' };
-    const weekdays = WEEKLY_DAYS[times] ?? WEEKLY_DAYS[3];
-    await Promise.all(
-      weekdays.map((weekday) =>
-        Notifications.scheduleNotificationAsync({
-          identifier: `habit-${habit.id}-day${weekday}`,
-          content: { title: 'Hábito pendiente', body },
-          trigger: { type: 'weekly', weekday, hour, minute } as unknown as Notifications.NotificationTriggerInput,
-        }),
-      ),
-    );
+    return;
   }
+
+  // Specific days: one weekly trigger per day.
+  const freq = habit.frequency as { days: number[] };
+  if (!Array.isArray(freq.days) || freq.days.length === 0) return;
+
+  await Promise.all(
+    freq.days.map((jsDay) => {
+      const weekday = jsDayToExpoWeekday(jsDay);
+      return Notifications.scheduleNotificationAsync({
+        identifier: `habit-${habit.id}-day${weekday}`,
+        content: { title: 'Hábito pendiente', body },
+        trigger: {
+          type: 'weekly',
+          weekday,
+          hour,
+          minute,
+        } as unknown as Notifications.NotificationTriggerInput,
+      });
+    }),
+  );
 }
 
 /**
