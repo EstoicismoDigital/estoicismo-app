@@ -11,6 +11,7 @@ import {
   type HabitLog,
 } from "@estoicismo/supabase";
 import { InsightsPanel } from "../../../components/habits/InsightsPanel";
+import { AchievementsPanel } from "../../../components/habits/AchievementsPanel";
 import {
   computeStreak,
   computeLongestStreak,
@@ -195,6 +196,9 @@ export function ProgresoClient() {
                 </ul>
               )}
             </div>
+
+            {/* Achievements */}
+            <AchievementsPanel habits={habits} logs={logs} />
 
             {/* Heatmap */}
             <div>
