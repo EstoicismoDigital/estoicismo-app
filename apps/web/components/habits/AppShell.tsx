@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   Archive,
+  TrendingUp,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
@@ -21,6 +22,7 @@ type NavItem = { href: string; label: string; Icon: typeof Home };
 const NAV: NavItem[] = [
   { href: "/", label: "Hoy", Icon: Home },
   { href: "/calendario", label: "Calendario", Icon: Calendar },
+  { href: "/progreso", label: "Progreso", Icon: TrendingUp },
   { href: "/historial", label: "Historial", Icon: Archive },
   { href: "/upgrade", label: "Premium", Icon: Crown },
   { href: "/ajustes", label: "Ajustes", Icon: Settings },
