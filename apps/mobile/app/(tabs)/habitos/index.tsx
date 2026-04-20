@@ -15,6 +15,7 @@ import { Text, colors, spacing, fontFamilies, fontSizes } from '@estoicismo/ui';
 import { HabitCard } from '../../../components/habits/HabitCard';
 import { EmptyHabits } from '../../../components/habits/EmptyHabits';
 import { HabitModal } from '../../../components/habits/HabitModal';
+import { PaywallModal } from '../../../components/premium/PaywallModal';
 import {
   useHabits,
   useToggleHabit,
@@ -23,6 +24,7 @@ import {
   useArchiveHabit,
   useDailyQuote,
 } from '../../../hooks/useHabits';
+import { useProfile } from '../../../hooks/useProfile';
 import { getHeaderDateStr, getTodayStr } from '../../../lib/dateUtils';
 import type { Habit, CreateHabitInput } from '../../../types/habits';
 
@@ -36,9 +38,13 @@ export default function HabitosScreen() {
   const { mutate: createHabit, isPending: creating } = useCreateHabit();
   const { mutate: updateHabit, isPending: updating } = useUpdateHabit();
   const { mutate: archiveHabit } = useArchiveHabit();
+  const { data: profile } = useProfile();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | undefined>(undefined);
+  const [paywallVisible, setPaywallVisible] = useState(false);
+
+  const isPremium = profile?.plan === 'premium';
 
   const today = getTodayStr();
   const completedToday = habits.filter((h) =>
@@ -46,12 +52,8 @@ export default function HabitosScreen() {
   ).length;
 
   function handleFABPress() {
-    if (habits.length >= FREE_HABIT_LIMIT) {
-      Alert.alert(
-        'Límite alcanzado',
-        'El plan gratuito permite hasta 3 hábitos activos. Próximamente podrás desbloquear más.',
-        [{ text: 'Entendido' }],
-      );
+    if (!isPremium && habits.length >= FREE_HABIT_LIMIT) {
+      setPaywallVisible(true);
       return;
     }
     setEditingHabit(undefined);
@@ -162,6 +164,12 @@ export default function HabitosScreen() {
         onClose={() => setModalVisible(false)}
         onSave={handleSave}
         loading={creating || updating}
+      />
+
+      {/* Paywall */}
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
       />
     </View>
   );
