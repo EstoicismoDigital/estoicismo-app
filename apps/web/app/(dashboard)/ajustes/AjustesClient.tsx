@@ -22,6 +22,7 @@ import {
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
+import { InstallAppCard } from "../../../components/habits/InstallAppCard";
 
 export function AjustesClient({
   email,
@@ -261,6 +262,10 @@ export function AjustesClient({
             Notificaciones
           </p>
           <NotificationsSettingsCard />
+          {/* Renders null on platforms where install isn't available.
+              Important for iOS: push notifications require the app to
+              be installed as a PWA, so this pairs with the card above. */}
+          <InstallAppCard />
         </div>
 
         {/* App */}
