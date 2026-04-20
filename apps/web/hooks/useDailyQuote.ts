@@ -4,18 +4,26 @@ import { getSupabaseBrowserClient } from "../lib/supabase-client";
 
 const FALLBACK = { text: "El obstáculo es el camino.", author: "Marco Aurelio" };
 
+type QuoteRow = { text: string; author: string };
+
 export function useDailyQuote() {
-  return useQuery<{ text: string; author: string }>({
+  return useQuery<QuoteRow>({
     queryKey: ["daily-quote"],
     queryFn: async () => {
       const sb = getSupabaseBrowserClient();
-      const { data, error } = await sb
-        .from("stoic_quotes")
-        .select("text, author")
-        .eq("language", "es");
-      if (error || !data?.length) return FALLBACK;
-      const idx = new Date().getDate() % data.length;
-      return data[idx] as { text: string; author: string };
+      // The project's local `Database` type doesn't declare RPCs, so the
+      // generic `rpc` overload would resolve without args. We narrow to a
+      // locally-typed view of `sb.rpc` to safely pass `p_language`.
+      type RpcFn = (
+        fn: "get_daily_quote",
+        args: { p_language: string }
+      ) => Promise<{ data: QuoteRow[] | null; error: unknown }>;
+      const rpc = sb.rpc as unknown as RpcFn;
+      const { data, error } = await rpc("get_daily_quote", { p_language: "es" });
+      if (error) return FALLBACK;
+      const row = Array.isArray(data) ? data[0] : null;
+      if (!row?.text || !row?.author) return FALLBACK;
+      return { text: row.text, author: row.author };
     },
     staleTime: Infinity,
   });
