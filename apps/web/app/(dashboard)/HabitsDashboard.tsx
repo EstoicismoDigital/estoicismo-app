@@ -29,6 +29,7 @@ import {
   isHabitDueOn,
 } from "../../components/habits/TodayTimeline";
 import { InsightsPanel } from "../../components/habits/InsightsPanel";
+import { CelebrationOverlay } from "../../components/habits/CelebrationOverlay";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   useHabits,
@@ -120,6 +121,13 @@ export function HabitsDashboard() {
   );
 
   // Celebrate when the user crosses from "incomplete" to "all done".
+  //
+  // Three payloads fire together on the crossing: a toast (for the
+  // eyes), a haptic pulse (for the thumb), and a nonce bump that
+  // tells <CelebrationOverlay> to burst a fresh set of emoji. The
+  // nonce is strictly increasing so the overlay can use it as its
+  // React key — re-firing the animation is just `n + 1`.
+  const [celebrationNonce, setCelebrationNonce] = useState(0);
   const prevCompleteRef = useRef(false);
   useEffect(() => {
     const isAllDone = dueToday > 0 && completedToday >= dueToday;
@@ -129,6 +137,7 @@ export function HabitsDashboard() {
         duration: 4000,
       });
       hapticCelebrate();
+      setCelebrationNonce((n) => n + 1);
     }
     prevCompleteRef.current = isAllDone;
   }, [completedToday, dueToday]);
@@ -374,6 +383,11 @@ export function HabitsDashboard() {
         onClose={() => setNoteTarget(null)}
         saving={noteM.isPending}
       />
+
+      {/* Visual burst of sparks when the last habit of the day lands.
+          Key'd on the nonce so each crossing plays a fresh animation.
+          Honors prefers-reduced-motion internally. */}
+      <CelebrationOverlay nonce={celebrationNonce} />
     </div>
   );
 }
