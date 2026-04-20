@@ -11,6 +11,7 @@ import {
   Archive,
   TrendingUp,
   NotebookPen,
+  CalendarClock,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
@@ -23,6 +24,7 @@ const NAV: NavItem[] = [
   { href: "/", label: "Hoy", Icon: Home },
   { href: "/calendario", label: "Calendario", Icon: Calendar },
   { href: "/progreso", label: "Progreso", Icon: TrendingUp },
+  { href: "/revision", label: "Revisión semanal", Icon: CalendarClock },
   { href: "/notas", label: "Notas", Icon: NotebookPen },
   { href: "/historial", label: "Historial", Icon: Archive },
   { href: "/upgrade", label: "Premium", Icon: Crown },

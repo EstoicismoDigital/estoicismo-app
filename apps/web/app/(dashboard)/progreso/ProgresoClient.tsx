@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Flame, ChevronRight } from "lucide-react";
+import { Flame, ChevronRight, CalendarClock } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 import {
   fetchHabits,
@@ -115,6 +115,35 @@ export function ProgresoClient() {
           <>
             {/* Reuse the insights panel card set but strip its own heading */}
             <InsightsPanel habits={habits} logs={logs} />
+
+            {/* Weekly review CTA */}
+            <Link
+              href="/revision"
+              className="group flex items-center gap-4 rounded-card bg-bg-deep text-white p-5 sm:p-6 hover:opacity-95 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <span
+                aria-hidden
+                className="flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-full bg-accent/20 text-accent"
+              >
+                <CalendarClock size={18} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-0.5">
+                  Revisión semanal
+                </p>
+                <h3 className="font-display italic text-xl text-white leading-tight">
+                  Mira lo que pasó estos 7 días
+                </h3>
+                <p className="font-body text-[13px] text-white/60 mt-1 leading-snug">
+                  Un resumen con una pregunta estoica para pensar.
+                </p>
+              </div>
+              <ChevronRight
+                size={18}
+                className="text-white/60 group-hover:text-accent transition-colors"
+                aria-hidden
+              />
+            </Link>
 
             {/* Per-habit active streaks */}
             <div>
