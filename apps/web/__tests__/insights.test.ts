@@ -92,4 +92,40 @@ describe("computeInsights", () => {
     // Only 0 or 1 Monday in a Mon-Sun week (always 1), and only counts if <= today
     expect(res.weeklyTotal).toBeLessThanOrEqual(1);
   });
+
+  it("longestStreak is best-ever, not current-active", () => {
+    // Past run: 5 consecutive days, 40-44 days ago
+    // Current run: broken (nothing in the last 30+ days)
+    // So current streak = 0, but best-ever = 5.
+    const habits = [makeHabit({ id: "h1" })];
+    const logs: HabitLog[] = [
+      makeLog("h1", daysAgo(44)),
+      makeLog("h1", daysAgo(43)),
+      makeLog("h1", daysAgo(42)),
+      makeLog("h1", daysAgo(41)),
+      makeLog("h1", daysAgo(40)),
+    ];
+    const today = getTodayStr();
+    const res = computeInsights(habits, logs, today);
+    expect(res.longestStreak).toBe(5);
+  });
+
+  it("longestStreak takes the max across multiple habits", () => {
+    // Habit A has a 3-day run; Habit B has a 7-day run — result = 7.
+    const habits = [
+      makeHabit({ id: "hA" }),
+      makeHabit({ id: "hB" }),
+    ];
+    const logs: HabitLog[] = [
+      // A: 20,21,22 days ago
+      makeLog("hA", daysAgo(20)),
+      makeLog("hA", daysAgo(21)),
+      makeLog("hA", daysAgo(22)),
+      // B: 10..16 days ago (7 consecutive)
+      ...Array.from({ length: 7 }, (_, i) => makeLog("hB", daysAgo(10 + i))),
+    ];
+    const today = getTodayStr();
+    const res = computeInsights(habits, logs, today);
+    expect(res.longestStreak).toBe(7);
+  });
 });

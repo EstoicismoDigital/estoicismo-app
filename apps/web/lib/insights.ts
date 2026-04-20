@@ -1,8 +1,12 @@
 import type { Habit, HabitLog } from "@estoicismo/supabase";
-import { computeStreak, getCurrentWeekDays } from "./dateUtils";
+import { computeLongestStreak, getCurrentWeekDays } from "./dateUtils";
 
 export type Insights = {
-  /** Longest active streak across all habits. */
+  /**
+   * Longest uninterrupted run of days across all habits, anywhere in the
+   * provided log history. This is the "best ever" streak, not the current
+   * active one — mirroring the UX copy "Racha más larga".
+   */
   longestStreak: number;
   /** Logs completed within the current Monday–Sunday week. */
   weeklyCompleted: number;
@@ -40,13 +44,13 @@ export function computeInsights(
   logs: HabitLog[],
   today: string
 ): Insights {
-  // Longest streak
+  // Best-ever streak across all habits (not just currently active).
   let longestStreak = 0;
   for (const habit of habits) {
     const dates = logs
       .filter((l) => l.habit_id === habit.id)
       .map((l) => l.completed_at);
-    const s = computeStreak(dates);
+    const s = computeLongestStreak(dates);
     if (s > longestStreak) longestStreak = s;
   }
 
