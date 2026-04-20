@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0F1014"/>
+  <!-- Column capital -->
+  <rect x="176" y="96" width="160" height="32" rx="8" fill="#8B6F47"/>
+  <!-- Column shaft -->
+  <rect x="224" y="128" width="64" height="256" rx="8" fill="#8B6F47"/>
+  <!-- Column base -->
+  <rect x="176" y="384" width="160" height="32" rx="8" fill="#8B6F47"/>
+</svg>
