@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Lora, Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
+import { QueryProvider } from "../components/providers/QueryProvider";
 import "./globals.css";
 
 const lora = Lora({
@@ -30,7 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${lora.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-bg text-ink font-body antialiased">
-        {children}
+        <QueryProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </QueryProvider>
       </body>
     </html>
   );
