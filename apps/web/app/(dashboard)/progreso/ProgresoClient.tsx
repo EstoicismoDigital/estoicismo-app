@@ -1,7 +1,8 @@
 "use client";
 import { useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Flame } from "lucide-react";
+import { Flame, ChevronRight } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 import {
   fetchHabits,
@@ -119,47 +120,55 @@ export function ProgresoClient() {
                   aria-label="Rachas por hábito"
                 >
                   {perHabitStreaks.map(({ habit, streak, totalLogs }) => (
-                    <li
-                      key={habit.id}
-                      className="flex items-center gap-3 px-4 py-3 rounded-card bg-bg-alt border border-line/60"
-                    >
-                      <div
-                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                        style={{
-                          backgroundColor: `${habit.color}22`,
-                          color: habit.color,
-                        }}
-                        aria-hidden
+                    <li key={habit.id}>
+                      <Link
+                        href={`/habitos/${habit.id}`}
+                        className="group flex items-center gap-3 px-4 py-3 rounded-card bg-bg-alt border border-line/60 hover:border-accent/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        aria-label={`Ver detalle de ${habit.name}`}
                       >
-                        <span>{habit.icon}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-body text-sm text-ink truncate">
-                          {habit.name}
-                        </p>
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
-                          {totalLogs}{" "}
-                          {totalLogs === 1 ? "registro" : "registros"} en 90d
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 inline-flex items-baseline gap-1">
-                        {streak > 0 && (
-                          <Flame
-                            size={14}
-                            className="text-accent self-center"
-                            aria-hidden
-                          />
-                        )}
-                        <span
-                          className="font-display text-2xl text-ink tabular-nums leading-none"
-                          aria-label={`Racha: ${streak} ${streak === 1 ? "día" : "días"}`}
+                        <div
+                          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                          style={{
+                            backgroundColor: `${habit.color}22`,
+                            color: habit.color,
+                          }}
+                          aria-hidden
                         >
-                          {streak}
-                        </span>
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                          {streak === 1 ? "día" : "días"}
-                        </span>
-                      </div>
+                          <span>{habit.icon}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-body text-sm text-ink truncate">
+                            {habit.name}
+                          </p>
+                          <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
+                            {totalLogs}{" "}
+                            {totalLogs === 1 ? "registro" : "registros"} en 90d
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0 inline-flex items-baseline gap-1">
+                          {streak > 0 && (
+                            <Flame
+                              size={14}
+                              className="text-accent self-center"
+                              aria-hidden
+                            />
+                          )}
+                          <span
+                            className="font-display text-2xl text-ink tabular-nums leading-none"
+                            aria-label={`Racha: ${streak} ${streak === 1 ? "día" : "días"}`}
+                          >
+                            {streak}
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                            {streak === 1 ? "día" : "días"}
+                          </span>
+                        </div>
+                        <ChevronRight
+                          size={16}
+                          className="text-muted group-hover:text-accent transition-colors"
+                          aria-hidden
+                        />
+                      </Link>
                     </li>
                   ))}
                 </ul>

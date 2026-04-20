@@ -235,6 +235,7 @@ export function HabitsDashboard() {
                     onEdit={openEdit}
                     onArchive={requestArchive}
                     onNote={openNote}
+                    onViewDetail={(h) => router.push(`/habitos/${h.id}`)}
                   />
                 </li>
               ))}

@@ -7,6 +7,7 @@ export function HabitContextMenu({
   onEdit,
   onArchive,
   onNote,
+  onViewDetail,
   hasNote,
 }: {
   open: boolean;
@@ -15,6 +16,8 @@ export function HabitContextMenu({
   onArchive: () => void;
   /** Optional. If omitted, the "note" entry is hidden. */
   onNote?: () => void;
+  /** Optional. If omitted, the "view detail" entry is hidden. */
+  onViewDetail?: () => void;
   hasNote?: boolean;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -45,6 +48,19 @@ export function HabitContextMenu({
       role="menu"
       className="absolute top-full right-3 mt-1 z-20 bg-bg border border-line rounded-card shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden min-w-[160px] animate-in fade-in slide-in-from-top-1 duration-150"
     >
+      {onViewDetail && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            onClose();
+            onViewDetail();
+          }}
+          className="w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors"
+        >
+          Ver detalle
+        </button>
+      )}
       {onNote && (
         <button
           type="button"
@@ -53,7 +69,7 @@ export function HabitContextMenu({
             onClose();
             onNote();
           }}
-          className="w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors"
+          className={`w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors${onViewDetail ? " border-t border-line" : ""}`}
         >
           {hasNote ? "Editar nota" : "Añadir nota"}
         </button>
@@ -65,7 +81,7 @@ export function HabitContextMenu({
           onClose();
           onEdit();
         }}
-        className={`w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors${onNote ? " border-t border-line" : ""}`}
+        className={`w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors${onNote || onViewDetail ? " border-t border-line" : ""}`}
       >
         Editar
       </button>

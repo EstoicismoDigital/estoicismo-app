@@ -13,6 +13,7 @@ export function HabitRow({
   onEdit,
   onArchive,
   onNote,
+  onViewDetail,
 }: {
   habit: Habit;
   logs: HabitLog[];
@@ -21,6 +22,8 @@ export function HabitRow({
   onArchive: (habit: Habit) => void;
   /** Optional. Opens the note dialog for today's log. Ignored if habit isn't completed today. */
   onNote?: (habit: Habit, currentNote: string | null) => void;
+  /** Optional. Navigates to the habit's detail page. */
+  onViewDetail?: (habit: Habit) => void;
 }) {
   const today = getTodayStr();
   const habitLogs = logs.filter((l) => l.habit_id === habit.id);
@@ -158,6 +161,7 @@ export function HabitRow({
             ? () => onNote(habit, noteForToday)
             : undefined
         }
+        onViewDetail={onViewDetail ? () => onViewDetail(habit) : undefined}
         hasNote={hasNote}
       />
     </div>
