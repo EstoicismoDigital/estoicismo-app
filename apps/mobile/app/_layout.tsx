@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
 import { supabase } from "../lib/supabase";
+import { initializePurchases } from "../lib/purchases";
 import { colors } from "@estoicismo/ui";
 import type { Session } from "@supabase/supabase-js";
 
@@ -74,6 +75,11 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      // Initialize RevenueCat as soon as we know the user's identity.
+      // Safe to call multiple times — RevenueCat re-configures idempotently.
+      if (session?.user) {
+        initializePurchases(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
