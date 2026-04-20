@@ -27,4 +27,7 @@ module.exports = {
     // Handle standard node_modules paths (exclude .pnpm itself from ignore)
     `node_modules/(?!(\\.pnpm/|${ALLOW_LIST}))`,
   ],
+  moduleNameMapper: {
+    "^react-native-purchases$": "<rootDir>/__mocks__/react-native-purchases.ts",
+  },
 };

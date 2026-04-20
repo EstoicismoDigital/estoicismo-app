@@ -33,7 +33,8 @@
           "icon": "./assets/icon.png",
           "color": "#8B6F47"
         }
-      ]
+      ],
+      "react-native-purchases"
     ],
     "experiments": {
       "typedRoutes": true
