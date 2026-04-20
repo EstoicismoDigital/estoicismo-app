@@ -6,6 +6,7 @@ import { DailyHeader } from "../../components/habits/DailyHeader";
 import { HabitRow } from "../../components/habits/HabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   useHabits,
   useToggleHabit,
@@ -50,6 +51,7 @@ export function HabitsDashboard() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Habit | null>(null);
+  const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
 
   const today = getTodayStr();
   const completedToday = useMemo(
@@ -82,6 +84,17 @@ export function HabitsDashboard() {
     }
     setModalOpen(false);
     setEditing(null);
+  }
+
+  function requestArchive(h: Habit) {
+    setHabitToArchive(h);
+  }
+
+  function confirmArchive() {
+    if (habitToArchive) {
+      archiveM.mutate(habitToArchive.id);
+    }
+    setHabitToArchive(null);
   }
 
   return (
@@ -132,7 +145,7 @@ export function HabitsDashboard() {
                     toggle.mutate({ habitId: h.id, isCompleted })
                   }
                   onEdit={openEdit}
-                  onArchive={(h) => archiveM.mutate(h.id)}
+                  onArchive={requestArchive}
                 />
               </li>
             ))}
@@ -171,6 +184,21 @@ export function HabitsDashboard() {
         onSave={handleSave}
         editing={editing}
         saving={createM.isPending || updateM.isPending}
+      />
+
+      <ConfirmDialog
+        open={habitToArchive !== null}
+        title="Archivar hábito"
+        description={
+          habitToArchive
+            ? `¿Archivar "${habitToArchive.name}"? Podrás verlo en historial.`
+            : undefined
+        }
+        confirmLabel="Archivar"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={confirmArchive}
+        onCancel={() => setHabitToArchive(null)}
       />
     </div>
   );
