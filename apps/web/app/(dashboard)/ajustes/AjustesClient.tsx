@@ -2,7 +2,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Crown, LogOut, Mail, Globe, User, Check, X } from "lucide-react";
+import {
+  Crown,
+  LogOut,
+  Mail,
+  Globe,
+  User,
+  Check,
+  X,
+  Archive,
+  ChevronRight,
+} from "lucide-react";
 import { clsx } from "clsx";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 import {
@@ -222,6 +232,28 @@ export function AjustesClient({
                 Actualizar a Premium
               </Link>
             )}
+          </div>
+        </div>
+
+        {/* App */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            App
+          </p>
+          <div className="rounded-card overflow-hidden border border-line bg-bg">
+            <Link
+              href="/historial"
+              className="flex items-center gap-3 px-4 py-4 hover:bg-bg-alt transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            >
+              <Archive size={18} className="text-muted flex-shrink-0" aria-hidden />
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-ink">Hábitos archivados</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
+                  Restaurar o eliminar
+                </p>
+              </div>
+              <ChevronRight size={16} className="text-muted flex-shrink-0" aria-hidden />
+            </Link>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Home, Calendar, Archive, Settings, TrendingUp } from "lucide-react";
+import { Home, Calendar, NotebookPen, Settings, TrendingUp } from "lucide-react";
 import { clsx } from "clsx";
 
 type TabItem = { href: string; label: string; Icon: typeof Home };
@@ -9,7 +9,7 @@ const TABS: TabItem[] = [
   { href: "/", label: "Hoy", Icon: Home },
   { href: "/progreso", label: "Progreso", Icon: TrendingUp },
   { href: "/calendario", label: "Calendario", Icon: Calendar },
-  { href: "/historial", label: "Historial", Icon: Archive },
+  { href: "/notas", label: "Notas", Icon: NotebookPen },
   { href: "/ajustes", label: "Ajustes", Icon: Settings },
 ];
 
