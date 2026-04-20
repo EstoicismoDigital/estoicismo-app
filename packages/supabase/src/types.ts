@@ -8,6 +8,7 @@ export type Profile = {
   plan: Plan;
   plan_expires_at: string | null;
   streak_freeze_count: number;
+  stripe_customer_id: string | null;
   created_at: string;
   updated_at: string;
 };
