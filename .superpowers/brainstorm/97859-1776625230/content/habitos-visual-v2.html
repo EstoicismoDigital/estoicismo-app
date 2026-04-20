@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hábitos — Visual Mockup v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Lora';
+    src: url('Lora-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #8B6F47;
+    --accent-soft: #C9A87A;
+    --bg: #FFFFFF;
+    --bg-alt: #F5F1EA;
+    --bg-deep: #0A0A0A;
+    --ink: #0A0A0A;
+    --muted: #5E5E5E;
+    --line: #E5E1DA;
+    --success: #2D7A4F;
+    --danger: #B3261E;
+    --lora: 'Lora', Georgia, serif;
+    --inter: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background: #F0EBE3;
+    font-family: var(--inter);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 48px;
+    gap: 0;
+  }
+
+  h1 {
+    font-family: var(--lora);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--bg-deep);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-family: var(--inter);
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .phone-row {
+    display: flex;
+    gap: 48px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 20px;
+    transition: background 0.15s, outline 0.15s;
+  }
+  .phone-wrap:hover { background: rgba(139,111,71,0.07); }
+  .phone-wrap.selected-wrap { background: rgba(139,111,71,0.13); outline: 2.5px solid var(--accent); }
+
+  .phone {
+    width: 240px;
+    height: 480px;
+    background: var(--bg);
+    border-radius: 36px;
+    border: 2px solid rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+    pointer-events: none;
+    position: relative;
+  }
+
+  /* ─── OPCIÓN 1: Editorial Cálida ─── */
+  .opt1-header {
+    background: var(--bg-alt);
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .opt1-mono {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .opt1-title {
+    font-family: var(--lora);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .opt1-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .opt1-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .opt1-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin-right: 10px;
+  }
+  .opt1-bar {
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 66%;
+  }
+  .opt1-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .opt1-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .habit-card-v2 {
+    background: var(--bg-alt);
+    border-radius: 14px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--accent);
+  }
+  .habit-card-v2.done { border-left-color: var(--success); }
+  .habit-card-v2.green { border-left-color: #4CAF50; }
+  .habit-card-v2.gold { border-left-color: var(--accent-soft); }
+
+  .hc-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+  }
+  .hc-icon { font-size: 16px; }
+  .hc-name {
+    font-family: var(--inter);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+  }
+  .hc-streak {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .hc-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .hc-check.done {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+    font-size: 11px;
+  }
+
+  .week-row { display: flex; gap: 3px; align-items: center; }
+  .wd {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  .wd.done { background: var(--success); }
+  .wd.today-done { background: var(--accent); }
+  .wd.today-empty { background: var(--line); border: 1.5px solid var(--accent); }
+  .wd-label {
+    font-family: var(--mono);
+    font-size: 7px;
+    color: var(--muted);
+    margin-top: 3px;
+    display: flex;
+    gap: 3px;
+  }
+  .wd-label span { flex: 1; text-align: center; }
+  .wd-label span.today { color: var(--accent); font-weight: 700; }
+
+  .fab {
+    position: absolute;
+    bottom: 52px;
+    right: 14px;
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 22px;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(139,111,71,0.4);
+  }
+
+  .tab-bar {
+    height: 42px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px;
+    font-family: var(--mono);
+    font-size: 6.5px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  .tab-item.active { color: var(--accent); }
+  .tab-icon { font-size: 13px; }
+
+  /* ─── OPCIÓN 2: Dark Header ─── */
+  .opt2-header {
+    background: var(--bg-deep);
+    padding: 20px 18px 16px;
+  }
+  .opt2-mono {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--accent-soft);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .opt2-title {
+    font-family: var(--lora);
+    font-size: 24px;
+    font-weight: 700;
+    color: #F5F1EA;
+    line-height: 1.1;
+  }
+  .opt2-title em { font-style: italic; color: var(--accent-soft); }
+  .opt2-score {
+    margin-top: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .opt2-score-num {
+    font-family: var(--lora);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-soft);
+    line-height: 1;
+  }
+  .opt2-score-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: #9A8E82;
+    letter-spacing: 1px;
+  }
+
+  .opt2-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 12px 14px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .habit-card-v3 {
+    background: var(--bg-alt);
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .hc3-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .hc3-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .hc3-name {
+    font-family: var(--inter);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+  }
+  .hc3-streak {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .hc3-check {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .hc3-check.done { background: var(--success); border-color: var(--success); color: white; }
+
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .wg-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .wg-dot { width: 100%; height: 8px; border-radius: 4px; background: var(--line); }
+  .wg-dot.done { background: var(--success); }
+  .wg-dot.today { background: var(--accent); }
+  .wg-lbl { font-family: var(--mono); font-size: 6px; color: var(--muted); }
+  .wg-lbl.today-lbl { color: var(--accent); font-weight: 700; }
+
+  .opt2-tab-bar {
+    height: 42px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  /* Option labels */
+  .opt-title {
+    font-family: var(--lora);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+  }
+  .opt-desc {
+    font-family: var(--inter);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 220px;
+    line-height: 1.5;
+  }
+
+  /* Selection overlay */
+  .phone-wrap.selected-wrap .phone {
+    box-shadow: 0 20px 60px rgba(139,111,71,0.25), 0 4px 16px rgba(139,111,71,0.15);
+  }
+
+  /* Global selection indicator */
+  #selection-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--accent);
+    color: white;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 12px;
+    transform: translateY(100%);
+    transition: transform 0.2s ease;
+    z-index: 100;
+  }
+  #selection-bar.visible { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>Hábitos — más visual</h1>
+<p class="subtitle">Misma estructura que B, con tus tipografías reales (Lora + Inter + JetBrains Mono) y más jerarquía visual.</p>
+
+<div class="phone-row">
+
+  <!-- OPCIÓN 1: Editorial Cálida -->
+  <div class="phone-wrap" id="opt-1" onclick="selectOpt('1')">
+    <div class="phone">
+      <!-- Header -->
+      <div class="opt1-header">
+        <div class="opt1-mono">Lunes · 19 Abr</div>
+        <div class="opt1-title">Buenos días,<br><em>Marco.</em></div>
+        <div class="opt1-progress">
+          <div class="opt1-bar-wrap"><div class="opt1-bar"></div></div>
+          <div class="opt1-count">2 / 3</div>
+        </div>
+      </div>
+      <!-- Body -->
+      <div class="opt1-body">
+        <!-- Hábito 1: done -->
+        <div class="habit-card-v2 done">
+          <div class="hc-top">
+            <div class="hc-icon">🧘</div>
+            <div class="hc-name">Meditar</div>
+            <div class="hc-streak">🔥 12</div>
+            <div class="hc-check done">✓</div>
+          </div>
+          <div class="week-row">
+            <div class="wd done"></div><div class="wd done"></div><div class="wd done"></div>
+            <div class="wd today-done"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+          <div class="wd-label"><span>L</span><span>M</span><span>X</span><span class="today">J</span><span>V</span><span>S</span><span>D</span></div>
+        </div>
+        <!-- Hábito 2: done -->
+        <div class="habit-card-v2 done" style="border-left-color:#4A7C59">
+          <div class="hc-top">
+            <div class="hc-icon">📚</div>
+            <div class="hc-name">Leer 20 min</div>
+            <div class="hc-streak">🔥 5</div>
+            <div class="hc-check done">✓</div>
+          </div>
+          <div class="week-row">
+            <div class="wd done"></div><div class="wd done"></div><div class="wd"></div>
+            <div class="wd today-done"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+          <div class="wd-label"><span>L</span><span>M</span><span>X</span><span class="today">J</span><span>V</span><span>S</span><span>D</span></div>
+        </div>
+        <!-- Hábito 3: pending -->
+        <div class="habit-card-v2" style="border-left-color:var(--accent-soft)">
+          <div class="hc-top">
+            <div class="hc-icon">🏃</div>
+            <div class="hc-name">Ejercicio</div>
+            <div class="hc-streak" style="color:var(--muted)">— días</div>
+            <div class="hc-check"></div>
+          </div>
+          <div class="week-row">
+            <div class="wd done"></div><div class="wd"></div><div class="wd done"></div>
+            <div class="wd today-empty"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+          <div class="wd-label"><span>L</span><span>M</span><span>X</span><span class="today">J</span><span>V</span><span>S</span><span>D</span></div>
+        </div>
+      </div>
+      <div class="fab">+</div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-icon">◎</div>Hábitos</div>
+        <div class="tab-item"><div class="tab-icon">◇</div>Finanzas</div>
+        <div class="tab-item"><div class="tab-icon">△</div>Mente</div>
+        <div class="tab-item"><div class="tab-icon">◈</div>Emprende</div>
+      </div>
+    </div>
+    <div class="opt-title">Editorial Cálida</div>
+    <div class="opt-desc">Header crema con saludo en <em>Lora italic</em>. Barra de progreso sutil. Cards con borde de color izquierdo.</div>
+  </div>
+
+  <!-- OPCIÓN 2: Dark Header -->
+  <div class="phone-wrap" id="opt-2" onclick="selectOpt('2')">
+    <div class="phone">
+      <!-- Header oscuro -->
+      <div class="opt2-header">
+        <div class="opt2-mono">Lunes · 19 Abr</div>
+        <div class="opt2-title">Hoy completa<br><em>lo que dijiste.</em></div>
+        <div class="opt2-score">
+          <div class="opt2-score-num">2</div>
+          <div class="opt2-score-label">DE 3 HÁBITOS<br>COMPLETADOS</div>
+        </div>
+      </div>
+      <!-- Body claro -->
+      <div class="opt2-body">
+        <!-- Hábito 1 -->
+        <div class="habit-card-v3">
+          <div class="hc3-header">
+            <div class="hc3-dot" style="background:var(--success)"></div>
+            <div class="hc3-name">Meditar</div>
+            <div class="hc3-streak">🔥 12</div>
+            <div class="hc3-check done">✓</div>
+          </div>
+          <div class="week-grid">
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">L</div></div>
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">M</div></div>
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">X</div></div>
+            <div class="wg-day"><div class="wg-dot today"></div><div class="wg-lbl today-lbl">J</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">V</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">S</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">D</div></div>
+          </div>
+        </div>
+        <!-- Hábito 2 -->
+        <div class="habit-card-v3">
+          <div class="hc3-header">
+            <div class="hc3-dot" style="background:#4A7C59"></div>
+            <div class="hc3-name">Leer 20 min</div>
+            <div class="hc3-streak">🔥 5</div>
+            <div class="hc3-check done">✓</div>
+          </div>
+          <div class="week-grid">
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">L</div></div>
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">M</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">X</div></div>
+            <div class="wg-day"><div class="wg-dot today"></div><div class="wg-lbl today-lbl">J</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">V</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">S</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">D</div></div>
+          </div>
+        </div>
+        <!-- Hábito 3 -->
+        <div class="habit-card-v3">
+          <div class="hc3-header">
+            <div class="hc3-dot" style="background:var(--accent-soft)"></div>
+            <div class="hc3-name">Ejercicio</div>
+            <div class="hc3-streak" style="color:var(--muted)">—</div>
+            <div class="hc3-check"></div>
+          </div>
+          <div class="week-grid">
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">L</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">M</div></div>
+            <div class="wg-day"><div class="wg-dot done"></div><div class="wg-lbl">X</div></div>
+            <div class="wg-day"><div class="wg-dot" style="border:1.5px solid var(--accent)"></div><div class="wg-lbl today-lbl">J</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">V</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">S</div></div>
+            <div class="wg-day"><div class="wg-dot"></div><div class="wg-lbl">D</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="fab">+</div>
+      <div class="opt2-tab-bar">
+        <div class="tab-item active"><div class="tab-icon">◎</div>Hábitos</div>
+        <div class="tab-item"><div class="tab-icon">◇</div>Finanzas</div>
+        <div class="tab-item"><div class="tab-icon">△</div>Mente</div>
+        <div class="tab-item"><div class="tab-icon">◈</div>Emprende</div>
+      </div>
+    </div>
+    <div class="opt-title">Header Oscuro</div>
+    <div class="opt-desc">Header negro con frase motivacional en <em>Lora italic</em>. Número grande de progreso. Cards limpias con punto de color.</div>
+  </div>
+
+</div>
+
+<div id="selection-bar">— Toca una opción para seleccionarla —</div>
+
+<script>
+  let selected = null;
+
+  function selectOpt(id) {
+    document.querySelectorAll('.phone-wrap').forEach(el => el.classList.remove('selected-wrap'));
+    const el = document.getElementById('opt-' + id);
+    el.classList.add('selected-wrap');
+    selected = id;
+    const bar = document.getElementById('selection-bar');
+    const names = { '1': 'Editorial Cálida', '2': 'Header Oscuro' };
+    bar.textContent = '✓ Seleccionaste: ' + names[id] + ' — dime en el chat si quieres ajustes';
+    bar.classList.add('visible');
+
+    // also log for state capture
+    if (window.__logChoice) window.__logChoice(id, names[id]);
+    // Try to use the superpowers helper if available
+    if (typeof toggleSelect === 'function') {
+      // not using toggleSelect here since we have custom logic
+    }
+    // Write to state via fetch if possible
+    fetch('/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'click', choice: id, text: names[id], timestamp: Date.now() })
+    }).catch(() => {});
+  }
+</script>
+</body>
+</html>

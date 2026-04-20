@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     .from("profiles")
     .select("stripe_customer_id")
     .eq("id", user.id)
-    .single();
+    .single<{ stripe_customer_id: string | null }>();
 
   let customerId: string | null = profile?.stripe_customer_id ?? null;
 
@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
     });
     customerId = customer.id;
 
-    await supabase
-      .from("profiles")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("profiles") as any)
       .update({ stripe_customer_id: customerId })
       .eq("id", user.id);
   }

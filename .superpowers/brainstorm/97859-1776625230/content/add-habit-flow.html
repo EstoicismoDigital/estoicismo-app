@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Habit — Flow Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Lora'; src: url('Lora-Regular.ttf') format('truetype'); font-weight: 400; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --accent: #8B6F47; --accent-soft: #C9A87A;
+    --bg: #FFFFFF; --bg-alt: #F5F1EA; --bg-deep: #0A0A0A;
+    --ink: #0A0A0A; --muted: #5E5E5E; --line: #E5E1DA;
+    --success: #2D7A4F;
+    --lora: 'Lora', Georgia, serif;
+    --inter: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  body {
+    background: #F0EBE3;
+    font-family: var(--inter);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 16px 64px;
+  }
+  h1 { font-family: var(--lora); font-size: 26px; font-weight: 700; color: var(--bg-deep); text-align: center; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 36px; line-height: 1.5; }
+
+  .row { display: flex; gap: 36px; justify-content: center; flex-wrap: wrap; align-items: flex-start; }
+
+  .col { display: flex; flex-direction: column; align-items: center; gap: 14px; cursor: pointer; border-radius: 20px; padding: 18px; transition: background .15s; }
+  .col:hover { background: rgba(139,111,71,.07); }
+  .col.picked { background: rgba(139,111,71,.13); outline: 2.5px solid var(--accent); border-radius: 20px; }
+
+  .phone {
+    width: 220px; height: 460px;
+    background: var(--bg); border-radius: 34px;
+    border: 2px solid rgba(0,0,0,.08);
+    overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(0,0,0,.14), 0 4px 14px rgba(0,0,0,.07);
+    pointer-events: none; position: relative;
+  }
+
+  /* shared dark header */
+  .dark-hdr { background: var(--bg-deep); padding: 16px 16px 12px; flex-shrink: 0; }
+  .mono-label { font-family: var(--mono); font-size: 7px; letter-spacing: 2px; color: var(--accent-soft); text-transform: uppercase; margin-bottom: 2px; }
+  .hdr-title { font-family: var(--lora); font-size: 20px; font-weight: 700; color: #F5F1EA; line-height: 1.1; }
+  .hdr-title em { font-style: italic; color: var(--accent-soft); }
+
+  /* --- OPCIÓN A: Bottom sheet compacto --- */
+  .sheet-overlay { flex: 1; background: rgba(0,0,0,.35); position: relative; }
+  .sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--bg); border-radius: 20px 20px 0 0;
+    padding: 14px 14px 12px;
+  }
+  .sheet-handle { width: 32px; height: 3px; background: var(--line); border-radius: 2px; margin: 0 auto 12px; }
+  .sheet-title { font-family: var(--lora); font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+  .field-label { font-family: var(--mono); font-size: 7px; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+  .field-input {
+    width: 100%; height: 30px; background: var(--bg-alt);
+    border: 1px solid var(--line); border-radius: 8px;
+    display: flex; align-items: center; padding: 0 8px;
+    font-family: var(--inter); font-size: 10px; color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .field-input.placeholder { color: var(--muted); }
+  .emoji-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .emoji-opt { width: 24px; height: 24px; border-radius: 6px; background: var(--bg-alt); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .emoji-opt.sel { border-color: var(--accent); background: rgba(139,111,71,.1); }
+  .freq-row { display: flex; gap: 4px; margin-bottom: 10px; }
+  .freq-opt { flex: 1; height: 22px; border-radius: 6px; background: var(--bg-alt); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 7px; color: var(--muted); }
+  .freq-opt.sel { background: var(--accent); border-color: var(--accent); color: white; }
+  .save-btn { width: 100%; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--inter); font-size: 11px; font-weight: 600; color: white; }
+
+  /* --- OPCIÓN B: Pantalla completa paso a paso --- */
+  .step-screen { flex: 1; background: var(--bg); display: flex; flex-direction: column; padding: 14px; }
+  .step-indicator { display: flex; gap: 4px; margin-bottom: 14px; }
+  .step-dot { flex: 1; height: 3px; border-radius: 2px; background: var(--line); }
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--success); }
+  .step-question { font-family: var(--lora); font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 4px; line-height: 1.3; }
+  .step-sub { font-family: var(--inter); font-size: 9px; color: var(--muted); margin-bottom: 12px; }
+  .big-input { width: 100%; height: 36px; background: var(--bg-alt); border: 1px solid var(--line); border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-family: var(--lora); font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .emoji-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 12px; }
+  .eg-item { height: 32px; border-radius: 8px; background: var(--bg-alt); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .eg-item.sel { border-color: var(--accent); background: rgba(139,111,71,.1); }
+  .step-nav { display: flex; gap: 6px; margin-top: auto; }
+  .step-back { flex: 1; height: 28px; border-radius: 8px; background: var(--bg-alt); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 8px; color: var(--muted); }
+  .step-next { flex: 2; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--inter); font-size: 10px; font-weight: 600; color: white; }
+
+  /* --- OPCIÓN C: Modal scroll único --- */
+  .modal-screen { flex: 1; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+  .modal-hdr { padding: 12px 14px 8px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+  .modal-hdr-title { font-family: var(--lora); font-size: 14px; font-weight: 700; color: var(--ink); }
+  .modal-close { font-family: var(--mono); font-size: 8px; color: var(--muted); }
+  .modal-body { flex: 1; overflow: hidden; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .mf-section { margin-bottom: 4px; }
+  .color-row { display: flex; gap: 5px; }
+  .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; }
+  .color-dot.sel { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .reminder-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle { width: 26px; height: 14px; border-radius: 7px; background: var(--accent); position: relative; }
+  .toggle-knob { width: 10px; height: 10px; border-radius: 50%; background: white; position: absolute; top: 2px; right: 2px; }
+  .modal-footer { padding: 8px 14px 10px; border-top: 1px solid var(--line); }
+  .modal-save { width: 100%; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--inter); font-size: 11px; font-weight: 600; color: white; }
+
+  .opt-title { font-family: var(--lora); font-size: 15px; font-weight: 600; color: var(--ink); }
+  .opt-desc { font-family: var(--inter); font-size: 11px; color: var(--muted); text-align: center; max-width: 200px; line-height: 1.5; }
+
+  #bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--accent); color: white; font-family: var(--mono); font-size: 11px; letter-spacing: .5px; text-align: center; padding: 12px; transform: translateY(100%); transition: transform .2s; }
+  #bar.show { transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>Crear un hábito — ¿cómo?</h1>
+<p class="subtitle">Tres flujos distintos para el botón <strong>+</strong>. Los campos son los mismos en los tres:<br>nombre · emoji · color · frecuencia · recordatorio (opcional)</p>
+
+<div class="row">
+
+  <!-- A: Bottom Sheet -->
+  <div class="col" id="o-a" onclick="pick('a','Bottom Sheet compacto')">
+    <div class="phone">
+      <div class="dark-hdr">
+        <div class="mono-label">Hábitos</div>
+        <div class="hdr-title">Hoy completa<br><em>lo que dijiste.</em></div>
+      </div>
+      <div class="sheet-overlay">
+        <div class="sheet">
+          <div class="sheet-handle"></div>
+          <div class="sheet-title">Nuevo hábito</div>
+          <div class="field-label">Nombre</div>
+          <div class="field-input placeholder">Ej: Meditar 10 min</div>
+          <div class="field-label">Emoji</div>
+          <div class="emoji-row">
+            <div class="emoji-opt sel">🧘</div>
+            <div class="emoji-opt">📚</div>
+            <div class="emoji-opt">🏃</div>
+            <div class="emoji-opt">💧</div>
+            <div class="emoji-opt">✍️</div>
+            <div class="emoji-opt">🌿</div>
+          </div>
+          <div class="field-label">Frecuencia</div>
+          <div class="freq-row">
+            <div class="freq-opt sel">Diario</div>
+            <div class="freq-opt">3×/sem</div>
+            <div class="freq-opt">4×/sem</div>
+            <div class="freq-opt">5×/sem</div>
+          </div>
+          <div class="save-btn">Guardar hábito</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-title">A — Bottom Sheet</div>
+    <div class="opt-desc">Sale desde abajo sobre la pantalla de hábitos. Todo en un scroll. Rápido de completar.</div>
+  </div>
+
+  <!-- B: Paso a paso -->
+  <div class="col" id="o-b" onclick="pick('b','Paso a paso')">
+    <div class="phone">
+      <div class="dark-hdr">
+        <div class="mono-label">Nuevo hábito</div>
+        <div class="hdr-title">Paso <em>1 de 3</em></div>
+      </div>
+      <div class="step-screen">
+        <div class="step-indicator">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+        <div class="step-question">¿Cómo se llama<br>este hábito?</div>
+        <div class="step-sub">Sé específico. "Leer 20 min" es mejor que "Leer".</div>
+        <div class="big-input">Nombre del hábito...</div>
+        <div class="step-question">Elige un emoji</div>
+        <div class="step-sub">Aparecerá en tu lista diaria.</div>
+        <div class="emoji-grid">
+          <div class="eg-item sel">🧘</div>
+          <div class="eg-item">📚</div>
+          <div class="eg-item">🏃</div>
+          <div class="eg-item">💧</div>
+          <div class="eg-item">✍️</div>
+          <div class="eg-item">🌿</div>
+          <div class="eg-item">🎯</div>
+          <div class="eg-item">💪</div>
+          <div class="eg-item">🧠</div>
+          <div class="eg-item">⭐</div>
+        </div>
+        <div class="step-nav">
+          <div class="step-back">Cancelar</div>
+          <div class="step-next">Siguiente →</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-title">B — Paso a paso</div>
+    <div class="opt-desc">Pantalla completa, una pregunta por paso. Más guiado, ideal para el primer hábito.</div>
+  </div>
+
+  <!-- C: Modal scroll único -->
+  <div class="col" id="o-c" onclick="pick('c','Modal único con scroll')">
+    <div class="phone">
+      <div class="modal-screen">
+        <div class="modal-hdr">
+          <div class="modal-hdr-title">Nuevo hábito</div>
+          <div class="modal-close">✕ Cancelar</div>
+        </div>
+        <div class="modal-body">
+          <div class="mf-section">
+            <div class="field-label">Nombre</div>
+            <div class="field-input placeholder">Ej: Meditar 10 min</div>
+          </div>
+          <div class="mf-section">
+            <div class="field-label">Emoji</div>
+            <div class="emoji-row">
+              <div class="emoji-opt sel">🧘</div><div class="emoji-opt">📚</div><div class="emoji-opt">🏃</div>
+              <div class="emoji-opt">💧</div><div class="emoji-opt">✍️</div><div class="emoji-opt">🌿</div>
+            </div>
+          </div>
+          <div class="mf-section">
+            <div class="field-label">Color</div>
+            <div class="color-row">
+              <div class="color-dot sel" style="background:#8B6F47"></div>
+              <div class="color-dot" style="background:#2D7A4F"></div>
+              <div class="color-dot" style="background:#C9A87A"></div>
+              <div class="color-dot" style="background:#B3261E"></div>
+              <div class="color-dot" style="background:#4A6FA5"></div>
+              <div class="color-dot" style="background:#7B5EA7"></div>
+            </div>
+          </div>
+          <div class="mf-section">
+            <div class="field-label">Frecuencia</div>
+            <div class="freq-row">
+              <div class="freq-opt sel">Diario</div>
+              <div class="freq-opt">3×/sem</div>
+              <div class="freq-opt">4×/sem</div>
+              <div class="freq-opt">5×/sem</div>
+            </div>
+          </div>
+          <div class="mf-section">
+            <div class="field-label">Recordatorio</div>
+            <div class="reminder-row">
+              <div class="field-input" style="width:auto;flex:1;margin:0;margin-right:8px;">07:00 AM</div>
+              <div class="toggle"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="modal-save">Guardar hábito</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-title">C — Modal completo</div>
+    <div class="opt-desc">Pantalla completa con todos los campos visibles. Nombre, emoji, color, frecuencia y recordatorio.</div>
+  </div>
+
+</div>
+
+<div id="bar">— Toca una opción —</div>
+<script>
+  function pick(id, name) {
+    document.querySelectorAll('.col').forEach(e => e.classList.remove('picked'));
+    document.getElementById('o-' + id).classList.add('picked');
+    document.getElementById('bar').textContent = '✓ ' + name + ' — dime en el chat si quieres ajustes';
+    document.getElementById('bar').classList.add('show');
+    fetch('/state', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ type:'click', choice: id, text: name, timestamp: Date.now() })
+    }).catch(()=>{});
+  }
+</script>
+</body>
+</html>

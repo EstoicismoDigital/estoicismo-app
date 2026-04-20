@@ -1,0 +1,310 @@
+<style>
+  :root {
+    --accent: #8B6F47;
+    --accent-soft: #C9A87A;
+    --bg: #FFFFFF;
+    --bg-alt: #F5F1EA;
+    --bg-deep: #0A0A0A;
+    --ink: #0A0A0A;
+    --muted: #5E5E5E;
+    --line: #E5E1DA;
+    --success: #2D7A4F;
+  }
+
+  .phone-row {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 16px;
+    transition: background 0.15s;
+  }
+  .phone-wrap:hover { background: rgba(139,111,71,0.06); }
+  .phone-wrap.selected { background: rgba(139,111,71,0.12); outline: 2px solid var(--accent); }
+
+  .phone {
+    width: 200px;
+    height: 400px;
+    background: var(--bg);
+    border-radius: 28px;
+    border: 2px solid var(--line);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    pointer-events: none;
+  }
+
+  .ph-header {
+    padding: 16px 14px 10px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .ph-label { font-size: 8px; font-family: monospace; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; }
+  .ph-title { font-size: 20px; font-weight: 700; color: var(--ink); margin-top: 2px; }
+  .ph-sub { font-size: 9px; color: var(--muted); margin-top: 2px; }
+
+  .ph-body { flex: 1; overflow: hidden; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* ── Layout A: lista simple con check ── */
+  .habit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-alt);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .habit-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+  }
+  .habit-check.done { background: var(--success); border-color: var(--success); display: flex; align-items: center; justify-content: center; }
+  .habit-check.done::after { content: '✓'; color: white; font-size: 10px; }
+  .habit-name { font-size: 11px; font-weight: 600; color: var(--ink); }
+  .habit-streak { font-size: 9px; color: var(--accent); margin-left: auto; }
+  .habit-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Layout B: cards con progreso semanal ── */
+  .habit-card {
+    background: var(--bg-alt);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .habit-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .habit-card-icon { font-size: 12px; }
+  .habit-card-name { font-size: 11px; font-weight: 600; color: var(--ink); flex: 1; }
+  .habit-card-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); }
+  .habit-card-check.done { background: var(--success); border-color: var(--success); }
+  .week-dots { display: flex; gap: 3px; }
+  .wd { width: 18px; height: 5px; border-radius: 3px; background: var(--line); }
+  .wd.done { background: var(--success); }
+  .wd.today { background: var(--accent); }
+
+  /* ── Layout C: big checkboxes, estilo minimalista ── */
+  .habit-big {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .habit-big:last-child { border-bottom: none; }
+  .big-check {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+  }
+  .big-check.done { background: var(--accent); border-color: var(--accent); display:flex; align-items:center; justify-content:center; }
+  .big-check.done::after { content:'✓'; color:white; font-size:12px; }
+  .big-name { font-size: 11px; color: var(--ink); flex: 1; }
+  .big-name.done { text-decoration: line-through; color: var(--muted); }
+  .big-streak { font-size: 9px; color: var(--muted); }
+
+  /* Summary bar */
+  .summary-bar {
+    background: var(--accent);
+    padding: 6px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .summary-text { font-size: 9px; color: white; font-weight: 600; }
+
+  /* progress ring */
+  .progress-ring {
+    width: 40px; height: 40px;
+    background: conic-gradient(var(--success) 0% 66%, var(--line) 66% 100%);
+    border-radius: 50%;
+    display: flex; align-items:center; justify-content:center;
+    flex-shrink: 0;
+  }
+  .progress-ring-inner { width: 28px; height: 28px; background: var(--bg); border-radius: 50%; display:flex; align-items:center; justify-content:center; }
+  .progress-ring-text { font-size: 8px; font-weight: 700; color: var(--ink); }
+
+  .option-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .option-desc { font-size: 12px; color: var(--muted); text-align: center; max-width: 200px; }
+
+  .ph-fab {
+    position: absolute;
+    bottom: 60px; right: 14px;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 18px; color: white; line-height: 1;
+  }
+  .ph-body-rel { position: relative; flex: 1; overflow: hidden; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+
+  .tab-bar { height: 36px; border-top: 1px solid var(--line); display:flex; align-items:center; justify-content:space-around; padding: 0 8px; }
+  .tab-item { font-size: 7px; color: var(--muted); display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .tab-item.active { color: var(--accent); }
+  .tab-dot { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.3; }
+  .tab-dot.active { opacity: 1; }
+</style>
+
+<h2>¿Cómo se ve la pantalla principal de Hábitos?</h2>
+<p class="subtitle">Elige el layout que más te gusta. Los tres muestran los mismos datos, solo cambia la jerarquía visual.</p>
+
+<div class="phone-row">
+
+  <!-- OPCIÓN A -->
+  <div class="phone-wrap option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="phone">
+      <div class="ph-header">
+        <div class="ph-label">HOY · LUNES</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="ph-title">Hábitos</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="progress-ring">
+              <div class="progress-ring-inner"><span class="progress-ring-text">2/3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ph-body-rel">
+        <div class="habit-row">
+          <div class="habit-check done"></div>
+          <div class="habit-dot" style="background:#2D7A4F"></div>
+          <div class="habit-name">Meditar</div>
+          <div class="habit-streak">🔥 12</div>
+        </div>
+        <div class="habit-row">
+          <div class="habit-check done"></div>
+          <div class="habit-dot" style="background:#8B6F47"></div>
+          <div class="habit-name">Leer 20 min</div>
+          <div class="habit-streak">🔥 5</div>
+        </div>
+        <div class="habit-row">
+          <div class="habit-check"></div>
+          <div class="habit-dot" style="background:#C9A87A"></div>
+          <div class="habit-name">Ejercicio</div>
+          <div class="habit-streak" style="color:var(--muted)">0</div>
+        </div>
+        <div class="ph-fab">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-dot active"></div>Hábitos</div>
+        <div class="tab-item"><div class="tab-dot"></div>Finanzas</div>
+        <div class="tab-item"><div class="tab-dot"></div>Mente</div>
+        <div class="tab-item"><div class="tab-dot"></div>Emprende</div>
+      </div>
+    </div>
+    <div class="option-label">Lista + anillo de progreso</div>
+    <div class="option-desc">Progreso del día visible arriba. Cada hábito es una fila compacta con color y streak.</div>
+  </div>
+
+  <!-- OPCIÓN B -->
+  <div class="phone-wrap option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="phone">
+      <div class="ph-header">
+        <div class="ph-label">HOY · LUNES</div>
+        <div class="ph-title">Hábitos</div>
+        <div class="ph-sub">2 de 3 completados</div>
+      </div>
+      <div class="ph-body-rel">
+        <div class="habit-card">
+          <div class="habit-card-top">
+            <div class="habit-card-icon">🧘</div>
+            <div class="habit-card-name">Meditar</div>
+            <div class="habit-card-check done"></div>
+          </div>
+          <div class="week-dots">
+            <div class="wd done"></div><div class="wd done"></div><div class="wd done"></div>
+            <div class="wd today done"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+        </div>
+        <div class="habit-card">
+          <div class="habit-card-top">
+            <div class="habit-card-icon">📚</div>
+            <div class="habit-card-name">Leer 20 min</div>
+            <div class="habit-card-check done"></div>
+          </div>
+          <div class="week-dots">
+            <div class="wd done"></div><div class="wd done"></div><div class="wd"></div>
+            <div class="wd today done"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+        </div>
+        <div class="habit-card">
+          <div class="habit-card-top">
+            <div class="habit-card-icon">🏃</div>
+            <div class="habit-card-name">Ejercicio</div>
+            <div class="habit-card-check"></div>
+          </div>
+          <div class="week-dots">
+            <div class="wd done"></div><div class="wd"></div><div class="wd done"></div>
+            <div class="wd today"></div><div class="wd"></div><div class="wd"></div><div class="wd"></div>
+          </div>
+        </div>
+        <div class="ph-fab">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-dot active"></div>Hábitos</div>
+        <div class="tab-item"><div class="tab-dot"></div>Finanzas</div>
+        <div class="tab-item"><div class="tab-dot"></div>Mente</div>
+        <div class="tab-item"><div class="tab-dot"></div>Emprende</div>
+      </div>
+    </div>
+    <div class="option-label">Cards con historial semanal</div>
+    <div class="option-desc">Cada hábito muestra los 7 días de la semana. Ves de un vistazo si fallaste algún día.</div>
+  </div>
+
+  <!-- OPCIÓN C -->
+  <div class="phone-wrap option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="phone">
+      <div class="summary-bar">
+        <span class="summary-text">HOY · LUNES 19 ABR</span>
+        <span class="summary-text">2 / 3 ✓</span>
+      </div>
+      <div class="ph-body-rel" style="padding: 12px 14px;">
+        <div class="habit-big">
+          <div class="big-check done"></div>
+          <div>
+            <div class="big-name done">Meditar</div>
+            <div class="big-streak">🔥 12 días</div>
+          </div>
+        </div>
+        <div class="habit-big">
+          <div class="big-check done"></div>
+          <div>
+            <div class="big-name done">Leer 20 min</div>
+            <div class="big-streak">🔥 5 días</div>
+          </div>
+        </div>
+        <div class="habit-big">
+          <div class="big-check"></div>
+          <div>
+            <div class="big-name">Ejercicio</div>
+            <div class="big-streak" style="color:var(--muted)">Sin racha</div>
+          </div>
+        </div>
+        <div class="ph-fab">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active"><div class="tab-dot active"></div>Hábitos</div>
+        <div class="tab-item"><div class="tab-dot"></div>Finanzas</div>
+        <div class="tab-item"><div class="tab-dot"></div>Mente</div>
+        <div class="tab-item"><div class="tab-dot"></div>Emprende</div>
+      </div>
+    </div>
+    <div class="option-label">Minimalista con tachado</div>
+    <div class="option-desc">Ultra limpio. El tachado da satisfacción. Sin colores ni iconos por hábito.</div>
+  </div>
+
+</div>
