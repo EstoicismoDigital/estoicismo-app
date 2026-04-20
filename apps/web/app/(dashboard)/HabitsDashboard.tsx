@@ -30,6 +30,7 @@ import {
 } from "../../components/habits/TodayTimeline";
 import { InsightsPanel } from "../../components/habits/InsightsPanel";
 import { CelebrationOverlay } from "../../components/habits/CelebrationOverlay";
+import { ReminderPermissionBanner } from "../../components/habits/ReminderPermissionBanner";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   useHabits,
@@ -40,6 +41,7 @@ import {
   useUpsertHabitLogNote,
   useReorderHabits,
 } from "../../hooks/useHabits";
+import { useHabitReminders } from "../../hooks/useHabitReminders";
 import { useProfile } from "../../hooks/useProfile";
 import { computeStreak, getTodayStr } from "../../lib/dateUtils";
 import { findCrossedMilestone } from "../../lib/streakMilestones";
@@ -119,6 +121,15 @@ export function HabitsDashboard() {
     () => habits.filter((h) => isHabitDueOn(h, today)).length,
     [habits, today]
   );
+  const hasReminderHabits = useMemo(
+    () => habits.some((h) => !h.is_archived && !!h.reminder_time),
+    [habits]
+  );
+
+  // In-tab browser reminders. No-op when the API is unsupported or the
+  // user hasn't granted permission yet — the banner below surfaces the
+  // prompt when at least one habit has a reminder_time set.
+  useHabitReminders(habits, logs);
 
   // Celebrate when the user crosses from "incomplete" to "all done".
   //
@@ -244,6 +255,8 @@ export function HabitsDashboard() {
               />
             )}
           </div>
+
+          <ReminderPermissionBanner hasReminderHabits={hasReminderHabits} />
 
           <div className="flex items-baseline justify-between mb-5 sm:mb-6">
             <div>
