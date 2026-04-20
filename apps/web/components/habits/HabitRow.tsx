@@ -14,6 +14,7 @@ export function HabitRow({
   onArchive,
   onNote,
   onViewDetail,
+  dragHandle,
 }: {
   habit: Habit;
   logs: HabitLog[];
@@ -24,6 +25,13 @@ export function HabitRow({
   onNote?: (habit: Habit, currentNote: string | null) => void;
   /** Optional. Navigates to the habit's detail page. */
   onViewDetail?: (habit: Habit) => void;
+  /**
+   * Optional. Renders a drag handle at the leftmost position of the row.
+   * Expected to be a focusable element with its own label & drag listeners
+   * (see SortableHabitRow). Clicks on the handle should not bubble into
+   * the row-level toggle.
+   */
+  dragHandle?: React.ReactNode;
 }) {
   const today = getTodayStr();
   const habitLogs = logs.filter((l) => l.habit_id === habit.id);
@@ -64,8 +72,11 @@ export function HabitRow({
         onKeyDown={handleKeyDown}
         aria-label={`${habit.name}${isCompletedToday ? " — completado hoy" : ""}`}
         aria-pressed={isCompletedToday}
-        className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-card bg-bg border border-line shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:border-accent/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.99] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 cursor-pointer"
+        className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-card bg-bg border border-line shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:border-accent/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.99] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 cursor-pointer"
       >
+        {/* Drag handle — only when the parent provides one */}
+        {dragHandle}
+
         {/* Icon circle */}
         <div
           className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-150 ease-out group-hover:scale-105"

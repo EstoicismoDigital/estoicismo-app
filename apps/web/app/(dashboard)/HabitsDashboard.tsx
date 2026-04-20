@@ -3,8 +3,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
 import { DailyHeader } from "../../components/habits/DailyHeader";
-import { HabitRow } from "../../components/habits/HabitRow";
+import { SortableHabitRow } from "../../components/habits/SortableHabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
 import { HabitNoteDialog } from "../../components/habits/HabitNoteDialog";
@@ -21,6 +37,7 @@ import {
   useUpdateHabit,
   useArchiveHabit,
   useUpsertHabitLogNote,
+  useReorderHabits,
 } from "../../hooks/useHabits";
 import { useProfile } from "../../hooks/useProfile";
 import { computeStreak, getTodayStr } from "../../lib/dateUtils";
@@ -58,6 +75,29 @@ export function HabitsDashboard() {
   const updateM = useUpdateHabit();
   const archiveM = useArchiveHabit();
   const noteM = useUpsertHabitLogNote();
+  const reorderM = useReorderHabits();
+
+  // Sensors: pointer uses a 6px activation distance so casual taps never
+  // start a drag; keyboard uses dnd-kit's sortable coordinate getter so
+  // Space/Enter + arrow keys move items predictably between rows.
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = habits.findIndex((h) => h.id === active.id);
+    const newIndex = habits.findIndex((h) => h.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const orderedIds = arrayMove(habits, oldIndex, newIndex).map((h) => h.id);
+    reorderM.mutate(orderedIds);
+  }
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Habit | null>(null);
@@ -223,23 +263,35 @@ export function HabitsDashboard() {
           ) : habits.length === 0 ? (
             <EmptyHabits onCreate={openNew} />
           ) : (
-            <ul className="flex flex-col gap-2.5" role="list">
-              {habits.map((habit) => (
-                <li key={habit.id}>
-                  <HabitRow
-                    habit={habit}
-                    logs={logs}
-                    onToggle={(h, isCompleted) =>
-                      toggle.mutate({ habitId: h.id, isCompleted })
-                    }
-                    onEdit={openEdit}
-                    onArchive={requestArchive}
-                    onNote={openNote}
-                    onViewDetail={(h) => router.push(`/habitos/${h.id}`)}
-                  />
-                </li>
-              ))}
-            </ul>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+            >
+              <SortableContext
+                items={habits.map((h) => h.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="flex flex-col gap-2.5" role="list">
+                  {habits.map((habit) => (
+                    <li key={habit.id}>
+                      <SortableHabitRow
+                        habit={habit}
+                        logs={logs}
+                        onToggle={(h, isCompleted) =>
+                          toggle.mutate({ habitId: h.id, isCompleted })
+                        }
+                        onEdit={openEdit}
+                        onArchive={requestArchive}
+                        onNote={openNote}
+                        onViewDetail={(h) => router.push(`/habitos/${h.id}`)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           )}
 
           {habits.length > 0 &&

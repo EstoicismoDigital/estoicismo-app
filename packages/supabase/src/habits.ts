@@ -18,6 +18,9 @@ export async function fetchHabits(sb: SB, userId: string): Promise<Habit[]> {
     .select("*")
     .eq("user_id", userId)
     .eq("is_archived", false)
+    // Manual order first (lower = higher in list), then creation date as
+    // a stable tiebreak for habits that share a position.
+    .order("position", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Habit[];
@@ -146,6 +149,31 @@ export async function upsertHabitLogNote(
     .eq("habit_id", habitId)
     .eq("completed_at", date);
   if (error) throw error;
+}
+
+/**
+ * Persist a new manual ordering. Takes an array of habit ids in the desired
+ * order and writes position 0..N-1 to each row. RLS scopes writes to the
+ * signed-in user; passing an id that doesn't belong to them is a no-op.
+ *
+ * Supabase-js doesn't expose a bulk UPDATE with a CASE expression, so we
+ * issue N parallel updates. N is small (free tier caps at 3, premium users
+ * realistically stay under 30), so the roundtrip cost is acceptable.
+ */
+export async function reorderHabits(
+  sb: SB,
+  orderedIds: string[]
+): Promise<void> {
+  if (orderedIds.length === 0) return;
+  const updates = orderedIds.map((id, index) =>
+    sb
+      .from("habits")
+      .update({ position: index } as never)
+      .eq("id", id)
+  );
+  const results = await Promise.all(updates);
+  const firstError = results.find((r) => r.error);
+  if (firstError?.error) throw firstError.error;
 }
 
 export const HABIT_COLORS = [

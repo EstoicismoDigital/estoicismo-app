@@ -22,6 +22,13 @@ export type Habit = {
   frequency: "daily" | "weekly" | { days: number[] };
   reminder_time: string | null;
   is_archived: boolean;
+  /**
+   * Manual sort order. Lower = higher in the list. Ties broken by created_at.
+   * Optional + nullable in the type so older fixtures/tests continue to work —
+   * the live DB column is NOT NULL with a server default of 0, so fetched rows
+   * always carry a number. New code that writes this field should supply one.
+   */
+  position?: number | null;
   created_at: string;
 };
 

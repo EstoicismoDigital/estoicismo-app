@@ -24,6 +24,7 @@ const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockArchive = jest.fn();
 const mockUpsertNote = jest.fn();
+const mockReorder = jest.fn();
 
 const habitsState: { habits: Habit[]; logs: HabitLog[]; isLoading: boolean } = {
   habits: [],
@@ -49,6 +50,11 @@ jest.mock("../hooks/useHabits", () => ({
   useUpsertHabitLogNote: () => ({
     mutate: mockUpsertNote,
     mutateAsync: mockUpsertNote,
+    isPending: false,
+  }),
+  useReorderHabits: () => ({
+    mutate: mockReorder,
+    mutateAsync: mockReorder,
     isPending: false,
   }),
 }));
@@ -88,6 +94,7 @@ describe("HabitsDashboard", () => {
     mockUpdate.mockClear();
     mockArchive.mockClear();
     mockUpsertNote.mockClear();
+    mockReorder.mockClear();
   });
 
   it("renders the Hoy heading", () => {

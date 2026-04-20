@@ -11,6 +11,7 @@ import {
   insertHabitLog,
   deleteHabitLog,
   upsertHabitLogNote,
+  reorderHabits,
   type CreateHabitInput,
 } from "@estoicismo/supabase";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
@@ -196,6 +197,50 @@ export function useUpsertHabitLogNote() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: logsKey });
+    },
+  });
+}
+
+/**
+ * Reorder the active habit list. Accepts the new id sequence and:
+ *   1. Optimistically reorders the ["habits"] cache so the UI snaps
+ *      into place before the network roundtrip completes.
+ *   2. Writes position 0..N-1 to Supabase via reorderHabits().
+ *   3. On error, rolls back the cache and toasts.
+ * We deliberately DON'T invalidate on settle — the optimistic update IS
+ * the truth once the server accepts it, and invalidating would cause a
+ * brief flicker as the list re-sorts from the response.
+ */
+export function useReorderHabits() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const sb = getSupabaseBrowserClient();
+      await reorderHabits(sb, orderedIds);
+    },
+    onMutate: async (orderedIds) => {
+      await qc.cancelQueries({ queryKey: ["habits"] });
+      const prev = qc.getQueryData<Habit[]>(["habits"]);
+      if (prev) {
+        const byId = new Map(prev.map((h) => [h.id, h]));
+        // Rebuild the array in the new order; keep any habits not in the
+        // list (shouldn't happen, but defensive) at the tail.
+        const reordered: Habit[] = [];
+        for (const id of orderedIds) {
+          const h = byId.get(id);
+          if (h) {
+            reordered.push({ ...h, position: reordered.length });
+            byId.delete(id);
+          }
+        }
+        for (const h of byId.values()) reordered.push(h);
+        qc.setQueryData<Habit[]>(["habits"], reordered);
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["habits"], ctx.prev);
+      toast.error("No se pudo reordenar. Intenta de nuevo.");
     },
   });
 }
