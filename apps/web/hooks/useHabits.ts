@@ -78,8 +78,6 @@ export function useAllHabitLogs(monthFrom: string, monthTo: string) {
  */
 export function useToggleHabit() {
   const qc = useQueryClient();
-  const week = getCurrentWeekDays();
-  const logsKey = ["habit-logs", week[0].date, week[6].date];
 
   return useMutation({
     mutationFn: async ({
@@ -100,32 +98,86 @@ export function useToggleHabit() {
         await insertHabitLog(sb, habitId, uid, target);
       }
     },
+    // Optimistic updates run against EVERY in-range cache so each surface
+    // (dashboard's current week, calendar's current month, detail's 90d
+    // window) reflects the change instantly — no per-surface hook.
+    // Caches whose [from,to] range doesn't include `target` are left
+    // untouched so we don't poison ranges the user isn't looking at.
     onMutate: async ({ habitId, isCompleted, date }) => {
       const target = date ?? getTodayStr();
-      await qc.cancelQueries({ queryKey: logsKey });
-      const prev = qc.getQueryData<HabitLog[]>(logsKey);
-      qc.setQueryData<HabitLog[]>(logsKey, (old = []) => {
-        if (isCompleted)
-          return old.filter((l) => !(l.habit_id === habitId && l.completed_at === target));
-        return [
-          ...old,
-          {
-            id: `opt-${habitId}-${target}`,
-            habit_id: habitId,
-            user_id: "",
-            completed_at: target,
-            note: null,
-          },
-        ];
-      });
-      return { prev };
+
+      await qc.cancelQueries({ queryKey: ["habit-logs"] });
+      await qc.cancelQueries({ queryKey: ["habit-detail-logs", habitId] });
+
+      const touched: Array<[readonly unknown[], HabitLog[] | undefined]> = [];
+
+      function applyToCache(
+        key: readonly unknown[],
+        fromIdx: number,
+        toIdx: number
+      ) {
+        const from = key[fromIdx];
+        const to = key[toIdx];
+        if (typeof from !== "string" || typeof to !== "string") return;
+        if (target < from || target > to) return;
+        const prev = qc.getQueryData<HabitLog[]>(key);
+        touched.push([key, prev]);
+        qc.setQueryData<HabitLog[]>(key, (old = []) => {
+          if (isCompleted) {
+            return old.filter(
+              (l) => !(l.habit_id === habitId && l.completed_at === target)
+            );
+          }
+          // Dedupe: a retry after a transient error shouldn't double-insert.
+          if (
+            old.some(
+              (l) => l.habit_id === habitId && l.completed_at === target
+            )
+          ) {
+            return old;
+          }
+          return [
+            ...old,
+            {
+              id: `opt-${habitId}-${target}`,
+              habit_id: habitId,
+              user_id: "",
+              completed_at: target,
+              note: null,
+            },
+          ];
+        });
+      }
+
+      // Multi-range logs caches: ["habit-logs", from, to]
+      for (const [key] of qc.getQueriesData<HabitLog[]>({
+        queryKey: ["habit-logs"],
+      })) {
+        applyToCache(key, 1, 2);
+      }
+      // Detail caches, pre-filtered to a single habit:
+      //   ["habit-detail-logs", habitId, from, to]
+      for (const [key] of qc.getQueriesData<HabitLog[]>({
+        queryKey: ["habit-detail-logs", habitId],
+      })) {
+        applyToCache(key, 2, 3);
+      }
+
+      return { touched };
     },
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(logsKey, ctx.prev);
+      if (ctx?.touched) {
+        for (const [key, prev] of ctx.touched) {
+          qc.setQueryData(key, prev);
+        }
+      }
       toast.error("No se pudo guardar. Intenta de nuevo.");
     },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: logsKey });
+    onSettled: (_d, _e, vars) => {
+      qc.invalidateQueries({ queryKey: ["habit-logs"] });
+      qc.invalidateQueries({
+        queryKey: ["habit-detail-logs", vars.habitId],
+      });
     },
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
@@ -12,6 +12,7 @@ import {
   getMonthRange,
   getTodayStr,
 } from "../../../lib/dateUtils";
+import { useToggleHabit } from "../../../hooks/useHabits";
 
 async function getUserId(): Promise<string> {
   const sb = getSupabaseBrowserClient();
@@ -115,10 +116,16 @@ export function CalendarView() {
 
   const habits = habitsQ.data ?? [];
   const logs = logsQ.data ?? [];
+  const toggle = useToggleHabit();
   const cells = useMemo(
     () => getMonthGrid(cursor.year, cursor.month),
     [cursor]
   );
+
+  // Guard rail: users can log for today and any past day (filling in
+  // missed days retroactively), but not the future. `selectedDate` is a
+  // YMD string so lexicographic compare matches chronological order.
+  const canToggleSelected = selectedDate !== null && selectedDate <= todayStr;
 
   function prev() {
     setCursor((c) => {
@@ -137,11 +144,14 @@ export function CalendarView() {
 
   const dayLabels = ["L", "M", "X", "J", "V", "S", "D"];
 
-  const selectedHabitsCompleted = selectedDate
-    ? habits.filter((h) =>
-        logs.some((l) => l.habit_id === h.id && l.completed_at === selectedDate)
-      )
-    : [];
+  const completedIdSetForSelected = useMemo(() => {
+    if (!selectedDate) return new Set<string>();
+    return new Set(
+      logs
+        .filter((l) => l.completed_at === selectedDate)
+        .map((l) => l.habit_id)
+    );
+  }, [logs, selectedDate]);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -267,36 +277,118 @@ export function CalendarView() {
                   No hay hábitos para mostrar.
                 </p>
               ) : (
-                <ul className="flex flex-col gap-2">
-                  {habits.map((h) => {
-                    const done = selectedHabitsCompleted.some((sh) => sh.id === h.id);
-                    return (
-                      <li
-                        key={h.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-line"
-                      >
-                        <span
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-base"
-                          style={{ backgroundColor: `${h.color}22`, color: h.color }}
-                          aria-hidden
-                        >
-                          {h.icon}
-                        </span>
-                        <span className="flex-1 font-body text-sm text-ink">
-                          {h.name}
-                        </span>
-                        <span
-                          className={clsx(
-                            "font-mono text-[10px] uppercase tracking-widest",
-                            done ? "text-success" : "text-muted"
-                          )}
-                        >
-                          {done ? "Hecho" : "—"}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <>
+                  {canToggleSelected && (
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-3">
+                      Toca para{" "}
+                      {selectedDate === todayStr
+                        ? "marcar hoy"
+                        : "marcar retroactivamente"}
+                    </p>
+                  )}
+                  <ul className="flex flex-col gap-2" role="list">
+                    {habits.map((h) => {
+                      const done = completedIdSetForSelected.has(h.id);
+                      const pending =
+                        toggle.isPending &&
+                        toggle.variables?.habitId === h.id &&
+                        (toggle.variables?.date ?? todayStr) === selectedDate;
+
+                      if (!canToggleSelected) {
+                        // Future day — keep the read-only summary so users
+                        // can still glance at what's planned without
+                        // touching the future.
+                        return (
+                          <li
+                            key={h.id}
+                            className="flex items-center gap-3 p-3 rounded-lg border border-line"
+                          >
+                            <span
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-base"
+                              style={{
+                                backgroundColor: `${h.color}22`,
+                                color: h.color,
+                              }}
+                              aria-hidden
+                            >
+                              {h.icon}
+                            </span>
+                            <span className="flex-1 font-body text-sm text-ink">
+                              {h.name}
+                            </span>
+                            <span className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                              —
+                            </span>
+                          </li>
+                        );
+                      }
+
+                      return (
+                        <li key={h.id}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toggle.mutate({
+                                habitId: h.id,
+                                isCompleted: done,
+                                date: selectedDate!,
+                              })
+                            }
+                            disabled={pending}
+                            aria-pressed={done}
+                            aria-label={
+                              done
+                                ? `Desmarcar ${h.name} para el ${selectedDate}`
+                                : `Marcar ${h.name} como hecho el ${selectedDate}`
+                            }
+                            className={clsx(
+                              "w-full flex items-center gap-3 p-3 rounded-lg border transition-all duration-150 ease-out",
+                              "hover:border-accent/30 active:scale-[0.99]",
+                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                              "disabled:opacity-60 disabled:cursor-not-allowed",
+                              done ? "border-transparent" : "border-line"
+                            )}
+                            style={{
+                              backgroundColor: done ? `${h.color}11` : undefined,
+                            }}
+                          >
+                            <span
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
+                              style={{
+                                backgroundColor: `${h.color}22`,
+                                color: h.color,
+                              }}
+                              aria-hidden
+                            >
+                              {h.icon}
+                            </span>
+                            <span
+                              className={clsx(
+                                "flex-1 font-body text-sm text-ink text-left",
+                                done && "line-through text-ink/60"
+                              )}
+                            >
+                              {h.name}
+                            </span>
+                            <span
+                              className={clsx(
+                                "flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+                              )}
+                              style={{
+                                backgroundColor: done ? h.color : "transparent",
+                                borderColor: done ? "transparent" : h.color,
+                                color: done ? "#FFFFFF" : h.color,
+                              }}
+                              aria-hidden
+                            >
+                              {done && <Check size={14} strokeWidth={3} />}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </div>
           </div>
