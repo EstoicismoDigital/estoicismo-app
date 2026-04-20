@@ -19,6 +19,7 @@ import {
   useUpdateProfile,
   COMMON_TIMEZONES,
 } from "../../../hooks/useUpdateProfile";
+import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 
 export function AjustesClient({
   email,
@@ -254,6 +255,26 @@ export function AjustesClient({
               </div>
               <ChevronRight size={16} className="text-muted flex-shrink-0" aria-hidden />
             </Link>
+          </div>
+        </div>
+
+        {/* Data ownership */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Datos
+          </p>
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">
+                Descarga todo lo que has registrado
+              </h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                Un archivo JSON con tus hábitos, archivados incluidos, sus
+                completados y tus reflexiones. Es tuyo — guárdalo donde
+                quieras.
+              </p>
+            </div>
+            <ExportDataButton />
           </div>
         </div>
 
