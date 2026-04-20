@@ -125,7 +125,8 @@ describe("HabitsDashboard", () => {
       },
     ];
     render(<HabitsDashboard />);
-    expect(screen.getByText("Meditar")).toBeInTheDocument();
+    // "Meditar" may appear in both the main habit list and the timeline chip list
+    expect(screen.getAllByText("Meditar").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("button", { name: /crear nuevo hábito/i })
     ).toBeInTheDocument();

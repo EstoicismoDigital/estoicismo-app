@@ -6,6 +6,7 @@ import { DailyHeader } from "../../components/habits/DailyHeader";
 import { HabitRow } from "../../components/habits/HabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
+import { TodayTimeline } from "../../components/habits/TodayTimeline";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   useHabits,
@@ -104,65 +105,95 @@ export function HabitsDashboard() {
         totalHabits={habits.length}
       />
 
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <div className="flex items-baseline justify-between mb-5 sm:mb-6">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
-              Tus hábitos
-            </p>
-            <h2 className="font-display italic text-2xl sm:text-3xl text-ink">
-              Hoy
-            </h2>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 lg:grid lg:grid-cols-[1fr_320px] lg:gap-10">
+        <div className="min-w-0">
+          {/* Mobile timeline (chip list) sits above the habit list */}
+          <div className="lg:hidden">
+            {habits.length > 0 && (
+              <TodayTimeline
+                habits={habits}
+                logs={logs}
+                currentDate={today}
+                onToggle={(h, isCompleted) =>
+                  toggle.mutate({ habitId: h.id, isCompleted })
+                }
+              />
+            )}
           </div>
-          {habits.length > 0 && (
-            <button
-              type="button"
-              onClick={openNew}
-              className="hidden sm:inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <Plus size={16} />
-              Nuevo
-            </button>
+
+          <div className="flex items-baseline justify-between mb-5 sm:mb-6">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+                Tus hábitos
+              </p>
+              <h2 className="font-display italic text-2xl sm:text-3xl text-ink">
+                Hoy
+              </h2>
+            </div>
+            {habits.length > 0 && (
+              <button
+                type="button"
+                onClick={openNew}
+                className="hidden sm:inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <Plus size={16} />
+                Nuevo
+              </button>
+            )}
+          </div>
+
+          {isLoading ? (
+            <div className="flex flex-col gap-2.5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <HabitRowSkeleton key={i} />
+              ))}
+            </div>
+          ) : habits.length === 0 ? (
+            <EmptyHabits onCreate={openNew} />
+          ) : (
+            <ul className="flex flex-col gap-2.5" role="list">
+              {habits.map((habit) => (
+                <li key={habit.id}>
+                  <HabitRow
+                    habit={habit}
+                    logs={logs}
+                    onToggle={(h, isCompleted) =>
+                      toggle.mutate({ habitId: h.id, isCompleted })
+                    }
+                    onEdit={openEdit}
+                    onArchive={requestArchive}
+                  />
+                </li>
+              ))}
+            </ul>
           )}
+
+          {habits.length > 0 &&
+            profile?.plan !== "premium" &&
+            habits.length >= FREE_TIER_LIMIT && (
+              <p className="text-center font-body text-xs text-muted mt-6">
+                Has alcanzado el límite gratuito. Actualiza a{" "}
+                <a href="/upgrade" className="text-accent font-medium hover:underline">
+                  Premium
+                </a>{" "}
+                para añadir más.
+              </p>
+            )}
         </div>
 
-        {isLoading ? (
-          <div className="flex flex-col gap-2.5">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <HabitRowSkeleton key={i} />
-            ))}
-          </div>
-        ) : habits.length === 0 ? (
-          <EmptyHabits onCreate={openNew} />
-        ) : (
-          <ul className="flex flex-col gap-2.5" role="list">
-            {habits.map((habit) => (
-              <li key={habit.id}>
-                <HabitRow
-                  habit={habit}
-                  logs={logs}
-                  onToggle={(h, isCompleted) =>
-                    toggle.mutate({ habitId: h.id, isCompleted })
-                  }
-                  onEdit={openEdit}
-                  onArchive={requestArchive}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {habits.length > 0 &&
-          profile?.plan !== "premium" &&
-          habits.length >= FREE_TIER_LIMIT && (
-            <p className="text-center font-body text-xs text-muted mt-6">
-              Has alcanzado el límite gratuito. Actualiza a{" "}
-              <a href="/upgrade" className="text-accent font-medium hover:underline">
-                Premium
-              </a>{" "}
-              para añadir más.
-            </p>
+        {/* Desktop: right-hand 320px timeline column */}
+        <aside className="hidden lg:block">
+          {habits.length > 0 && (
+            <TodayTimeline
+              habits={habits}
+              logs={logs}
+              currentDate={today}
+              onToggle={(h, isCompleted) =>
+                toggle.mutate({ habitId: h.id, isCompleted })
+              }
+            />
           )}
+        </aside>
       </section>
 
       {/* FAB */}
