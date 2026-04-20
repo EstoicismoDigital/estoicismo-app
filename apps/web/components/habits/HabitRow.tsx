@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, MessageSquare, MessageSquareText } from "lucide-react";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
 import { WeekStrip } from "./WeekStrip";
 import { HabitContextMenu } from "./HabitContextMenu";
@@ -12,18 +12,23 @@ export function HabitRow({
   onToggle,
   onEdit,
   onArchive,
+  onNote,
 }: {
   habit: Habit;
   logs: HabitLog[];
   onToggle: (habit: Habit, isCompleted: boolean) => void;
   onEdit: (habit: Habit) => void;
   onArchive: (habit: Habit) => void;
+  /** Optional. Opens the note dialog for today's log. Ignored if habit isn't completed today. */
+  onNote?: (habit: Habit, currentNote: string | null) => void;
 }) {
   const today = getTodayStr();
-  const habitLogDates = logs
-    .filter((l) => l.habit_id === habit.id)
-    .map((l) => l.completed_at);
+  const habitLogs = logs.filter((l) => l.habit_id === habit.id);
+  const habitLogDates = habitLogs.map((l) => l.completed_at);
   const isCompletedToday = habitLogDates.includes(today);
+  const todayLog = habitLogs.find((l) => l.completed_at === today) ?? null;
+  const noteForToday = todayLog?.note ?? null;
+  const hasNote = !!(noteForToday && noteForToday.trim().length > 0);
   const streak = computeStreak(habitLogDates);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -84,8 +89,16 @@ export function HabitRow({
             )}
           </div>
           {isCompletedToday && (
-            <p className="font-mono text-[10px] uppercase tracking-widest text-success mt-0.5">
-              Hecho hoy
+            <p className="font-mono text-[10px] uppercase tracking-widest text-success mt-0.5 flex items-center gap-1.5">
+              <span>Hecho hoy</span>
+              {hasNote && (
+                <span
+                  className="inline-flex items-center gap-0.5 text-accent normal-case tracking-normal"
+                  title="Tiene nota"
+                >
+                  <MessageSquareText size={11} aria-hidden />
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -96,6 +109,28 @@ export function HabitRow({
           logs={logs}
           onToggleToday={handleToggle}
         />
+
+        {/* Note button — only when completed today and handler provided */}
+        {isCompletedToday && onNote && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNote(habit, noteForToday);
+            }}
+            aria-label={
+              hasNote ? `Editar nota de ${habit.name}` : `Añadir nota a ${habit.name}`
+            }
+            className="flex-shrink-0 w-8 h-8 rounded-lg transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-accent hover:bg-bg-alt"
+            style={{ color: hasNote ? habit.color : undefined }}
+          >
+            {hasNote ? (
+              <MessageSquareText size={16} />
+            ) : (
+              <MessageSquare size={16} className="text-muted hover:text-ink" />
+            )}
+          </button>
+        )}
 
         {/* More button */}
         <button
@@ -118,6 +153,12 @@ export function HabitRow({
         onClose={() => setMenuOpen(false)}
         onEdit={() => onEdit(habit)}
         onArchive={() => onArchive(habit)}
+        onNote={
+          isCompletedToday && onNote
+            ? () => onNote(habit, noteForToday)
+            : undefined
+        }
+        hasNote={hasNote}
       />
     </div>
   );

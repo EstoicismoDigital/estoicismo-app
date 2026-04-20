@@ -128,6 +128,26 @@ export async function deleteHabitLog(
   if (error) throw error;
 }
 
+/**
+ * Update the note on an existing habit_log row.
+ * Empty strings are normalized to null. Returns silently if no row matches
+ * (i.e. the user hasn't completed the habit on that date yet).
+ */
+export async function upsertHabitLogNote(
+  sb: SB,
+  habitId: string,
+  date: string,
+  note: string | null
+): Promise<void> {
+  const normalized = note && note.trim().length > 0 ? note.trim() : null;
+  const { error } = await sb
+    .from("habit_logs")
+    .update({ note: normalized } as never)
+    .eq("habit_id", habitId)
+    .eq("completed_at", date);
+  if (error) throw error;
+}
+
 export const HABIT_COLORS = [
   "#4F8EF7",
   "#3DBF8A",

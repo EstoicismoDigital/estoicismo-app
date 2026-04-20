@@ -10,6 +10,7 @@ import {
   archiveHabit,
   insertHabitLog,
   deleteHabitLog,
+  upsertHabitLogNote,
   type CreateHabitInput,
 } from "@estoicismo/supabase";
 import type { Habit, HabitLog } from "@estoicismo/supabase";
@@ -148,6 +149,54 @@ export function useUpdateHabit() {
       toast.success("Hábito actualizado");
     },
     onError: () => toast.error("No se pudo actualizar el hábito."),
+  });
+}
+
+export function useUpsertHabitLogNote() {
+  const qc = useQueryClient();
+  const week = getCurrentWeekDays();
+  const logsKey = ["habit-logs", week[0].date, week[6].date];
+
+  return useMutation({
+    mutationFn: async ({
+      habitId,
+      date,
+      note,
+    }: {
+      habitId: string;
+      date: string;
+      note: string | null;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      await upsertHabitLogNote(sb, habitId, date, note);
+    },
+    onMutate: async ({ habitId, date, note }) => {
+      await qc.cancelQueries({ queryKey: logsKey });
+      const prev = qc.getQueryData<HabitLog[]>(logsKey);
+      const normalized = note && note.trim().length > 0 ? note.trim() : null;
+      qc.setQueryData<HabitLog[]>(logsKey, (old = []) =>
+        old.map((l) =>
+          l.habit_id === habitId && l.completed_at === date
+            ? { ...l, note: normalized }
+            : l
+        )
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(logsKey, ctx.prev);
+      toast.error("No se pudo guardar la nota.");
+    },
+    onSuccess: (_data, vars) => {
+      toast.success(
+        vars.note && vars.note.trim().length > 0
+          ? "Nota guardada"
+          : "Nota eliminada"
+      );
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: logsKey });
+    },
   });
 }
 

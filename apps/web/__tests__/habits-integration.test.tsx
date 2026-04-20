@@ -23,6 +23,7 @@ const mockToggle = jest.fn();
 const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
 const mockArchive = jest.fn();
+const mockUpsertNote = jest.fn();
 
 const habitsState: { habits: Habit[]; logs: HabitLog[]; isLoading: boolean } = {
   habits: [],
@@ -45,6 +46,11 @@ jest.mock("../hooks/useHabits", () => ({
     isPending: false,
   }),
   useArchiveHabit: () => ({ mutate: mockArchive, isPending: false }),
+  useUpsertHabitLogNote: () => ({
+    mutate: mockUpsertNote,
+    mutateAsync: mockUpsertNote,
+    isPending: false,
+  }),
 }));
 
 jest.mock("../hooks/useProfile", () => ({
@@ -81,6 +87,7 @@ describe("HabitsDashboard", () => {
     mockCreate.mockClear();
     mockUpdate.mockClear();
     mockArchive.mockClear();
+    mockUpsertNote.mockClear();
   });
 
   it("renders the Hoy heading", () => {
@@ -130,5 +137,61 @@ describe("HabitsDashboard", () => {
     expect(
       screen.getByRole("button", { name: /crear nuevo hábito/i })
     ).toBeInTheDocument();
+  });
+
+  it("opens the note dialog and saves a note for a completed habit", async () => {
+    const today = (() => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    })();
+    habitsState.habits = [
+      {
+        id: "h1",
+        user_id: "u1",
+        name: "Meditar",
+        icon: "🧘",
+        color: "#4F8EF7",
+        frequency: "daily",
+        reminder_time: null,
+        is_archived: false,
+        created_at: "2025-04-01T00:00:00Z",
+      },
+    ];
+    habitsState.logs = [
+      {
+        id: "log-1",
+        habit_id: "h1",
+        user_id: "u1",
+        completed_at: today,
+        note: null,
+      },
+    ];
+
+    render(<HabitsDashboard />);
+    // The note button appears next to the completed habit row
+    const noteBtn = screen.getByRole("button", {
+      name: /añadir nota a meditar/i,
+    });
+    fireEvent.click(noteBtn);
+
+    // Dialog is open with the habit name as title
+    expect(
+      screen.getByRole("heading", { name: /meditar/i, level: 2 })
+    ).toBeInTheDocument();
+
+    // Type a note and submit
+    const textarea = screen.getByPlaceholderText(/qué aprendiste hoy/i);
+    fireEvent.change(textarea, {
+      target: { value: "Mente tranquila, decisiones firmes." },
+    });
+
+    const save = screen.getByRole("button", { name: /guardar/i });
+    fireEvent.click(save);
+
+    expect(mockUpsertNote).toHaveBeenCalledWith({
+      habitId: "h1",
+      date: today,
+      note: "Mente tranquila, decisiones firmes.",
+    });
   });
 });

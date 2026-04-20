@@ -7,6 +7,7 @@ import { DailyHeader } from "../../components/habits/DailyHeader";
 import { HabitRow } from "../../components/habits/HabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
+import { HabitNoteDialog } from "../../components/habits/HabitNoteDialog";
 import {
   TodayTimeline,
   isHabitDueOn,
@@ -19,6 +20,7 @@ import {
   useCreateHabit,
   useUpdateHabit,
   useArchiveHabit,
+  useUpsertHabitLogNote,
 } from "../../hooks/useHabits";
 import { useProfile } from "../../hooks/useProfile";
 import { getTodayStr } from "../../lib/dateUtils";
@@ -54,10 +56,14 @@ export function HabitsDashboard() {
   const createM = useCreateHabit();
   const updateM = useUpdateHabit();
   const archiveM = useArchiveHabit();
+  const noteM = useUpsertHabitLogNote();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Habit | null>(null);
   const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
+  const [noteTarget, setNoteTarget] = useState<
+    { habit: Habit; currentNote: string | null } | null
+  >(null);
 
   const today = getTodayStr();
   const completedToday = useMemo(
@@ -118,6 +124,20 @@ export function HabitsDashboard() {
       archiveM.mutate(habitToArchive.id);
     }
     setHabitToArchive(null);
+  }
+
+  function openNote(habit: Habit, currentNote: string | null) {
+    setNoteTarget({ habit, currentNote });
+  }
+
+  async function handleSaveNote(note: string | null) {
+    if (!noteTarget) return;
+    await noteM.mutateAsync({
+      habitId: noteTarget.habit.id,
+      date: today,
+      note,
+    });
+    setNoteTarget(null);
   }
 
   return (
@@ -185,6 +205,7 @@ export function HabitsDashboard() {
                     }
                     onEdit={openEdit}
                     onArchive={requestArchive}
+                    onNote={openNote}
                   />
                 </li>
               ))}
@@ -257,6 +278,15 @@ export function HabitsDashboard() {
         destructive
         onConfirm={confirmArchive}
         onCancel={() => setHabitToArchive(null)}
+      />
+
+      <HabitNoteDialog
+        open={noteTarget !== null}
+        habitName={noteTarget?.habit.name ?? ""}
+        initialNote={noteTarget?.currentNote ?? null}
+        onSave={handleSaveNote}
+        onClose={() => setNoteTarget(null)}
+        saving={noteM.isPending}
       />
     </div>
   );

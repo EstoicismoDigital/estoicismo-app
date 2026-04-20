@@ -6,11 +6,16 @@ export function HabitContextMenu({
   onClose,
   onEdit,
   onArchive,
+  onNote,
+  hasNote,
 }: {
   open: boolean;
   onClose: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  /** Optional. If omitted, the "note" entry is hidden. */
+  onNote?: () => void;
+  hasNote?: boolean;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +45,19 @@ export function HabitContextMenu({
       role="menu"
       className="absolute top-full right-3 mt-1 z-20 bg-bg border border-line rounded-card shadow-[0_8px_24px_rgba(0,0,0,0.12)] overflow-hidden min-w-[160px] animate-in fade-in slide-in-from-top-1 duration-150"
     >
+      {onNote && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            onClose();
+            onNote();
+          }}
+          className="w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors"
+        >
+          {hasNote ? "Editar nota" : "Añadir nota"}
+        </button>
+      )}
       <button
         type="button"
         role="menuitem"
@@ -47,7 +65,7 @@ export function HabitContextMenu({
           onClose();
           onEdit();
         }}
-        className="w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors"
+        className={`w-full text-left px-4 py-2.5 font-body text-sm text-ink hover:bg-bg-alt transition-colors${onNote ? " border-t border-line" : ""}`}
       >
         Editar
       </button>
