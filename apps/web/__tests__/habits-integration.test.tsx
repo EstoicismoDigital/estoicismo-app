@@ -146,6 +146,47 @@ describe("HabitsDashboard", () => {
     ).toBeInTheDocument();
   });
 
+  it("pre-fills the create form when a template chip is clicked", async () => {
+    // At least one habit so the FAB is the entry point (not EmptyHabits,
+    // which has its own template grid tested elsewhere).
+    habitsState.habits = [
+      {
+        id: "h0",
+        user_id: "u1",
+        name: "Existing",
+        icon: "⭐",
+        color: "#3DBF8A",
+        frequency: "daily",
+        reminder_time: null,
+        is_archived: false,
+        created_at: "2025-04-01T00:00:00Z",
+      },
+    ];
+    render(<HabitsDashboard />);
+    // Open the modal via the mobile FAB
+    fireEvent.click(screen.getByRole("button", { name: /crear nuevo hábito/i }));
+    // Click the "Meditar 10 min" template chip — its aria-label starts with
+    // "Plantilla " so we don't collide with other buttons.
+    const chip = screen.getByRole("listitem", {
+      name: /plantilla meditar 10 min/i,
+    });
+    fireEvent.click(chip);
+    // Name input is now filled
+    const nameInput = screen.getByPlaceholderText(/meditar 10 minutos/i) as HTMLInputElement;
+    expect(nameInput.value).toBe("Meditar 10 min");
+    // Submit and assert createHabit receives the full template payload
+    fireEvent.click(screen.getByRole("button", { name: /crear hábito/i }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Meditar 10 min",
+        icon: "🧘",
+        color: "#4F8EF7",
+        frequency: "daily",
+        reminder_time: "08:00",
+      })
+    );
+  });
+
   it("opens the note dialog and saves a note for a completed habit", async () => {
     const today = (() => {
       const d = new Date();

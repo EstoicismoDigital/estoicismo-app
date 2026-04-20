@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import { HABIT_COLORS, HABIT_EMOJIS, type CreateHabitInput } from "@estoicismo/supabase";
 import type { Habit } from "@estoicismo/supabase";
+import { HABIT_TEMPLATES, type HabitTemplate } from "../../lib/habitTemplates";
 
 type Frequency =
   | { kind: "daily" }
@@ -118,6 +119,22 @@ export function HabitModal({
     setFrequency({ kind: "specific", days: next });
   }
 
+  /**
+   * Pre-fill every field from a template. The user can still tweak
+   * anything afterward — this is a starting point, not a lock-in.
+   * Reminder times in templates are stored as HH:MM:SS; the <input
+   * type="time"> control expects HH:MM, so we trim the seconds.
+   */
+  function applyTemplate(t: HabitTemplate) {
+    setName(t.name);
+    setIcon(t.icon);
+    setColor(t.color);
+    setFrequency(habitFrequencyToLocal(t.frequency));
+    setReminderTime(t.reminder_time ? t.reminder_time.slice(0, 5) : "");
+    setTouched(false);
+    nameInputRef.current?.focus();
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
@@ -161,6 +178,51 @@ export function HabitModal({
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 flex flex-col gap-6">
+          {/* Templates — only when creating; editing hides this to keep the
+              focus on the existing habit being modified. */}
+          {!editing && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1.5">
+                <Sparkles size={12} className="text-accent" aria-hidden />
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                  Plantillas sugeridas
+                </p>
+              </div>
+              <div
+                role="list"
+                aria-label="Plantillas de hábitos"
+                // Horizontal scroll with a scrollbar that disappears on mobile;
+                // scroll-snap keeps chip alignment predictable on touch.
+                className="flex gap-2 overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6 pb-1 scroll-smooth snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {HABIT_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="listitem"
+                    onClick={() => applyTemplate(t)}
+                    aria-label={`Plantilla ${t.name}. ${t.tagline}`}
+                    className="flex-shrink-0 snap-start inline-flex items-center gap-2 h-10 px-3 rounded-full border border-line bg-bg-alt hover:border-accent/40 hover:bg-accent/5 active:scale-[0.97] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <span
+                      className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm"
+                      style={{
+                        backgroundColor: `${t.color}22`,
+                        color: t.color,
+                      }}
+                      aria-hidden
+                    >
+                      {t.icon}
+                    </span>
+                    <span className="font-body text-sm text-ink whitespace-nowrap">
+                      {t.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Name */}
           <div className="flex flex-col gap-1.5">
             <label
