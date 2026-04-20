@@ -7,6 +7,7 @@ import { HabitRow } from "../../components/habits/HabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
 import { TodayTimeline } from "../../components/habits/TodayTimeline";
+import { InsightsPanel } from "../../components/habits/InsightsPanel";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
   useHabits,
@@ -179,6 +180,10 @@ export function HabitsDashboard() {
                 para añadir más.
               </p>
             )}
+
+          {!isLoading && habits.length > 0 && (
+            <InsightsPanel habits={habits} logs={logs} />
+          )}
         </div>
 
         {/* Desktop: right-hand 320px timeline column */}
