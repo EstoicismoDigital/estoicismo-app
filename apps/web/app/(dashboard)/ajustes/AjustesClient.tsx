@@ -21,6 +21,7 @@ import {
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
+import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
 
 export function AjustesClient({
   email,
@@ -252,6 +253,14 @@ export function AjustesClient({
             </div>
             <ThemeToggle />
           </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Notificaciones
+          </p>
+          <NotificationsSettingsCard />
         </div>
 
         {/* App */}
