@@ -54,7 +54,10 @@ export function ProgresoClient() {
   });
 
   const logsQ = useQuery<HabitLog[]>({
-    queryKey: ["progreso-logs", from, to],
+    // Shared ["habit-logs", from, to] shape means useToggleHabit's
+    // multi-cache optimistic update + invalidation propagate here
+    // automatically. No per-page cache sync needed.
+    queryKey: ["habit-logs", from, to],
     queryFn: async () => {
       const sb = getSupabaseBrowserClient();
       return fetchHabitLogs(sb, await getUserId(), from, to);
