@@ -80,7 +80,7 @@ export function useAllHabitLogs(monthFrom: string, monthTo: string) {
 export function useToggleHabit() {
   const qc = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async ({
       habitId,
       isCompleted,
@@ -174,14 +174,33 @@ export function useToggleHabit() {
       }
       toast.error("No se pudo guardar. Intenta de nuevo.");
     },
-    // Haptic confirmation runs on success (not onMutate) so users don't
-    // feel a buzz for toggles that end up rolling back on network error.
-    // We distinguish complete vs uncomplete — `isCompleted` in the vars
-    // reflects the STATE BEFORE the toggle, so `true` = "was done, now
-    // undoing" (soft bump), `false` = "was undone, now done" (tap).
+    // Success-only side effects: haptic confirmation AND (on uncomplete)
+    // an undo toast. We run these on success instead of onMutate so they
+    // don't fire for toggles that end up rolling back on network error.
+    //
+    // `isCompleted` in vars reflects the STATE BEFORE the toggle:
+    //   true  → "was done, now undoing" → soft bump + undo toast
+    //   false → "was undone, now done"  → tap (no undo — completing is
+    //           a positive action, users rarely regret it)
+    //
+    // The undo toast reuses the same mutation. `mutation.mutate` is a
+    // stable reference, and by the time this callback runs the outer
+    // `mutation` const is already assigned, so the closure resolves.
     onSuccess: (_d, vars) => {
-      if (vars.isCompleted) hapticSoftBump();
-      else hapticTap();
+      if (vars.isCompleted) {
+        hapticSoftBump();
+        toast("Hábito desmarcado", {
+          action: {
+            label: "Deshacer",
+            onClick: () => {
+              mutation.mutate({ ...vars, isCompleted: false });
+            },
+          },
+          duration: 4000,
+        });
+      } else {
+        hapticTap();
+      }
     },
     onSettled: (_d, _e, vars) => {
       qc.invalidateQueries({ queryKey: ["habit-logs"] });
@@ -190,6 +209,8 @@ export function useToggleHabit() {
       });
     },
   });
+
+  return mutation;
 }
 
 export function useCreateHabit() {
