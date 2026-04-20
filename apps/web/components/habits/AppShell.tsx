@@ -7,8 +7,6 @@ import {
   Calendar,
   Crown,
   Settings,
-  Menu,
-  X,
   LogOut,
   Archive,
   TrendingUp,
@@ -16,6 +14,7 @@ import {
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
+import { BottomNav } from "./BottomNav";
 
 type NavItem = { href: string; label: string; Icon: typeof Home };
 
@@ -28,13 +27,7 @@ const NAV: NavItem[] = [
   { href: "/ajustes", label: "Ajustes", Icon: Settings },
 ];
 
-function NavLinks({
-  pathname,
-  onNavigate,
-}: {
-  pathname: string;
-  onNavigate?: () => void;
-}) {
+function NavLinks({ pathname }: { pathname: string }) {
   return (
     <nav className="flex flex-col gap-1">
       {NAV.map(({ href, label, Icon }) => {
@@ -44,7 +37,6 @@ function NavLinks({
           <Link
             key={href}
             href={href}
-            onClick={onNavigate}
             className={clsx(
               "group flex items-center gap-3 px-3 py-2.5 rounded-lg font-body text-[15px] transition-colors duration-150 ease-out min-h-[44px]",
               active
@@ -68,22 +60,23 @@ function NavLinks({
   );
 }
 
-function PlanPill() {
+function PlanPill({ compact = false }: { compact?: boolean }) {
   const { data: profile } = useProfile();
   const isPremium = profile?.plan === "premium";
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[10px] uppercase tracking-widest",
+        "inline-flex items-center gap-1.5 rounded-full font-mono uppercase tracking-widest",
+        compact ? "px-2 py-0.5 text-[9px]" : "px-2.5 py-1 text-[10px]",
         isPremium ? "bg-accent text-white" : "bg-line text-muted"
       )}
     >
       {isPremium ? (
         <>
-          <Crown size={10} /> Premium
+          <Crown size={compact ? 9 : 10} /> Premium
         </>
       ) : (
-        "Plan gratuito"
+        "Gratuito"
       )}
     </span>
   );
@@ -113,7 +106,6 @@ function SignOutButton() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -145,68 +137,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
-      <header className="md:hidden sticky top-0 z-30 bg-bg-alt border-b border-line">
-        <div className="h-14 px-4 flex items-center justify-between">
+      {/* Mobile top bar (brand + plan pill only; nav lives at bottom) */}
+      <header
+        className="md:hidden sticky top-0 z-30 bg-bg-alt/95 backdrop-blur-sm border-b border-line"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="h-12 px-4 flex items-center justify-between">
           <Link href="/" className="flex items-baseline gap-1.5">
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
               Estoicismo
             </p>
             <span className="font-display italic text-base text-ink">Digital</span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Abrir menú"
-            className="p-2 rounded-lg hover:bg-bg text-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          >
-            <Menu size={20} />
-          </button>
+          <PlanPill compact />
         </div>
       </header>
 
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-40"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menú"
-        >
-          <button
-            type="button"
-            aria-label="Cerrar menú"
-            onClick={() => setDrawerOpen(false)}
-            className="absolute inset-0 bg-black/40 animate-in fade-in duration-150"
-          />
-          <div className="absolute top-0 right-0 bottom-0 w-[280px] max-w-[85vw] bg-bg-alt shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between px-4 py-4 border-b border-line">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                Navegación
-              </p>
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(false)}
-                aria-label="Cerrar menú"
-                className="p-2 rounded-lg hover:bg-bg text-ink min-w-[44px] min-h-[44px] flex items-center justify-center"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="px-3 py-4 flex-1">
-              <NavLinks pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
-            </div>
-            <div className="px-3 pb-6 flex flex-col gap-3 border-t border-line pt-4">
-              <div className="px-3">
-                <PlanPill />
-              </div>
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Content — leave room for desktop sidebar, mobile bottom nav + safe-area */}
+      <main
+        className="md:pl-[240px] min-h-screen pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0"
+      >
+        {children}
+      </main>
 
-      <main className="md:pl-[240px] min-h-screen">{children}</main>
+      <BottomNav pathname={pathname} />
     </div>
   );
 }

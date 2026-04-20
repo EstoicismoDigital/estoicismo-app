@@ -170,7 +170,7 @@ export function HabitsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-bg pb-24">
+    <div className="min-h-screen bg-bg">
       <DailyHeader
         completedToday={completedToday}
         totalHabits={habits.length}
@@ -206,7 +206,7 @@ export function HabitsDashboard() {
               <button
                 type="button"
                 onClick={openNew}
-                className="hidden sm:inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="hidden md:inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-ink text-white font-body text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <Plus size={16} />
                 Nuevo
@@ -274,12 +274,13 @@ export function HabitsDashboard() {
         </aside>
       </section>
 
-      {/* FAB */}
+      {/* FAB — floats above the bottom nav and respects the iOS home indicator */}
       <button
         type="button"
         onClick={openNew}
         aria-label="Crear nuevo hábito"
-        className="sm:hidden fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full bg-accent text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] flex items-center justify-center hover:opacity-95 active:scale-95 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        className="md:hidden fixed right-5 z-50 w-14 h-14 rounded-full bg-accent text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] flex items-center justify-center hover:opacity-95 active:scale-95 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        style={{ bottom: "calc(4.5rem + env(safe-area-inset-bottom))" }}
       >
         <Plus size={24} />
       </button>
