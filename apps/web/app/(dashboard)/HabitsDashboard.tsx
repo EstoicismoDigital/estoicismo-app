@@ -23,7 +23,8 @@ import {
   useUpsertHabitLogNote,
 } from "../../hooks/useHabits";
 import { useProfile } from "../../hooks/useProfile";
-import { getTodayStr } from "../../lib/dateUtils";
+import { computeStreak, getTodayStr } from "../../lib/dateUtils";
+import { findCrossedMilestone } from "../../lib/streakMilestones";
 import type { Habit, CreateHabitInput } from "@estoicismo/supabase";
 
 const FREE_TIER_LIMIT = 3;
@@ -89,6 +90,34 @@ export function HabitsDashboard() {
     }
     prevCompleteRef.current = isAllDone;
   }, [completedToday, dueToday]);
+
+  // Celebrate per-habit streak milestones (3/7/14/30/60/100/365 days).
+  // The ref is null on first mount so we don't toast existing streaks that
+  // were already achieved before the page loaded — only genuine crossings
+  // triggered by the user's actions in this session fire a celebration.
+  const prevStreaksRef = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    const next: Record<string, number> = {};
+    for (const h of habits) {
+      const dates = logs
+        .filter((l) => l.habit_id === h.id)
+        .map((l) => l.completed_at);
+      next[h.id] = computeStreak(dates);
+    }
+    if (prevStreaksRef.current !== null) {
+      const prev = prevStreaksRef.current;
+      for (const h of habits) {
+        const milestone = findCrossedMilestone(prev[h.id] ?? 0, next[h.id]);
+        if (milestone) {
+          toast.success(`${h.icon}  ${h.name} · ${milestone.title}`, {
+            description: milestone.description,
+            duration: 5500,
+          });
+        }
+      }
+    }
+    prevStreaksRef.current = next;
+  }, [habits, logs]);
 
   function openNew() {
     const isPremium = profile?.plan === "premium";
