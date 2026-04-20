@@ -14,15 +14,22 @@ function getGreeting(): string {
 export function DailyHeader({
   completedToday,
   totalHabits,
+  dueToday,
 }: {
   completedToday: number;
   totalHabits: number;
+  /** How many habits are scheduled for today. Falls back to totalHabits if omitted. */
+  dueToday?: number;
 }) {
   const { data: quote } = useDailyQuote();
   const { data: profile } = useProfile();
   const dateStr = getHeaderDateStr();
   const greeting = getGreeting();
   const username = profile?.username?.trim() || null;
+
+  const due = dueToday ?? totalHabits;
+  const pct = due === 0 ? 0 : Math.min(100, Math.round((completedToday / due) * 100));
+  const allDone = due > 0 && completedToday >= due;
 
   return (
     <section className="bg-bg-deep text-white">
@@ -48,15 +55,37 @@ export function DailyHeader({
           </footer>
         </blockquote>
 
-        <div className="flex items-baseline gap-3 pt-4 border-t border-white/10">
-          <span className="font-display text-5xl sm:text-6xl text-accent leading-none tabular-nums">
-            {completedToday}
-          </span>
-          <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-white/60">
-            {totalHabits === 0
-              ? "Sin hábitos todavía"
-              : `De ${totalHabits} ${totalHabits === 1 ? "hábito" : "hábitos"} completados`}
-          </p>
+        <div className="pt-4 border-t border-white/10">
+          <div className="flex items-baseline gap-3">
+            <span className="font-display text-5xl sm:text-6xl text-accent leading-none tabular-nums">
+              {completedToday}
+            </span>
+            <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-white/60">
+              {totalHabits === 0
+                ? "Sin hábitos todavía"
+                : due === 0
+                  ? "Ninguno programado hoy"
+                  : allDone
+                    ? "Día completo"
+                    : `De ${due} ${due === 1 ? "hábito" : "hábitos"} hoy`}
+            </p>
+          </div>
+
+          {totalHabits > 0 && due > 0 && (
+            <div
+              className="mt-4 h-1.5 w-full max-w-xs rounded-full bg-white/10 overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={due}
+              aria-valuenow={completedToday}
+              aria-label={`${completedToday} de ${due} hábitos completados`}
+            >
+              <div
+                className="h-full bg-accent transition-all duration-500 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>

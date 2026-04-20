@@ -1,12 +1,16 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { DailyHeader } from "../../components/habits/DailyHeader";
 import { HabitRow } from "../../components/habits/HabitRow";
 import { EmptyHabits } from "../../components/habits/EmptyHabits";
 import { HabitModal } from "../../components/habits/HabitModal";
-import { TodayTimeline } from "../../components/habits/TodayTimeline";
+import {
+  TodayTimeline,
+  isHabitDueOn,
+} from "../../components/habits/TodayTimeline";
 import { InsightsPanel } from "../../components/habits/InsightsPanel";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import {
@@ -62,6 +66,23 @@ export function HabitsDashboard() {
         .size,
     [logs, today]
   );
+  const dueToday = useMemo(
+    () => habits.filter((h) => isHabitDueOn(h, today)).length,
+    [habits, today]
+  );
+
+  // Celebrate when the user crosses from "incomplete" to "all done".
+  const prevCompleteRef = useRef(false);
+  useEffect(() => {
+    const isAllDone = dueToday > 0 && completedToday >= dueToday;
+    if (isAllDone && !prevCompleteRef.current) {
+      toast.success("Día completo. Buen trabajo.", {
+        description: "El filósofo actúa, no solo contempla.",
+        duration: 4000,
+      });
+    }
+    prevCompleteRef.current = isAllDone;
+  }, [completedToday, dueToday]);
 
   function openNew() {
     const isPremium = profile?.plan === "premium";
@@ -104,6 +125,7 @@ export function HabitsDashboard() {
       <DailyHeader
         completedToday={completedToday}
         totalHabits={habits.length}
+        dueToday={dueToday}
       />
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 lg:grid lg:grid-cols-[1fr_320px] lg:gap-10">
