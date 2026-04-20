@@ -17,7 +17,7 @@ export function HistorialClient() {
   const [confirmDelete, setConfirmDelete] = useState<Habit | null>(null);
 
   return (
-    <div className="min-h-screen bg-bg pb-24">
+    <div className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
