@@ -58,6 +58,41 @@ export function computeStreak(dates: string[]): number {
   return streak;
 }
 
+/**
+ * Returns the longest consecutive-days streak found anywhere in `dates`.
+ *
+ * Unlike `computeStreak` (which looks backward from today), this walks
+ * the entire history and returns the best uninterrupted run. Dates that
+ * appear more than once in the input are counted once — the function is
+ * idempotent under duplicates.
+ *
+ * @example
+ *   computeLongestStreak([]) // 0
+ *   computeLongestStreak(["2026-04-20"]) // 1
+ *   computeLongestStreak(["2026-04-18", "2026-04-19", "2026-04-20"]) // 3
+ *   // non-consecutive gap resets the run:
+ *   computeLongestStreak(["2026-04-10", "2026-04-11", "2026-04-20"]) // 2
+ */
+export function computeLongestStreak(dates: string[]): number {
+  if (!dates.length) return 0;
+  // Dedupe + sort ascending so `prev + 1 day === current` comparison is meaningful.
+  const sorted = Array.from(new Set(dates)).sort();
+  let best = 1;
+  let run = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + "T00:00:00");
+    const cur = new Date(sorted[i] + "T00:00:00");
+    const deltaDays = Math.round((cur.getTime() - prev.getTime()) / 86_400_000);
+    if (deltaDays === 1) {
+      run++;
+      if (run > best) best = run;
+    } else {
+      run = 1;
+    }
+  }
+  return best;
+}
+
 export function formatMonthLabel(year: number, month: number): string {
   const months = [
     "Enero",

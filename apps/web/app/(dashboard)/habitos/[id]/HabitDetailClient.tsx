@@ -11,7 +11,11 @@ import {
   type HabitLog,
 } from "@estoicismo/supabase";
 import { getSupabaseBrowserClient } from "../../../../lib/supabase-client";
-import { computeStreak, getTodayStr } from "../../../../lib/dateUtils";
+import {
+  computeStreak,
+  computeLongestStreak,
+  getTodayStr,
+} from "../../../../lib/dateUtils";
 import { computeInsights } from "../../../../lib/insights";
 import { HabitModal } from "../../../../components/habits/HabitModal";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
@@ -124,6 +128,10 @@ export function HabitDetailClient({ habitId }: { habitId: string }) {
     () => computeStreak(logs.map((l) => l.completed_at)),
     [logs]
   );
+  const bestStreak = useMemo(
+    () => computeLongestStreak(logs.map((l) => l.completed_at)),
+    [logs]
+  );
   const insights = useMemo(
     () => (habit ? computeInsights([habit], logs, today) : null),
     [habit, logs, today]
@@ -204,13 +212,18 @@ export function HabitDetailClient({ habitId }: { habitId: string }) {
             </div>
           </div>
 
-          {/* Stat pills */}
-          <div className="mt-6 grid grid-cols-3 gap-3">
+          {/* Stat pills — 2×2 on mobile, 4 cols from sm up */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatPill
               label="Racha"
               value={String(streak)}
               unit={streak === 1 ? "día" : "días"}
               icon={streak > 0 ? <Flame size={12} aria-hidden /> : null}
+            />
+            <StatPill
+              label="Mejor racha"
+              value={String(bestStreak)}
+              unit={bestStreak === 1 ? "día" : "días"}
             />
             <StatPill
               label="Últimos 90d"

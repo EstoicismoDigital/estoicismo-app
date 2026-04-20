@@ -3,6 +3,7 @@ import {
   getCurrentWeekDays,
   getMonthGrid,
   computeStreak,
+  computeLongestStreak,
   formatMonthLabel,
   getMonthRange,
 } from "../lib/dateUtils";
@@ -112,6 +113,77 @@ describe("dateUtils", () => {
       };
       const dates = [ds(3), ds(4)];
       expect(computeStreak(dates)).toBe(0);
+    });
+  });
+
+  describe("computeLongestStreak", () => {
+    it("returns 0 for empty array", () => {
+      expect(computeLongestStreak([])).toBe(0);
+    });
+
+    it("returns 1 for a single date", () => {
+      expect(computeLongestStreak(["2026-04-20"])).toBe(1);
+    });
+
+    it("counts consecutive days as one run", () => {
+      expect(
+        computeLongestStreak(["2026-04-18", "2026-04-19", "2026-04-20"])
+      ).toBe(3);
+    });
+
+    it("returns the longest run when multiple runs exist", () => {
+      // run A: 10-11 (length 2), run B: 20-21-22 (length 3)
+      expect(
+        computeLongestStreak([
+          "2026-04-10",
+          "2026-04-11",
+          "2026-04-20",
+          "2026-04-21",
+          "2026-04-22",
+        ])
+      ).toBe(3);
+    });
+
+    it("is order-independent", () => {
+      const asc = ["2026-04-18", "2026-04-19", "2026-04-20"];
+      const desc = [...asc].reverse();
+      const shuffled = ["2026-04-20", "2026-04-18", "2026-04-19"];
+      expect(computeLongestStreak(asc)).toBe(3);
+      expect(computeLongestStreak(desc)).toBe(3);
+      expect(computeLongestStreak(shuffled)).toBe(3);
+    });
+
+    it("deduplicates repeated dates", () => {
+      expect(
+        computeLongestStreak([
+          "2026-04-20",
+          "2026-04-20",
+          "2026-04-20",
+        ])
+      ).toBe(1);
+    });
+
+    it("resets the run on any gap", () => {
+      expect(
+        computeLongestStreak(["2026-04-10", "2026-04-12"])
+      ).toBe(1);
+    });
+
+    it("crosses month boundaries", () => {
+      expect(
+        computeLongestStreak([
+          "2026-03-30",
+          "2026-03-31",
+          "2026-04-01",
+          "2026-04-02",
+        ])
+      ).toBe(4);
+    });
+
+    it("crosses leap-year Feb 28 → 29 boundary", () => {
+      expect(
+        computeLongestStreak(["2024-02-27", "2024-02-28", "2024-02-29", "2024-03-01"])
+      ).toBe(4);
     });
   });
 
