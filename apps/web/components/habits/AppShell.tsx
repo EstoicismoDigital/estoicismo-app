@@ -2,7 +2,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Home, Calendar, Crown, Settings, Menu, X, LogOut } from "lucide-react";
+import {
+  Home,
+  Calendar,
+  Crown,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  Archive,
+} from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
@@ -12,6 +21,7 @@ type NavItem = { href: string; label: string; Icon: typeof Home };
 const NAV: NavItem[] = [
   { href: "/", label: "Hoy", Icon: Home },
   { href: "/calendario", label: "Calendario", Icon: Calendar },
+  { href: "/historial", label: "Historial", Icon: Archive },
   { href: "/upgrade", label: "Premium", Icon: Crown },
   { href: "/ajustes", label: "Ajustes", Icon: Settings },
 ];

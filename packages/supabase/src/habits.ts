@@ -76,6 +76,33 @@ export async function archiveHabit(sb: SB, id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function unarchiveHabit(sb: SB, id: string): Promise<void> {
+  const { error } = await sb
+    .from("habits")
+    .update({ is_archived: false } as never)
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function fetchArchivedHabits(
+  sb: SB,
+  userId: string
+): Promise<Habit[]> {
+  const { data, error } = await sb
+    .from("habits")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_archived", true)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Habit[];
+}
+
+export async function deleteHabit(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("habits").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function insertHabitLog(
   sb: SB,
   habitId: string,
