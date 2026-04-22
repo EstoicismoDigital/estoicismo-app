@@ -48,6 +48,16 @@ export type StoricQuote = {
   language: string;
 };
 
+// Tipos de finanzas — el módulo vive en su propio archivo, pero el
+// schema de la DB los referencia aquí para tiparlos en las queries.
+import type {
+  FinanceCategory,
+  FinanceTransaction,
+  FinanceCreditCard,
+  FinanceDebt,
+  FinanceQuote,
+} from "./finance";
+
 export type Database = {
   public: {
     Tables: {
@@ -55,6 +65,31 @@ export type Database = {
       habits: { Row: Habit; Insert: Omit<Habit, "id" | "created_at">; Update: Partial<Habit> };
       habit_logs: { Row: HabitLog; Insert: Omit<HabitLog, "id">; Update: Partial<HabitLog> };
       stoic_quotes: { Row: StoricQuote; Insert: Omit<StoricQuote, "id">; Update: Partial<StoricQuote> };
+      finance_categories: {
+        Row: FinanceCategory;
+        Insert: Omit<FinanceCategory, "id" | "created_at">;
+        Update: Partial<FinanceCategory>;
+      };
+      finance_transactions: {
+        Row: FinanceTransaction;
+        Insert: Omit<FinanceTransaction, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceTransaction>;
+      };
+      finance_credit_cards: {
+        Row: FinanceCreditCard;
+        Insert: Omit<FinanceCreditCard, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceCreditCard>;
+      };
+      finance_debts: {
+        Row: FinanceDebt;
+        Insert: Omit<FinanceDebt, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceDebt>;
+      };
+      finance_quotes: {
+        Row: FinanceQuote;
+        Insert: Omit<FinanceQuote, "id">;
+        Update: Partial<FinanceQuote>;
+      };
     };
   };
 };

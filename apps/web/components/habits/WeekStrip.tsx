@@ -29,7 +29,12 @@ export function WeekStrip({
   );
 
   return (
-    <div className="flex-shrink-0">
+    // Hidden on mobile — at narrow widths the 7-day strip collided with
+    // the name column (labels "L M X J V S D" overflowed on top of the
+    // habit title / streak badge). Mobile users still have TodayTimeline
+    // for today's view and /habitos/[id] for full week history, so we
+    // only render this inline on sm+ where we have the horizontal room.
+    <div className="hidden sm:block flex-shrink-0">
       <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5">
         {week.map((d) => (
           <span

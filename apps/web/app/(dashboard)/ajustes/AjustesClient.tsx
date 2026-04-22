@@ -21,6 +21,7 @@ import {
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
+import { PaletteSelector } from "../../../components/habits/PaletteSelector";
 import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
 import { InstallAppCard } from "../../../components/habits/InstallAppCard";
 
@@ -253,6 +254,18 @@ export function AjustesClient({
               </p>
             </div>
             <ThemeToggle />
+          </div>
+
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">Paleta</h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                El acento de toda la app — cambia el color del shell, de
+                Hábitos, Finanzas y Reflexiones a la vez. Se guarda en este
+                dispositivo.
+              </p>
+            </div>
+            <PaletteSelector />
           </div>
         </div>
 

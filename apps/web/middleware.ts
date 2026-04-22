@@ -32,13 +32,17 @@ export async function middleware(request: NextRequest) {
     "/forgot-password",
     "/reset-password",
   ];
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p)) || pathname === "/";
+  // `/` is the dashboard root — treated as protected (moved out of the
+  // public list). This lets every dashboard page.tsx drop its own
+  // Supabase client init + getUser() call, since middleware already
+  // guards the route. Shaves one roundtrip per navigation.
+  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
-  if (user && isPublic && pathname !== "/") {
+  if (user && isPublic) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

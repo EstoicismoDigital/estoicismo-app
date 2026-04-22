@@ -7,8 +7,14 @@
  * `rgb(var(--color-*) / <alpha-value>)` pattern works with classes
  * like `bg-bg`, `border-line/40`, `text-accent/80`, etc.
  *
- * Dark palette is defined but not activated yet — a future
- * ThemeProvider will toggle the `.dark` class on <html>.
+ * Two-tier accent system:
+ *   - `--palette-*` (4 intermediate tokens) source the active palette,
+ *     overridden by `.palette-<name>` classes on <html>.
+ *   - `--color-accent` pulls from those via `var()`, and each module
+ *     (`[data-module="…"]`) repoints it to the matching palette token.
+ *
+ * Swapping the palette class therefore changes neutral chrome AND the
+ * three module accents at once, with no component-level rewrites.
  */
 :root {
   --color-bg: 255 255 255;
@@ -17,7 +23,14 @@
   --color-ink: 10 10 10;
   --color-muted: 94 94 94;
   --color-line: 229 225 218;
-  --color-accent: 139 111 71;
+
+  /* Default palette = Bronce (original warm-earth identity). */
+  --palette-neutral: 139 111 71;
+  --palette-habits: 180 138 56;
+  --palette-finanzas: 34 119 78;
+  --palette-reflexiones: 95 89 148;
+
+  --color-accent: var(--palette-neutral);
   --color-accent-soft: 201 168 122;
   --color-success: 45 122 79;
   --color-danger: 179 38 30;
@@ -30,8 +43,123 @@
   --color-ink: 242 239 232;
   --color-muted: 155 151 143;
   --color-line: 43 45 53;
-  --color-accent: 201 168 122;
+
+  /* Dark-mode Bronce — lightened/desaturated for AA on dark bg. */
+  --palette-neutral: 201 168 122;
+  --palette-habits: 224 186 102;
+  --palette-finanzas: 120 200 156;
+  --palette-reflexiones: 169 161 220;
+
   --color-accent-soft: 139 111 71;
   --color-success: 79 174 114;
   --color-danger: 235 90 83;
+}
+
+/* Module scopes — --color-accent is repointed to the module's palette RGB. */
+[data-module="habits"] { --color-accent: var(--palette-habits); }
+[data-module="finanzas"] { --color-accent: var(--palette-finanzas); }
+[data-module="reflexiones"] { --color-accent: var(--palette-reflexiones); }
+
+/* ========================================================================
+ * PALETTES (applied to <html>)
+ * ======================================================================== */
+
+/* ---- HOMBRE ---- */
+
+/* 1. Bronce (default) */
+.palette-bronce {
+  --palette-neutral: 139 111 71;
+  --palette-habits: 180 138 56;
+  --palette-finanzas: 34 119 78;
+  --palette-reflexiones: 95 89 148;
+  --color-accent-soft: 201 168 122;
+}
+.dark.palette-bronce {
+  --palette-neutral: 201 168 122;
+  --palette-habits: 224 186 102;
+  --palette-finanzas: 120 200 156;
+  --palette-reflexiones: 169 161 220;
+  --color-accent-soft: 139 111 71;
+}
+
+/* 2. Grafito — steel + cold blue. Architectural. */
+.palette-grafito {
+  --palette-neutral: 71 85 105;
+  --palette-habits: 100 116 139;
+  --palette-finanzas: 14 116 144;
+  --palette-reflexiones: 79 70 229;
+  --color-accent-soft: 148 163 184;
+}
+.dark.palette-grafito {
+  --palette-neutral: 148 163 184;
+  --palette-habits: 203 213 225;
+  --palette-finanzas: 103 207 234;
+  --palette-reflexiones: 165 180 252;
+  --color-accent-soft: 100 116 139;
+}
+
+/* 3. Bosque — deep forest + aged brass + ember. Stoic, grounded. */
+.palette-bosque {
+  --palette-neutral: 52 79 64;
+  --palette-habits: 166 132 57;
+  --palette-finanzas: 21 128 61;
+  --palette-reflexiones: 120 53 15;
+  --color-accent-soft: 120 150 128;
+}
+.dark.palette-bosque {
+  --palette-neutral: 148 186 162;
+  --palette-habits: 224 186 102;
+  --palette-finanzas: 134 239 172;
+  --palette-reflexiones: 251 146 60;
+  --color-accent-soft: 52 79 64;
+}
+
+/* ---- MUJER ---- */
+
+/* 4. Rosa antiguo — dusty rose + peach + sage. Warm, elegant. */
+.palette-rosa {
+  --palette-neutral: 180 100 105;
+  --palette-habits: 200 130 100;
+  --palette-finanzas: 120 140 100;
+  --palette-reflexiones: 157 92 142;
+  --color-accent-soft: 230 175 170;
+}
+.dark.palette-rosa {
+  --palette-neutral: 244 175 175;
+  --palette-habits: 251 207 178;
+  --palette-finanzas: 187 207 162;
+  --palette-reflexiones: 228 160 208;
+  --color-accent-soft: 180 100 105;
+}
+
+/* 5. Lavanda — soft violet + honey + mint. Calm, contemplative. */
+.palette-lavanda {
+  --palette-neutral: 124 96 176;
+  --palette-habits: 190 150 95;
+  --palette-finanzas: 100 160 130;
+  --palette-reflexiones: 139 92 246;
+  --color-accent-soft: 196 181 253;
+}
+.dark.palette-lavanda {
+  --palette-neutral: 196 181 253;
+  --palette-habits: 234 205 163;
+  --palette-finanzas: 165 214 191;
+  --palette-reflexiones: 196 181 253;
+  --color-accent-soft: 124 96 176;
+}
+
+/* 6. Coral — coral red + amber + teal. Vibrant, optimistic. */
+.palette-coral {
+  --palette-neutral: 210 85 85;
+  --palette-habits: 217 119 6;
+  --palette-finanzas: 13 148 136;
+  --palette-reflexiones: 219 39 119;
+  --color-accent-soft: 252 165 165;
+}
+.dark.palette-coral {
+  --palette-neutral: 252 165 165;
+  --palette-habits: 252 211 77;
+  --palette-finanzas: 94 234 212;
+  --palette-reflexiones: 244 114 182;
+  --color-accent-soft: 210 85 85;
 }

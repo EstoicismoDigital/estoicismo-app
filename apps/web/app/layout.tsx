@@ -61,10 +61,12 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Inline boot script: applies the `dark` class on <html> before React hydrates
-// so the user never sees a flash of the wrong theme (FOUC).
-// Kept as a string so Next.js inlines it verbatim.
-const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}if(d){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+// Inline boot script: applies the `dark` class AND the stored palette
+// class on <html> before React hydrates so the user never sees a flash
+// of the wrong theme (FOUC). Kept as a string so Next.js inlines it
+// verbatim; `PALETTE_IDS` must stay in sync with usePalette.ts.
+const PALETTE_IDS = ["bronce", "grafito", "bosque", "rosa", "lavanda", "coral"] as const;
+const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}var h=document.documentElement;if(d){h.classList.add('dark');}var valid=${JSON.stringify(PALETTE_IDS)};var p=localStorage.getItem('palette');if(valid.indexOf(p)===-1){p='bronce';}h.classList.add('palette-'+p);}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
