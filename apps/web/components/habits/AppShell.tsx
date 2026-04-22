@@ -62,6 +62,15 @@ const HABITS_SUBNAV: { href: string; label: string }[] = [
   { href: "/historial", label: "Historial" },
 ];
 
+/** Sub-nav surfaced when the user is inside Finanzas. Same chip style
+ *  as habits — typography forward, one accent color. */
+const FINANZAS_SUBNAV: { href: string; label: string }[] = [
+  { href: "/finanzas", label: "Resumen" },
+  { href: "/finanzas/calendario", label: "Calendario" },
+  { href: "/finanzas/tarjetas", label: "Tarjetas" },
+  { href: "/finanzas/deudas", label: "Deudas" },
+];
+
 function moduleFromPathname(pathname: string): ModuleKey {
   // /ajustes and /upgrade are neutral — no module accent.
   if (pathname.startsWith("/ajustes")) return "habits"; // default; but ajustes itself sets no data-module
@@ -162,6 +171,7 @@ function DesktopMasthead({
 }) {
   const onAjustes = pathname.startsWith("/ajustes");
   const showHabitsSub = activeModule === "habits" && !onAjustes;
+  const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
 
   return (
     <header
@@ -220,15 +230,15 @@ function DesktopMasthead({
         </nav>
       </div>
 
-      {/* Row 3 — contextual sub-nav (only inside Hábitos) */}
-      {showHabitsSub && (
+      {/* Row 3 — contextual sub-nav (only inside Hábitos or Finanzas) */}
+      {(showHabitsSub || showFinanzasSub) && (
         <div className="border-t border-line/60">
           <div className="max-w-6xl mx-auto px-6">
             <nav
-              aria-label="Secciones de Hábitos"
+              aria-label={showHabitsSub ? "Secciones de Hábitos" : "Secciones de Finanzas"}
               className="flex items-center gap-1 overflow-x-auto py-2 -mx-1 px-1"
             >
-              {HABITS_SUBNAV.map((item) => {
+              {(showHabitsSub ? HABITS_SUBNAV : FINANZAS_SUBNAV).map((item) => {
                 const active = isActiveHref(pathname, item.href);
                 return (
                   <Link
@@ -261,6 +271,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // /ajustes is a neutral shell — no module accent. Everything else
   // gets scoped by the active module so --color-accent matches.
   const dataModule = onAjustes ? undefined : activeModule;
+  const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
@@ -281,6 +292,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <PlanPill compact />
         </div>
+        {showFinanzasSub && (
+          <nav
+            aria-label="Secciones de Finanzas"
+            className="flex items-center gap-1 overflow-x-auto py-1.5 px-3 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {FINANZAS_SUBNAV.map((item) => {
+              const active = isActiveHref(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={clsx(
+                    "inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    active
+                      ? "bg-accent/10 text-accent"
+                      : "text-muted hover:text-ink"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
       </header>
 
       {/* Content */}
