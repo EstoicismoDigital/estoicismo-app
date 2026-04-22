@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Flame, Coins, Brain, NotebookPen, Settings } from "lucide-react";
 import { clsx } from "clsx";
+import { usePrefetchRoute, type PrefetchTarget } from "../../hooks/usePrefetchRoute";
 
 type TabItem = {
   href: string;
@@ -63,6 +64,23 @@ const TABS: TabItem[] = [
  * - Respects iOS safe-area via env(safe-area-inset-bottom)
  */
 export function BottomNav({ pathname }: { pathname: string }) {
+  // Prefetch en touchstart/focus — en mobile no hay "hover", pero el
+  // touchstart (primer contacto del dedo) llega ~80-120ms antes que
+  // el click, así que el fetch arranca durante la animación del tap.
+  const prefetch = usePrefetchRoute();
+
+  function prefetchTargetFor(tab: TabItem): PrefetchTarget | null {
+    // Notas vive en el cache de habits (son queries relacionadas),
+    // así que precarga habits al tocar Notas. Ajustes no tiene queries
+    // propias más allá de useProfile (ya montado en el shell).
+    if (tab.href === "/ajustes") return "ajustes";
+    if (tab.href === "/notas") return "habits";
+    if (tab.module === "habits") return "habits";
+    if (tab.module === "finanzas") return "finanzas";
+    if (tab.module === "reflexiones") return "reflexiones";
+    return null;
+  }
+
   function isActive(tab: TabItem): boolean {
     if (tab.href === "/") {
       if (pathname === "/") return true;
@@ -81,6 +99,7 @@ export function BottomNav({ pathname }: { pathname: string }) {
       <ul className="flex items-stretch justify-around h-14" role="list">
         {TABS.map((tab) => {
           const active = isActive(tab);
+          const target = prefetchTargetFor(tab);
           return (
             <li key={tab.href} className="flex-1">
               <Link
@@ -88,6 +107,9 @@ export function BottomNav({ pathname }: { pathname: string }) {
                 aria-current={active ? "page" : undefined}
                 aria-label={tab.label}
                 data-module={active && tab.module ? tab.module : undefined}
+                onTouchStart={target ? () => prefetch(target) : undefined}
+                onMouseEnter={target ? () => prefetch(target) : undefined}
+                onFocus={target ? () => prefetch(target) : undefined}
                 className={clsx(
                   "h-full flex flex-col items-center justify-center gap-0.5 min-w-[44px] transition-colors duration-150 ease-out",
                   active ? "text-accent" : "text-muted hover:text-ink"

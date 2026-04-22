@@ -1,4 +1,4 @@
 {
-  "extends": "@estoicismo/config/tsconfig",
+  "extends": "../config/tsconfig.base.json",
   "include": ["src/**/*"]
 }

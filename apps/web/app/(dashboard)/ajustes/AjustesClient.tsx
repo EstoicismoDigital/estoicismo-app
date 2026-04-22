@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
+import { clearPersistedCache } from "../../../components/providers/QueryProvider";
 import {
   useUpdateProfile,
   COMMON_TIMEZONES,
@@ -49,6 +50,9 @@ export function AjustesClient({
     setSigningOut(true);
     const sb = getSupabaseBrowserClient();
     await sb.auth.signOut();
+    // Borra el cache persistente para que la próxima cuenta en este
+    // dispositivo no vea residuos (hábitos/finanzas/reflexiones ajenos).
+    await clearPersistedCache();
     router.push("/sign-in");
   }
 

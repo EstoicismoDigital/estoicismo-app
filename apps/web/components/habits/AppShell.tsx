@@ -6,6 +6,8 @@ import { Settings, LogOut, Crown } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
+import { clearPersistedCache } from "../providers/QueryProvider";
+import { usePrefetchRoute } from "../../hooks/usePrefetchRoute";
 import { BottomNav } from "./BottomNav";
 import { OfflineIndicator } from "./OfflineIndicator";
 
@@ -132,6 +134,7 @@ function SignOutButton() {
     setLoading(true);
     const sb = getSupabaseBrowserClient();
     await sb.auth.signOut();
+    await clearPersistedCache();
     router.push("/sign-in");
   }
   return (
@@ -185,6 +188,11 @@ function DesktopMasthead({
   const showHabitsSub = activeModule === "habits" && !onAjustes;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
+  // Prefetch de datos al hover sobre las pestañas de módulo. Combinado
+  // con el prefetch de bundles que Next.js ya hace automáticamente en
+  // <Link>, el click se siente instantáneo: el HTML/JS y los datos
+  // llegan en paralelo antes del click.
+  const prefetch = usePrefetchRoute();
 
   return (
     <header
@@ -219,6 +227,9 @@ function DesktopMasthead({
                 href={m.href}
                 aria-current={active ? "page" : undefined}
                 data-module={m.key}
+                onMouseEnter={() => prefetch(m.key)}
+                onFocus={() => prefetch(m.key)}
+                onTouchStart={() => prefetch(m.key)}
                 className={clsx(
                   "relative pb-2 font-display italic text-xl lg:text-[22px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm",
                   active
