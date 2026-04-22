@@ -58,6 +58,14 @@ import type {
   FinanceQuote,
 } from "./finance";
 
+// Tipos de Mentalidad — mismo patrón que finanzas.
+import type {
+  MindsetMPD,
+  MindsetMPDLog,
+  MindsetMeditation,
+  MindsetFrequencyFavorite,
+} from "./mindset";
+
 export type Database = {
   public: {
     Tables: {
@@ -89,6 +97,26 @@ export type Database = {
         Row: FinanceQuote;
         Insert: Omit<FinanceQuote, "id">;
         Update: Partial<FinanceQuote>;
+      };
+      mindset_mpd: {
+        Row: MindsetMPD;
+        Insert: Omit<MindsetMPD, "id" | "created_at" | "updated_at">;
+        Update: Partial<MindsetMPD>;
+      };
+      mindset_mpd_logs: {
+        Row: MindsetMPDLog;
+        Insert: Omit<MindsetMPDLog, "id" | "created_at" | "updated_at">;
+        Update: Partial<MindsetMPDLog>;
+      };
+      mindset_meditations: {
+        Row: MindsetMeditation;
+        Insert: Omit<MindsetMeditation, "id" | "created_at">;
+        Update: Partial<MindsetMeditation>;
+      };
+      mindset_frequency_favorites: {
+        Row: MindsetFrequencyFavorite;
+        Insert: Omit<MindsetFrequencyFavorite, "id" | "created_at">;
+        Update: Partial<MindsetFrequencyFavorite>;
       };
     };
   };

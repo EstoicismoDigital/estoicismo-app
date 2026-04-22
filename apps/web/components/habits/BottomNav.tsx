@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Flame, Coins, Feather, NotebookPen, Settings } from "lucide-react";
+import { Flame, Coins, Brain, NotebookPen, Settings } from "lucide-react";
 import { clsx } from "clsx";
 
 type TabItem = {
@@ -15,7 +15,12 @@ type TabItem = {
 
 /**
  * Mobile tabs mirror the desktop module model:
- *   Hábitos (home) — Finanzas — Reflexiones — Notas — Ajustes
+ *   Hábitos (home) — Finanzas — Mentalidad — Notas — Ajustes
+ *
+ * "Mentalidad" sigue viviendo bajo la ruta `/reflexiones` (el URL se
+ * conserva por compatibilidad y porque aún alberga reflexiones), pero
+ * la etiqueta visible es Mentalidad — el módulo gira en torno al MPD
+ * de Napoleón Hill, meditación Dispenza y frecuencias (Aura).
  *
  * Notas stays in the bottom nav because it's high-use across the
  * habits module (users revisit reflections attached to completions).
@@ -33,8 +38,8 @@ const TABS: TabItem[] = [
   { href: "/finanzas", label: "Finanzas", Icon: Coins, module: "finanzas" },
   {
     href: "/reflexiones",
-    label: "Reflexiones",
-    Icon: Feather,
+    label: "Mentalidad",
+    Icon: Brain,
     module: "reflexiones",
   },
   {

@@ -46,7 +46,10 @@ const MODULES: Module[] = [
   },
   {
     key: "reflexiones",
-    label: "Reflexiones",
+    // Etiqueta visible: "Mentalidad". La ruta interna permanece como
+    // /reflexiones (y el data-module sigue siendo "reflexiones" para
+    // mantener el accent violeta ya cableado en globals.css).
+    label: "Mentalidad",
     href: "/reflexiones",
     matches: ["/reflexiones"],
   },
@@ -70,6 +73,14 @@ const FINANZAS_SUBNAV: { href: string; label: string }[] = [
   { href: "/finanzas/calendario", label: "Calendario" },
   { href: "/finanzas/tarjetas", label: "Tarjetas" },
   { href: "/finanzas/deudas", label: "Deudas" },
+];
+
+/** Sub-nav del módulo Mentalidad. Propósito = home (MPD + check-in
+ *  diario); Meditación = sesiones Dispenza; Aura = frecuencias. */
+const MENTALIDAD_SUBNAV: { href: string; label: string }[] = [
+  { href: "/reflexiones", label: "Propósito" },
+  { href: "/reflexiones/meditacion", label: "Meditación" },
+  { href: "/reflexiones/aura", label: "Aura" },
 ];
 
 function moduleFromPathname(pathname: string): ModuleKey {
@@ -173,6 +184,7 @@ function DesktopMasthead({
   const onAjustes = pathname.startsWith("/ajustes");
   const showHabitsSub = activeModule === "habits" && !onAjustes;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
+  const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
 
   return (
     <header
@@ -231,15 +243,26 @@ function DesktopMasthead({
         </nav>
       </div>
 
-      {/* Row 3 — contextual sub-nav (only inside Hábitos or Finanzas) */}
-      {(showHabitsSub || showFinanzasSub) && (
+      {/* Row 3 — contextual sub-nav (Hábitos / Finanzas / Mentalidad) */}
+      {(showHabitsSub || showFinanzasSub || showMentalidadSub) && (
         <div className="border-t border-line/60">
           <div className="max-w-6xl mx-auto px-6">
             <nav
-              aria-label={showHabitsSub ? "Secciones de Hábitos" : "Secciones de Finanzas"}
+              aria-label={
+                showHabitsSub
+                  ? "Secciones de Hábitos"
+                  : showFinanzasSub
+                  ? "Secciones de Finanzas"
+                  : "Secciones de Mentalidad"
+              }
               className="flex items-center gap-1 overflow-x-auto py-2 -mx-1 px-1"
             >
-              {(showHabitsSub ? HABITS_SUBNAV : FINANZAS_SUBNAV).map((item) => {
+              {(showHabitsSub
+                ? HABITS_SUBNAV
+                : showFinanzasSub
+                ? FINANZAS_SUBNAV
+                : MENTALIDAD_SUBNAV
+              ).map((item) => {
                 const active = isActiveHref(pathname, item.href);
                 return (
                   <Link
@@ -273,6 +296,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // gets scoped by the active module so --color-accent matches.
   const dataModule = onAjustes ? undefined : activeModule;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
+  const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
@@ -296,12 +320,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <PlanPill compact />
         </div>
-        {showFinanzasSub && (
+        {(showFinanzasSub || showMentalidadSub) && (
           <nav
-            aria-label="Secciones de Finanzas"
+            aria-label={
+              showFinanzasSub
+                ? "Secciones de Finanzas"
+                : "Secciones de Mentalidad"
+            }
             className="flex items-center gap-1 overflow-x-auto py-1.5 px-3 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {FINANZAS_SUBNAV.map((item) => {
+            {(showFinanzasSub ? FINANZAS_SUBNAV : MENTALIDAD_SUBNAV).map((item) => {
               const active = isActiveHref(pathname, item.href);
               return (
                 <Link
