@@ -7,6 +7,7 @@ import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
 import { BottomNav } from "./BottomNav";
+import { OfflineIndicator } from "./OfflineIndicator";
 
 /**
  * Top-level modules. Each owns a colored accent (see globals.css
@@ -275,6 +276,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
+      {/* Offline banner — hidden by default; only mounts DOM when offline */}
+      <OfflineIndicator />
+
       {/* Desktop masthead */}
       <DesktopMasthead pathname={pathname} activeModule={activeModule} />
 

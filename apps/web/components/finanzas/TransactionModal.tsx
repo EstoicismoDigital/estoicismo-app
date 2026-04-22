@@ -87,10 +87,10 @@ export function TransactionModal({
   // Voice state
   const [listening, setListening] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState<string | null>(null);
-  const recRef = useRef<ReturnType<NonNullable<SpeechRec>> | null>(null);
+  const recRef = useRef<InstanceType<NonNullable<SpeechRec>> | null>(null);
 
   const amountRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLFormElement>(null);
   const triggerRef = useRef<Element | null>(null);
 
   useEffect(() => setMounted(true), []);

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 
 const MAX_NOTE_LENGTH = 500;
@@ -19,27 +20,32 @@ export function HabitNoteDialog({
   onClose: () => void;
   saving?: boolean;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [note, setNote] = useState(initialNote ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const triggerRef = useRef<Element | null>(null);
 
-  // Seed value whenever the dialog opens (so re-opens show persisted text)
+  useEffect(() => setMounted(true), []);
+
+  // Seed value + lock body scroll + restore focus on close
   useEffect(() => {
-    if (open) {
-      triggerRef.current = document.activeElement;
-      setNote(initialNote ?? "");
-      // Defer focus to let the dialog mount
-      setTimeout(() => {
-        const el = textareaRef.current;
-        if (!el) return;
-        el.focus();
-        // Place cursor at end, not a distracting select-all
-        const end = el.value.length;
-        el.setSelectionRange(end, end);
-      }, 10);
-    } else if (triggerRef.current instanceof HTMLElement) {
-      triggerRef.current.focus();
-    }
+    if (!open) return;
+    triggerRef.current = document.activeElement;
+    setNote(initialNote ?? "");
+    const focusTimer = window.setTimeout(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      const end = el.value.length;
+      el.setSelectionRange(end, end);
+    }, 30);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = prevOverflow;
+      if (triggerRef.current instanceof HTMLElement) triggerRef.current.focus();
+    };
   }, [open, initialNote]);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ export function HabitNoteDialog({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted || !open) return null;
 
   const trimmed = note.trim();
   const isUnchanged = trimmed === (initialNote?.trim() ?? "");
@@ -64,9 +70,9 @@ export function HabitNoteDialog({
     await onSave(trimmed.length > 0 ? trimmed : null);
   }
 
-  return (
+  const node = (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="habit-note-title"
@@ -74,11 +80,12 @@ export function HabitNoteDialog({
       <button
         type="button"
         aria-label="Cerrar"
+        tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-black/50 animate-in fade-in duration-150"
       />
 
-      <div className="relative bg-bg w-full sm:max-w-md sm:rounded-modal rounded-t-modal shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 max-h-[92vh] overflow-y-auto">
+      <div className="relative bg-bg w-full sm:max-w-md sm:rounded-modal rounded-t-modal shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 max-h-[90dvh] overflow-y-auto">
         <div className="sticky top-0 bg-bg border-b border-line px-5 sm:px-6 py-4 flex items-center justify-between">
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
@@ -152,4 +159,6 @@ export function HabitNoteDialog({
       </div>
     </div>
   );
+
+  return createPortal(node, document.body);
 }

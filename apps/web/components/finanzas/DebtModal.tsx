@@ -41,7 +41,7 @@ export function DebtModal({
   const [dueDay, setDueDay] = useState("");
   const [touched, setTouched] = useState(false);
 
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<Element | null>(null);
 

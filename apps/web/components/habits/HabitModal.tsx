@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import { HABIT_COLORS, HABIT_EMOJIS, type CreateHabitInput } from "@estoicismo/supabase";
@@ -45,6 +46,7 @@ export function HabitModal({
   editing?: Habit | null;
   saving?: boolean;
 }) {
+  const [mounted, setMounted] = useState(false);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState<string>(HABIT_EMOJIS[0]);
   const [color, setColor] = useState<string>(HABIT_COLORS[0]);
@@ -56,29 +58,38 @@ export function HabitModal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
 
-  // Seed state when modal opens
+  // SSR guard — createPortal only safe after mount
+  useEffect(() => setMounted(true), []);
+
+  // Seed state + lock body scroll + restore focus on close
   useEffect(() => {
-    if (open) {
-      triggerRef.current = document.activeElement;
-      if (editing) {
-        setName(editing.name);
-        setIcon(editing.icon);
-        setColor(editing.color);
-        setFrequency(habitFrequencyToLocal(editing.frequency));
-        setReminderTime(editing.reminder_time ?? "");
-      } else {
-        setName("");
-        setIcon(HABIT_EMOJIS[0]);
-        setColor(HABIT_COLORS[0]);
-        setFrequency({ kind: "daily" });
-        setReminderTime("");
-      }
-      setTouched(false);
-      // Focus after mount
-      setTimeout(() => nameInputRef.current?.focus(), 10);
-    } else if (triggerRef.current instanceof HTMLElement) {
-      triggerRef.current.focus();
+    if (!open) return;
+    triggerRef.current = document.activeElement;
+    if (editing) {
+      setName(editing.name);
+      setIcon(editing.icon);
+      setColor(editing.color);
+      setFrequency(habitFrequencyToLocal(editing.frequency));
+      setReminderTime(editing.reminder_time ?? "");
+    } else {
+      setName("");
+      setIcon(HABIT_EMOJIS[0]);
+      setColor(HABIT_COLORS[0]);
+      setFrequency({ kind: "daily" });
+      setReminderTime("");
     }
+    setTouched(false);
+    const focusTimer = window.setTimeout(
+      () => nameInputRef.current?.focus(),
+      30
+    );
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = prevOverflow;
+      if (triggerRef.current instanceof HTMLElement) triggerRef.current.focus();
+    };
   }, [open, editing]);
 
   // ESC to close
@@ -91,7 +102,7 @@ export function HabitModal({
     return () => document.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted || !open) return null;
 
   const nameError = touched && !name.trim() ? "El nombre es obligatorio." : null;
   const canSave = !!name.trim() && !!icon && !!color;
@@ -135,9 +146,9 @@ export function HabitModal({
     nameInputRef.current?.focus();
   }
 
-  return (
+  const node = (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="habit-modal-title"
@@ -146,6 +157,7 @@ export function HabitModal({
       <button
         type="button"
         aria-label="Cerrar modal"
+        tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 bg-black/50 animate-in fade-in duration-150"
       />
@@ -153,7 +165,7 @@ export function HabitModal({
       {/* Dialog body */}
       <div
         ref={dialogRef}
-        className="relative bg-bg w-full sm:max-w-lg sm:rounded-modal rounded-t-modal shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 max-h-[92vh] overflow-y-auto"
+        className="relative bg-bg w-full sm:max-w-lg sm:rounded-modal rounded-t-modal shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200 max-h-[90dvh] overflow-y-auto"
       >
         <div className="sticky top-0 bg-bg border-b border-line px-5 sm:px-6 py-4 flex items-center justify-between z-10">
           <div>
@@ -416,4 +428,6 @@ export function HabitModal({
       </div>
     </div>
   );
+
+  return createPortal(node, document.body);
 }
