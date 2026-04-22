@@ -17,11 +17,15 @@ import {
 import { clsx } from "clsx";
 import {
   MEDITATION_TYPES,
-  DISPENZA_INTENTIONS,
   MEDITATION_FREQUENCIES,
   type MeditationTypeInfo,
   type FrequencyPreset,
 } from "../../../../lib/mindset";
+import {
+  MINDSET_QUOTES,
+  getDailyMindsetQuote,
+} from "../../../../lib/quotes";
+import { DailyQuoteCarousel } from "../../../../components/ui/DailyQuoteCarousel";
 import {
   useCreateMeditation,
   useMeditations,
@@ -72,7 +76,13 @@ export function MeditationClient() {
     [type]
   );
   const [minutes, setMinutes] = useState<number>(typeInfo.defaultMinutes);
-  const [intention, setIntention] = useState("");
+  // "Carta al universo" ya no la escribe el usuario: es la reflexión
+  // diaria del catálogo de consciencia (365 frases, una por día). Se
+  // lee al montar — el carousel la muestra y el usuario puede navegar
+  // ±días; la que quede visible al arrancar se guarda como intención
+  // de la sesión para tener histórico.
+  const dailyMindset = useMemo(() => getDailyMindsetQuote(), []);
+  const [intention, setIntention] = useState<string>(dailyMindset.text);
   const [feelingBefore, setFeelingBefore] = useState<number | null>(null);
   const [feelingAfter, setFeelingAfter] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
@@ -257,12 +267,13 @@ export function MeditationClient() {
       notes: notes.trim() || null,
     });
 
-    // Reset
+    // Reset — la intención vuelve a la frase diaria (no se limpia
+    // porque es la reflexión del día, no un texto libre del usuario).
     stopBackgroundFrequency();
     setPhase("setup");
     setEndAt(null);
     setPaused(false);
-    setIntention("");
+    setIntention(dailyMindset.text);
     setFeelingBefore(null);
     setFeelingAfter(null);
     setNotes("");
@@ -552,60 +563,29 @@ function SetupPanel({
         </div>
       </div>
 
-      {/* Carta al universo — la intención como gesto de escritura
-          sagrada. Card neutral con el acento solo en íconos, foco y
-          chips activos: la sección tiene identidad propia, el color
-          vive solo en los detalles. */}
+      {/* Carta al universo — ahora es la reflexión diaria del catálogo
+          de consciencia (365 frases, una por día). No la escribe el
+          usuario: llega como un horóscopo, se lee antes de cerrar los
+          ojos. El carrusel permite mirar ±30 días si quieres releer
+          la de ayer o asomarte a la de mañana. Al arrancar la sesión
+          guardamos la frase actual como `intention` para el histórico. */}
       <div className="rounded-card border border-line bg-bg-alt/30 p-5 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           <Send size={14} className="text-accent" strokeWidth={1.5} />
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-            Tu carta al universo
-          </p>
-        </div>
-
-        <textarea
-          value={intention}
-          onChange={(e) => setIntention(e.target.value.slice(0, 200))}
-          rows={2}
-          placeholder="Una frase corta — lo que quieres llamar a la vida."
-          className="w-full bg-transparent border-0 border-b border-line focus:border-accent focus:outline-none focus:ring-0 font-display italic text-lg sm:text-xl text-ink placeholder:text-muted/40 resize-none leading-relaxed pb-2 transition-colors"
-        />
-
-        <div className="flex items-center justify-between mt-3">
           <p className="font-body text-[11px] text-muted leading-relaxed">
-            Escríbela desde el corazón. La leerás antes de cerrar los ojos.
-          </p>
-          <p className="font-mono text-[9px] text-muted/60 tabular-nums whitespace-nowrap ml-3">
-            {intention.length}/200
+            Tu reflexión para esta sesión. Léela, respírala y déjala actuar.
           </p>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-line/60">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-muted/70 mb-2.5">
-            Semillas
-          </p>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {DISPENZA_INTENTIONS.map((p) => {
-              const active = intention === p;
-              return (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setIntention(p)}
-                  className={clsx(
-                    "font-body text-[11px] rounded-full px-3 py-1 border transition-colors",
-                    active
-                      ? "bg-accent/10 border-accent/50 text-accent"
-                      : "border-line text-muted hover:border-accent/40 hover:text-ink"
-                  )}
-                >
-                  {p}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <DailyQuoteCarousel
+          quotes={MINDSET_QUOTES}
+          label="Carta al universo"
+          serif
+          // Cuando el usuario navega entre días, actualizamos la
+          // intención que se guardará en la sesión: así el histórico
+          // refleja exactamente la frase con la que meditó.
+          onChange={(q) => setIntention(q.text)}
+        />
       </div>
 
       <div>

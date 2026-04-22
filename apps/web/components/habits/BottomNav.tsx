@@ -122,8 +122,11 @@ export function BottomNav({ pathname }: { pathname: string }) {
                 />
                 <span
                   className={clsx(
-                    "font-body text-[11px] leading-none",
-                    active ? "font-medium" : "font-normal"
+                    "font-body text-[11px] leading-none tracking-tight",
+                    // Pesos Montserrat por rol:
+                    // · inactivo = 500 (Medium)  — menú
+                    // · activo   = 600 (Semibold) — menú activo
+                    active ? "font-semibold" : "font-medium"
                   )}
                 >
                   {tab.label}

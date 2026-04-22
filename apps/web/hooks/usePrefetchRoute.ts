@@ -83,7 +83,9 @@ export function usePrefetchRoute() {
             queryKey: ["finance", "categories"],
             queryFn: async () => {
               const sb = getSupabaseBrowserClient();
-              return fetchFinanceCategories(sb, await getUserId());
+              // fetchFinanceCategories no recibe userId — RLS filtra por él,
+              // y además incluye los defaults (user_id IS NULL) en la misma query.
+              return fetchFinanceCategories(sb);
             },
           });
           const { from, to } = monthBounds();

@@ -1,26 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { Lora, Inter, JetBrains_Mono } from "next/font/google";
+import { Lora, Montserrat } from "next/font/google";
 import { Toaster } from "sonner";
 import { QueryProvider } from "../components/providers/QueryProvider";
 import "./globals.css";
 
+/**
+ * Tipografía:
+ *  - **Lora** (serif) — marca. Solo para títulos/headings (`font-display`).
+ *  - **Montserrat** (sans) — resto de la interfaz. Cargada con todos los
+ *    pesos que usamos (400 descripciones, 500 menú, 600 menú activo,
+ *    700 títulos-sans) + itálicas 400/500 para énfasis puntual.
+ *
+ * Ambas expuestas como CSS variables y mapeadas en tailwind.config.ts:
+ *   font-display  → Lora
+ *   font-body     → Montserrat
+ *   font-mono     → Montserrat (reemplaza JetBrains para unificar marca)
+ */
 const lora = Lora({
   subsets: ["latin"],
   variable: "--font-lora",
   display: "swap",
 });
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-montserrat",
   display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  display: "swap",
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -77,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${lora.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${lora.variable} ${montserrat.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />

@@ -125,3 +125,73 @@
   --palette-neutral: 250 190 182;    /* #FABEB6 — rosa pálido      */
   --color-accent-soft: 200 110 115;  /* #C86E73 — rosa profundo    */
 }
+
+/* ============================================================
+ * TIPOGRAFÍA · pesos por contexto
+ *
+ * Regla de marca:
+ *   - **Lora** (serif) → títulos display. Se aplica vía la utility
+ *     `font-display` en los componentes concretos.
+ *   - **Montserrat** (sans) → todo lo demás.
+ *
+ * Pesos por rol (aplicados a selectores semánticos para que los
+ * componentes hereden por defecto; las utilities de Tailwind
+ * `font-medium`/`font-semibold`/`font-bold` siempre ganan si el
+ * componente necesita otro peso):
+ *
+ *   · 400 (Regular)   — cuerpo / descripciones / párrafos
+ *   · 500 (Medium)    — ítems de menú / tabs / labels inline
+ *   · 600 (Semibold)  — menú activo (aria-current="page") / botones
+ *   · 700 (Bold)      — títulos (h1–h6 sin font-display)
+ *
+ * Esto se aplica a toda la app, pero cualquier `font-*` utility de
+ * Tailwind sobre el elemento concreto manda por especificidad.
+ * ============================================================ */
+
+body {
+  font-weight: 400;
+  letter-spacing: -0.005em; /* ligera corrección óptica de Montserrat */
+}
+
+/* Títulos sans por defecto — se quedan en Montserrat Bold salvo que
+   el componente haga opt-in a Lora con `font-display`. */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Menú — tabs, items de nav, bottom nav. Peso medio, activo semibold. */
+nav a,
+[role="tab"],
+[role="menuitem"] {
+  font-weight: 500;
+}
+
+nav a[aria-current="page"],
+[role="tab"][aria-selected="true"],
+[role="tab"][aria-current="page"],
+[role="menuitem"][aria-current="page"] {
+  font-weight: 600;
+}
+
+/* Botones — peso medio consistente en toda la app. */
+button {
+  font-weight: 500;
+}
+
+/* Números tabulares (precios, duraciones, contadores) — mantenemos el
+   tabular-nums que Tailwind ya aplica vía utility, pero encima Montserrat
+   incluye las figuras tabulares como feature OpenType, así que se ven
+   perfectamente alineadas sin necesidad de mono. */
+.tabular-nums,
+[class*="tabular"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Eyebrows / tags / labels pequeños: antes eran JetBrains Mono con
+   uppercase + tracking-widest. Al pasar a Montserrat (sans), 400 se ve
+   frágil en mayúsculas chiquitas; subimos a 500 para mantener presencia.
+   Cualquier override explícito de Tailwind (`font-semibold`, etc.) gana. */
+.font-mono.uppercase {
+  font-weight: 500;
+}

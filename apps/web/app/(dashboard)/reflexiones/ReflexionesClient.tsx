@@ -23,10 +23,9 @@ import {
   useUpsertMPDLog,
 } from "../../../hooks/useMindset";
 import { getTodayStr, computeStreak } from "../../../lib/dateUtils";
-import {
-  HILL_SIX_STEPS,
-  getDailyHillQuote,
-} from "../../../lib/mindset";
+import { HILL_SIX_STEPS } from "../../../lib/mindset";
+import { MINDSET_QUOTES } from "../../../lib/quotes";
+import { DailyQuoteCarousel } from "../../../components/ui/DailyQuoteCarousel";
 
 /**
  * Mentalidad · Propósito.
@@ -59,8 +58,6 @@ export function ReflexionesClient() {
     () => computeStreak(recentLogs.map((l) => l.date)),
     [recentLogs]
   );
-
-  const quote = useMemo(() => getDailyHillQuote(), []);
 
   // —————————————————————— Loading ——————————————————————
   if (loadingMPD) {
@@ -166,14 +163,16 @@ export function ReflexionesClient() {
           />
         </div>
 
-        <figure className="mt-8 border-l-2 border-accent/50 pl-4 sm:pl-5">
-          <blockquote className="font-display italic text-lg sm:text-xl text-ink leading-relaxed">
-            &ldquo;{quote.text}&rdquo;
-          </blockquote>
-          <figcaption className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-            {quote.author}
-          </figcaption>
-        </figure>
+        {/* Carrusel de la reflexión del día — 365 frases del catálogo
+            de consciencia. Rota automáticamente por día-del-año. El
+            usuario puede navegar ±30 días con los chevrons para releer
+            frases pasadas o asomarse a las próximas. */}
+        <div className="mt-8 border-l-2 border-accent/50 pl-4 sm:pl-5">
+          <DailyQuoteCarousel
+            quotes={MINDSET_QUOTES}
+            label="Reflexión del día"
+          />
+        </div>
       </section>
 
       {/* Check-in de hoy */}

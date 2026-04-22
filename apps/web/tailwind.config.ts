@@ -22,9 +22,14 @@ const config: Config = {
         danger: "rgb(var(--color-danger) / <alpha-value>)",
       },
       fontFamily: {
+        // Lora se mantiene como única serif de marca.
         display: ["var(--font-lora)", "Georgia", "serif"],
-        body: ["var(--font-inter)", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains)", "ui-monospace", "monospace"],
+        // Todo lo demás pasa a Montserrat (UI / body / antes "mono").
+        // Mantenemos el token `mono` apuntando a Montserrat para no
+        // romper `font-mono` en los ~20 eyebrows/labels existentes;
+        // el look uppercase+tracking-widest sigue funcionando.
+        body: ["var(--font-montserrat)", "system-ui", "sans-serif"],
+        mono: ["var(--font-montserrat)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         card: "12px",
@@ -66,12 +71,20 @@ const config: Config = {
             opacity: "0",
           },
         },
+        // Fade + ligero lift para cuando el usuario navega entre frases
+        // del carrusel (prev/next). Respeta prefers-reduced-motion via
+        // Tailwind — el usuario con esa preferencia ve un simple fade.
+        "quote-fade": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "habit-pop-done": "habit-pop-done 450ms cubic-bezier(.2,.8,.3,1.1)",
         "habit-row-glow": "habit-row-glow 600ms ease-out",
         "celebrate-spark":
           "celebrate-spark 1100ms cubic-bezier(.2,.65,.3,1) forwards",
+        "quote-fade": "quote-fade 280ms ease-out",
       },
     },
   },
