@@ -260,9 +260,9 @@ export function AjustesClient({
             <div className="flex-1 min-w-0">
               <h3 className="font-body text-sm font-medium text-ink">Paleta</h3>
               <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
-                El acento de toda la app — cambia el color del shell, de
-                Hábitos, Finanzas y Reflexiones a la vez. Se guarda en este
-                dispositivo.
+                Dos ambientes: neutro stoic o rosa guinda. Los colores de
+                cada pilar (Hábitos, Finanzas, Mentalidad, Emprendimiento)
+                se mantienen iguales en ambas. Se guarda en este dispositivo.
               </p>
             </div>
             <PaletteSelector />

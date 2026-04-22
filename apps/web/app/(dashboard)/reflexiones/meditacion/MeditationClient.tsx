@@ -7,12 +7,20 @@ import {
   Check,
   Loader2,
   Sparkles,
+  Volume2,
+  VolumeX,
+  Waves,
+  Send,
+  Headphones,
+  X,
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
   MEDITATION_TYPES,
   DISPENZA_INTENTIONS,
+  MEDITATION_FREQUENCIES,
   type MeditationTypeInfo,
+  type FrequencyPreset,
 } from "../../../../lib/mindset";
 import {
   useCreateMeditation,
@@ -26,19 +34,33 @@ import type { MeditationType } from "@estoicismo/supabase";
  * Sesiones cortas estilo Joe Dispenza. Flujo:
  *   1. Elegir tipo de meditación (coherencia / romper-hábito / etc.)
  *   2. Fijar duración + intención + estado emocional actual
- *   3. Temporizador con pausa / reanudar / reiniciar
- *   4. Al terminar: feeling-after + registrar en DB
+ *   3. (Opcional) escoger frecuencia de fondo para acompañar
+ *   4. Temporizador con pausa / reanudar / reiniciar
+ *   5. Al terminar: feeling-after + registrar en DB
  *
  * El temporizador usa Date.now() como fuente de verdad para no
  * desviarse si la pestaña queda en background (setInterval 250ms).
- * No reproduce audio — las frecuencias viven en /reflexiones/aura,
- * que es deliberadamente un módulo separado.
+ *
+ * Audio de fondo (cuando el usuario escoge una frecuencia curada):
+ *   - Un AudioContext lazy por sesión (Chrome autoplay policy:
+ *     solo se crea dentro del click de "Comenzar sesión").
+ *   - Un OscillatorNode sine → GainNode → destination.
+ *   - Fade-in largo (1.5s) y fade-out (0.8s) para no cortar bruscos.
+ *   - Volumen fijo bajo (0.12) — es fondo, no protagonista.
+ *   - Pausa/reanudar respeta el audio: al pausar el timer también
+ *     silenciamos el tono; al reanudar vuelve.
  */
 
 type Phase =
   | "setup" // escoge tipo + intención + feeling_before
   | "running" // corriendo o pausado
   | "finished"; // pide feeling_after + confirmación
+
+/**
+ * Volumen bajo fijo para el tono de fondo durante la meditación.
+ * No debe competir con la respiración/mente — es ambiental.
+ */
+const MEDITATION_BG_VOLUME = 0.12;
 
 export function MeditationClient() {
   const [phase, setPhase] = useState<Phase>("setup");
@@ -54,6 +76,21 @@ export function MeditationClient() {
   const [feelingBefore, setFeelingBefore] = useState<number | null>(null);
   const [feelingAfter, setFeelingAfter] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
+
+  // --- Frequency state (opcional) ---
+  const [selectedFrequency, setSelectedFrequency] = useState<FrequencyPreset | null>(
+    null
+  );
+  const [audioMuted, setAudioMuted] = useState(false);
+
+  // --- Gate de audífonos antes de arrancar ---
+  // La meditación se beneficia de audífonos (aislamiento + binaural).
+  // Mostramos un micro-popup para evitar arranques accidentales con
+  // audio inesperado por los altavoces del dispositivo.
+  const [showHeadphones, setShowHeadphones] = useState(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscRef = useRef<OscillatorNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
 
   // --- Timer state ---
   // Epoch en ms para el momento en el que debería terminar. Recalculamos
@@ -84,6 +121,7 @@ export function MeditationClient() {
       if (left <= 0) {
         setRemainingMs(0);
         if (intervalRef.current) clearInterval(intervalRef.current);
+        stopBackgroundFrequency();
         setPhase("finished");
       } else {
         setRemainingMs(left);
@@ -92,7 +130,85 @@ export function MeditationClient() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, paused, endAt]);
+
+  // Silenciar / activar el tono de fondo en caliente.
+  useEffect(() => {
+    const ctx = audioCtxRef.current;
+    const gain = gainRef.current;
+    if (!ctx || !gain) return;
+    const target = audioMuted || paused ? 0 : MEDITATION_BG_VOLUME;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.4);
+  }, [audioMuted, paused]);
+
+  // Cleanup del AudioContext al desmontar.
+  useEffect(() => {
+    return () => {
+      stopBackgroundFrequency();
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function startBackgroundFrequency(preset: FrequencyPreset) {
+    // Lazy init — este handler vive dentro del onClick de "Comenzar",
+    // así que satisface el requisito de gesto de usuario de Chrome.
+    if (!audioCtxRef.current) {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctx) return;
+      audioCtxRef.current = new Ctx();
+    }
+    const ctx = audioCtxRef.current;
+    if (ctx.state === "suspended") {
+      await ctx.resume().catch(() => {});
+    }
+
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(preset.hz, ctx.currentTime);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    // Fade-in largo (1.5s) para no interrumpir la entrada a la sesión.
+    gain.gain.linearRampToValueAtTime(
+      audioMuted ? 0 : MEDITATION_BG_VOLUME,
+      ctx.currentTime + 1.5
+    );
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+
+    oscRef.current = osc;
+    gainRef.current = gain;
+  }
+
+  function stopBackgroundFrequency() {
+    const ctx = audioCtxRef.current;
+    const gain = gainRef.current;
+    const osc = oscRef.current;
+    if (ctx && gain && osc) {
+      const now = ctx.currentTime;
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(gain.gain.value, now);
+      gain.gain.linearRampToValueAtTime(0.0001, now + 0.8);
+      try {
+        osc.stop(now + 0.9);
+      } catch {
+        // ya detenido
+      }
+    }
+    oscRef.current = null;
+    gainRef.current = null;
+  }
 
   function handleStart() {
     const ms = minutes * 60_000;
@@ -100,6 +216,9 @@ export function MeditationClient() {
     setRemainingMs(ms);
     setPaused(false);
     setPhase("running");
+    if (selectedFrequency) {
+      void startBackgroundFrequency(selectedFrequency);
+    }
   }
 
   function handlePauseResume() {
@@ -115,6 +234,7 @@ export function MeditationClient() {
 
   function handleCancel() {
     if (intervalRef.current) clearInterval(intervalRef.current);
+    stopBackgroundFrequency();
     setPhase("setup");
     setEndAt(null);
     setPaused(false);
@@ -138,6 +258,7 @@ export function MeditationClient() {
     });
 
     // Reset
+    stopBackgroundFrequency();
     setPhase("setup");
     setEndAt(null);
     setPaused(false);
@@ -180,7 +301,9 @@ export function MeditationClient() {
             setIntention={setIntention}
             feelingBefore={feelingBefore}
             setFeelingBefore={setFeelingBefore}
-            onStart={handleStart}
+            selectedFrequency={selectedFrequency}
+            setSelectedFrequency={setSelectedFrequency}
+            onRequestStart={() => setShowHeadphones(true)}
           />
         )}
 
@@ -190,9 +313,15 @@ export function MeditationClient() {
             remainingMs={remainingMs}
             totalMs={minutes * 60_000}
             paused={paused}
+            selectedFrequency={selectedFrequency}
+            audioMuted={audioMuted}
+            onToggleMute={() => setAudioMuted((m) => !m)}
             onPauseResume={handlePauseResume}
             onCancel={handleCancel}
-            onFinishEarly={() => setPhase("finished")}
+            onFinishEarly={() => {
+              stopBackgroundFrequency();
+              setPhase("finished");
+            }}
           />
         )}
 
@@ -207,6 +336,18 @@ export function MeditationClient() {
           />
         )}
       </section>
+
+      {/* Gate de audífonos — aparece al pulsar "Comenzar sesión" */}
+      {showHeadphones && (
+        <HeadphonesGate
+          hasFrequency={selectedFrequency != null}
+          onCancel={() => setShowHeadphones(false)}
+          onConfirm={() => {
+            setShowHeadphones(false);
+            handleStart();
+          }}
+        />
+      )}
 
       {/* Historial */}
       {phase === "setup" && history.length > 0 && (
@@ -262,7 +403,9 @@ function SetupPanel({
   setIntention,
   feelingBefore,
   setFeelingBefore,
-  onStart,
+  selectedFrequency,
+  setSelectedFrequency,
+  onRequestStart,
 }: {
   type: MeditationType;
   setType: (t: MeditationType) => void;
@@ -273,7 +416,9 @@ function SetupPanel({
   setIntention: (v: string) => void;
   feelingBefore: number | null;
   setFeelingBefore: (n: number | null) => void;
-  onStart: () => void;
+  selectedFrequency: FrequencyPreset | null;
+  setSelectedFrequency: (f: FrequencyPreset | null) => void;
+  onRequestStart: () => void;
 }) {
   const canStart = minutes >= 1 && feelingBefore != null;
 
@@ -328,7 +473,7 @@ function SetupPanel({
           Duración
         </p>
         <div className="flex items-center gap-2 flex-wrap">
-          {[3, 5, 8, 10, 15, 20, 30].map((m) => (
+          {[3, 5, 8, 10, 15, 20, 30, 40].map((m) => (
             <button
               key={m}
               onClick={() => setMinutes(m)}
@@ -345,27 +490,121 @@ function SetupPanel({
         </div>
       </div>
 
+      {/* Frecuencia de fondo — opcional, curada para estados alterados */}
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
-          Intención
+        <div className="flex items-baseline justify-between mb-2">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Frecuencia de fondo
+          </p>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted/60">
+            Opcional
+          </p>
+        </div>
+        <p className="font-body text-xs text-muted leading-relaxed mb-3">
+          Tonos puros comprobados para inducir estados meditativos profundos
+          (theta, alpha, Schumann). Úsalos con auriculares a volumen bajo.
         </p>
-        <input
-          type="text"
+        <div className="grid gap-2 sm:grid-cols-2">
+          <button
+            onClick={() => setSelectedFrequency(null)}
+            className={clsx(
+              "text-left p-3 rounded-card border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+              selectedFrequency == null
+                ? "border-accent bg-accent/5"
+                : "border-line bg-bg-alt/40 hover:border-accent/40"
+            )}
+          >
+            <p className="font-display italic text-base text-ink leading-snug">
+              Silencio
+            </p>
+            <p className="font-mono text-[9px] uppercase tracking-widest text-muted mt-1.5">
+              Sin tono · respiración y mente
+            </p>
+          </button>
+          {MEDITATION_FREQUENCIES.map((f) => {
+            const active = selectedFrequency?.key === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setSelectedFrequency(f)}
+                className={clsx(
+                  "text-left p-3 rounded-card border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  active
+                    ? "border-accent bg-accent/5"
+                    : "border-line bg-bg-alt/40 hover:border-accent/40"
+                )}
+              >
+                <p className="font-display italic text-base text-ink leading-snug">
+                  {f.summary}
+                </p>
+                <p className="font-mono text-[9px] uppercase tracking-widest text-muted mt-1.5">
+                  <span className="text-ink/80">{f.label}</span>
+                  {f.brainwave && (
+                    <>
+                      <span className="mx-1.5 text-muted/50">·</span>
+                      {f.brainwave}
+                    </>
+                  )}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Carta al universo — la intención como gesto de escritura
+          sagrada. Card neutral con el acento solo en íconos, foco y
+          chips activos: la sección tiene identidad propia, el color
+          vive solo en los detalles. */}
+      <div className="rounded-card border border-line bg-bg-alt/30 p-5 sm:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Send size={14} className="text-accent" strokeWidth={1.5} />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Tu carta al universo
+          </p>
+        </div>
+
+        <textarea
           value={intention}
           onChange={(e) => setIntention(e.target.value.slice(0, 200))}
-          placeholder="Una frase corta."
-          className="w-full rounded-lg border border-line bg-bg px-4 py-3 font-body text-base text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent"
+          rows={2}
+          placeholder="Una frase corta — lo que quieres llamar a la vida."
+          className="w-full bg-transparent border-0 border-b border-line focus:border-accent focus:outline-none focus:ring-0 font-display italic text-lg sm:text-xl text-ink placeholder:text-muted/40 resize-none leading-relaxed pb-2 transition-colors"
         />
-        <div className="mt-2 flex items-center gap-1 flex-wrap">
-          {DISPENZA_INTENTIONS.slice(0, 5).map((p) => (
-            <button
-              key={p}
-              onClick={() => setIntention(p)}
-              className="font-body text-[11px] text-muted hover:text-accent hover:underline underline-offset-2 transition-colors px-2 py-1"
-            >
-              {p}
-            </button>
-          ))}
+
+        <div className="flex items-center justify-between mt-3">
+          <p className="font-body text-[11px] text-muted leading-relaxed">
+            Escríbela desde el corazón. La leerás antes de cerrar los ojos.
+          </p>
+          <p className="font-mono text-[9px] text-muted/60 tabular-nums whitespace-nowrap ml-3">
+            {intention.length}/200
+          </p>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-line/60">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted/70 mb-2.5">
+            Semillas
+          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {DISPENZA_INTENTIONS.map((p) => {
+              const active = intention === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setIntention(p)}
+                  className={clsx(
+                    "font-body text-[11px] rounded-full px-3 py-1 border transition-colors",
+                    active
+                      ? "bg-accent/10 border-accent/50 text-accent"
+                      : "border-line text-muted hover:border-accent/40 hover:text-ink"
+                  )}
+                >
+                  {p}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -397,7 +636,7 @@ function SetupPanel({
 
       <button
         disabled={!canStart}
-        onClick={onStart}
+        onClick={onRequestStart}
         className="w-full h-12 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2"
       >
         <Play size={16} />
@@ -416,6 +655,9 @@ function TimerPanel({
   remainingMs,
   totalMs,
   paused,
+  selectedFrequency,
+  audioMuted,
+  onToggleMute,
   onPauseResume,
   onCancel,
   onFinishEarly,
@@ -424,6 +666,9 @@ function TimerPanel({
   remainingMs: number;
   totalMs: number;
   paused: boolean;
+  selectedFrequency: FrequencyPreset | null;
+  audioMuted: boolean;
+  onToggleMute: () => void;
   onPauseResume: () => void;
   onCancel: () => void;
   onFinishEarly: () => void;
@@ -500,6 +745,29 @@ function TimerPanel({
           <Check size={16} />
         </button>
       </div>
+
+      {/* Chip de frecuencia activa con toggle de audio */}
+      {selectedFrequency && (
+        <div className="flex items-center gap-2 rounded-full border border-line bg-bg-alt/60 pl-3 pr-1 py-1">
+          <Waves size={12} className="text-accent" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            <span className="text-ink/80">{selectedFrequency.label}</span>
+            {selectedFrequency.brainwave && (
+              <>
+                <span className="mx-1.5 text-muted/50">·</span>
+                {selectedFrequency.brainwave}
+              </>
+            )}
+          </p>
+          <button
+            onClick={onToggleMute}
+            aria-label={audioMuted ? "Activar sonido" : "Silenciar"}
+            className="w-7 h-7 rounded-full text-muted hover:text-ink transition-colors flex items-center justify-center"
+          >
+            {audioMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+          </button>
+        </div>
+      )}
 
       <p className="font-body text-xs text-muted text-center max-w-prose">
         Observa. No fuerces. Si tu mente se va, vuelve con suavidad al
@@ -595,6 +863,93 @@ function FinishPanel({
         )}
         Guardar sesión
       </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// HeadphonesGate — modal que confirma audífonos antes de empezar
+// ─────────────────────────────────────────────────────────────
+
+function HeadphonesGate({
+  hasFrequency,
+  onCancel,
+  onConfirm,
+}: {
+  hasFrequency: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  // Cerrar con Escape y bloquear scroll del body mientras está abierto.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onCancel]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="headphones-title"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className="relative w-full max-w-md rounded-card border border-line bg-bg p-6 sm:p-8 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onCancel}
+          aria-label="Cerrar"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full text-muted hover:text-ink transition-colors flex items-center justify-center"
+        >
+          <X size={16} />
+        </button>
+
+        <div className="flex justify-center mb-5">
+          <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center">
+            <Headphones size={24} className="text-accent" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <h3
+          id="headphones-title"
+          className="font-display italic text-2xl sm:text-3xl text-ink text-center leading-tight"
+        >
+          ¿Ya tienes los audífonos?
+        </h3>
+
+        <p className="font-body text-sm text-muted text-center leading-relaxed mt-3 max-w-sm mx-auto">
+          {hasFrequency
+            ? "La frecuencia que elegiste solo hace efecto binaural con audífonos. Ponlos antes de comenzar."
+            : "Los audífonos aíslan el ruido del mundo y te ayudan a entrar más rápido al silencio."}
+        </p>
+
+        <div className="mt-7 flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={onCancel}
+            className="w-full sm:flex-1 h-11 rounded-lg border border-line text-muted hover:text-ink hover:border-accent/40 transition-colors font-body text-sm"
+          >
+            Aún no
+          </button>
+          <button
+            onClick={onConfirm}
+            autoFocus
+            className="w-full sm:flex-1 h-11 rounded-lg bg-accent text-bg hover:opacity-90 transition-opacity font-body font-medium text-sm inline-flex items-center justify-center gap-2"
+          >
+            <Play size={14} />
+            Estoy listo
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -249,22 +249,17 @@ export function AuraClient() {
                 <li
                   key={f.key}
                   className={clsx(
-                    "rounded-card border p-4 flex flex-col gap-2 transition-colors",
+                    "rounded-card border p-4 flex flex-col gap-3 transition-colors",
                     isPlaying
                       ? "border-accent bg-accent/5"
                       : "border-line bg-bg-alt/40"
                   )}
                 >
+                  {/* Para qué sirve — lo que el usuario reconoce */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-display italic text-xl text-ink leading-none">
-                        {f.label}
-                      </p>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-muted mt-2">
-                        {FREQUENCY_CATEGORY_LABELS[f.category]}
-                        {f.brainwave && ` · ${f.brainwave}`} · {f.origin}
-                      </p>
-                    </div>
+                    <p className="font-display italic text-base sm:text-lg text-ink leading-snug">
+                      {f.summary}
+                    </p>
                     <button
                       onClick={() => handleToggleFav(f)}
                       aria-label={isFav ? "Quitar de favoritas" : "Añadir a favoritas"}
@@ -279,14 +274,23 @@ export function AuraClient() {
                     </button>
                   </div>
 
-                  <p className="font-body text-xs text-muted leading-relaxed">
-                    {f.summary}
+                  {/* Metadata técnica — pequeña y al fondo */}
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                    <span className="text-ink/80">{f.label}</span>
+                    <span className="mx-1.5 text-muted/50">·</span>
+                    {FREQUENCY_CATEGORY_LABELS[f.category]}
+                    {f.brainwave && (
+                      <>
+                        <span className="mx-1.5 text-muted/50">·</span>
+                        {f.brainwave}
+                      </>
+                    )}
                   </p>
 
                   <button
                     onClick={() => handleToggle(f)}
                     className={clsx(
-                      "mt-2 inline-flex items-center justify-center gap-2 h-10 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all",
+                      "mt-auto inline-flex items-center justify-center gap-2 h-10 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all",
                       isPlaying
                         ? "bg-accent text-bg hover:opacity-90"
                         : "border border-line bg-bg text-ink hover:border-accent/40"
