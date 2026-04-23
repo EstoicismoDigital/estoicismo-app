@@ -25,7 +25,7 @@ import {
   MINDSET_QUOTES,
   getDailyMindsetQuote,
 } from "../../../../lib/quotes";
-import { DailyQuoteCarousel } from "../../../../components/ui/DailyQuoteCarousel";
+import { DailyQuote } from "../../../../components/ui/DailyQuote";
 import {
   useCreateMeditation,
   useMeditations,
@@ -577,14 +577,13 @@ function SetupPanel({
           </p>
         </div>
 
-        <DailyQuoteCarousel
+        <DailyQuote
           quotes={MINDSET_QUOTES}
           label="Carta al universo"
           serif
-          // Cuando el usuario navega entre días, actualizamos la
-          // intención que se guardará en la sesión: así el histórico
-          // refleja exactamente la frase con la que meditó.
-          onChange={(q) => setIntention(q.text)}
+          // La frase del día se guarda como intención de la sesión:
+          // así el histórico refleja exactamente con qué meditó.
+          onQuote={(q) => setIntention(q.text)}
         />
       </div>
 

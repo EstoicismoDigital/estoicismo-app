@@ -11,9 +11,13 @@
  * en años no-bisiestos no existe, así que el índice 366 solo se usa
  * en bisiestos; nunca queda gap.
  *
- * Para el usuario: la misma frase aparece durante todo el día,
- * como un horóscopo. Al día siguiente, otra. Navegar atrás/adelante
- * desde el carrusel muestra las del día anterior / siguiente.
+ * Para el usuario: la misma frase aparece durante todo el día, como un
+ * horóscopo. Al día siguiente, otra. Sin navegación — no puede saltar
+ * al día de mañana ni al de ayer. Una al día, y ya.
+ *
+ * Las citas son REALES, de libros y textos verificables. Si no hay
+ * fuente, no entran. El campo `source` guarda la obra (ej.
+ * "Meditaciones, IV.3" o "Psychology of Money, cap. 5").
  */
 
 import { HABITS_QUOTES, type HabitsQuote } from "./habits";
@@ -23,7 +27,12 @@ import { MINDSET_QUOTES, type MindsetQuote } from "./mindset";
 export { HABITS_QUOTES, FINANCE_QUOTES, MINDSET_QUOTES };
 export type { HabitsQuote, FinanceQuote, MindsetQuote };
 
-export type Quote = { text: string; author: string | null };
+export type Quote = {
+  text: string;
+  author: string | null;
+  /** Libro, ensayo o carta de procedencia. Ej. "Meditaciones, IV.3". */
+  source?: string | null;
+};
 
 /**
  * Devuelve el índice 0-based (0..364) para la frase del día recibido.

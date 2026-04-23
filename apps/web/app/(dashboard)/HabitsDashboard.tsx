@@ -32,6 +32,8 @@ import { InsightsPanel } from "../../components/habits/InsightsPanel";
 import { CelebrationOverlay } from "../../components/habits/CelebrationOverlay";
 import { ReminderPermissionBanner } from "../../components/habits/ReminderPermissionBanner";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import { DailyQuote } from "../../components/ui/DailyQuote";
+import { HABITS_QUOTES } from "../../lib/quotes";
 import {
   useHabits,
   useToggleHabit,
@@ -257,6 +259,14 @@ export function HabitsDashboard() {
           </div>
 
           <ReminderPermissionBanner hasReminderHabits={hasReminderHabits} />
+
+          {/* Reflexión del día — una frase fija, rota en medianoche */}
+          <div className="mb-8 rounded-card border border-line bg-bg-alt/30 p-5 sm:p-6">
+            <DailyQuote
+              quotes={HABITS_QUOTES}
+              label="Reflexión de hoy"
+            />
+          </div>
 
           <div className="flex items-baseline justify-between mb-5 sm:mb-6">
             <div>

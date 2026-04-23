@@ -25,7 +25,7 @@ import {
 import { getTodayStr, computeStreak } from "../../../lib/dateUtils";
 import { HILL_SIX_STEPS } from "../../../lib/mindset";
 import { MINDSET_QUOTES } from "../../../lib/quotes";
-import { DailyQuoteCarousel } from "../../../components/ui/DailyQuoteCarousel";
+import { DailyQuote } from "../../../components/ui/DailyQuote";
 
 /**
  * Mentalidad · Propósito.
@@ -163,12 +163,10 @@ export function ReflexionesClient() {
           />
         </div>
 
-        {/* Carrusel de la reflexión del día — 365 frases del catálogo
-            de consciencia. Rota automáticamente por día-del-año. El
-            usuario puede navegar ±30 días con los chevrons para releer
-            frases pasadas o asomarse a las próximas. */}
+        {/* Reflexión del día — una sola frase, rota en medianoche.
+            365 citas reales del catálogo de consciencia. */}
         <div className="mt-8 border-l-2 border-accent/50 pl-4 sm:pl-5">
-          <DailyQuoteCarousel
+          <DailyQuote
             quotes={MINDSET_QUOTES}
             label="Reflexión del día"
           />

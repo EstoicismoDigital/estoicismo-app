@@ -31,6 +31,8 @@ import { TransactionModal } from "../../../components/finanzas/TransactionModal"
 import { TransactionList } from "../../../components/finanzas/TransactionList";
 import { FinanceAdvice } from "../../../components/finanzas/FinanceAdvice";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { DailyQuote } from "../../../components/ui/DailyQuote";
+import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
  * Pantalla principal de Finanzas — el "Hoy" del módulo.
@@ -133,6 +135,16 @@ export function FinanzasClient() {
             spentRatio={spentRatio}
             loading={loadingMonth}
           />
+        </section>
+
+        {/* Reflexión financiera del día — una frase fija, rota en medianoche */}
+        <section aria-label="Reflexión financiera del día">
+          <div className="rounded-card border border-line bg-bg-alt/30 p-5 sm:p-6">
+            <DailyQuote
+              quotes={FINANCE_QUOTES}
+              label="Reflexión financiera"
+            />
+          </div>
         </section>
 
         {/* Atajos */}
