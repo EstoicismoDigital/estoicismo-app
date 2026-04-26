@@ -20,7 +20,12 @@ export function ContributeModal(props: {
   open: boolean;
   goal: SavingsGoal | null;
   onClose: () => void;
-  onSave: (input: { amount: number; note: string | null; occurred_on: string }) => Promise<void> | void;
+  onSave: (input: {
+    amount: number;
+    note: string | null;
+    occurred_on: string;
+    log_as_expense: boolean;
+  }) => Promise<void> | void;
   saving?: boolean;
 }) {
   const { open, goal, onClose, onSave, saving } = props;
@@ -32,6 +37,7 @@ export function ContributeModal(props: {
   const [note, setNote] = useState("");
   const [occurredOn, setOccurredOn] = useState(today);
   const [direction, setDirection] = useState<"add" | "remove">("add");
+  const [logAsExpense, setLogAsExpense] = useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -39,6 +45,7 @@ export function ContributeModal(props: {
     setNote("");
     setOccurredOn(today);
     setDirection("add");
+    setLogAsExpense(true);
   }, [open, today]);
 
   useEffect(() => {
@@ -145,6 +152,23 @@ export function ContributeModal(props: {
               className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
             />
           </div>
+
+          {direction === "add" && (
+            <label className="flex items-start gap-2 cursor-pointer p-2 -mx-2 rounded hover:bg-line/30 transition-colors">
+              <input
+                type="checkbox"
+                checked={logAsExpense}
+                onChange={(e) => setLogAsExpense(e.target.checked)}
+                className="mt-0.5 rounded"
+              />
+              <div className="text-[11px]">
+                <p className="text-ink font-semibold">Registrar como gasto en Ahorro</p>
+                <p className="text-muted">
+                  Crea una transacción para que aparezca en tu mes — sin doble conteo.
+                </p>
+              </div>
+            </label>
+          )}
         </div>
         <div className="border-t border-line px-5 py-3 flex justify-end gap-2 sticky bottom-0 bg-bg-alt/95">
           <button
@@ -164,6 +188,7 @@ export function ContributeModal(props: {
                 amount: direction === "add" ? num : -num,
                 note: note.trim() || null,
                 occurred_on: occurredOn,
+                log_as_expense: direction === "add" && logAsExpense,
               });
             }}
             className={clsx(

@@ -11,6 +11,9 @@ export type DebtPaymentSubmit = {
   amount: number;
   occurred_on: string;
   note: string | null;
+  /** Si true, el caller debe crear también un finance_transaction
+   *  con kind=expense en la categoría "Deuda" y enlazarlo. */
+  log_as_expense: boolean;
 };
 
 /**
@@ -34,12 +37,14 @@ export function DebtPaymentModal(props: {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [occurredOn, setOccurredOn] = useState(today);
+  const [logAsExpense, setLogAsExpense] = useState(true);
 
   useEffect(() => {
     if (!open) return;
     setAmount(debt ? String(debt.minimum_payment) : "");
     setNote("");
     setOccurredOn(today);
+    setLogAsExpense(true);
   }, [open, debt, today]);
 
   useEffect(() => {
@@ -168,6 +173,22 @@ export function DebtPaymentModal(props: {
               />
             </div>
           </div>
+
+          <label className="flex items-start gap-2 cursor-pointer p-2 -mx-2 rounded hover:bg-line/30 transition-colors">
+            <input
+              type="checkbox"
+              checked={logAsExpense}
+              onChange={(e) => setLogAsExpense(e.target.checked)}
+              className="mt-0.5 rounded"
+            />
+            <div className="text-[11px]">
+              <p className="text-ink font-semibold">Registrar también como gasto</p>
+              <p className="text-muted">
+                Crea una transacción en categoría &quot;Deuda&quot; — así no llevas
+                doble cuenta.
+              </p>
+            </div>
+          </label>
         </div>
         <div className="border-t border-line px-5 py-3 flex justify-end gap-2 sticky bottom-0 bg-bg-alt/95">
           <button
@@ -187,6 +208,7 @@ export function DebtPaymentModal(props: {
                 amount: num,
                 note: note.trim() || null,
                 occurred_on: occurredOn,
+                log_as_expense: logAsExpense,
               });
             }}
             className={clsx(

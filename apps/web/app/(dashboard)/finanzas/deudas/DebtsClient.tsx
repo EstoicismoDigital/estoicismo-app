@@ -25,6 +25,10 @@ import {
   useCreateDebtPayment,
 } from "../../../../hooks/useDebts";
 import {
+  useCreateTransaction,
+  useFinanceCategories,
+} from "../../../../hooks/useFinance";
+import {
   orderDebtsByStrategy,
   payoffMonths,
   monthlyInterest,
@@ -56,10 +60,20 @@ import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 export function DebtsClient() {
   const { data: debts = [] } = useDebts({ include_paid: false });
   const { data: paidDebts = [] } = useDebts({ include_paid: true });
+  const { data: categories = [] } = useFinanceCategories();
   const createM = useCreateDebt();
   const updateM = useUpdateDebt();
   const deleteM = useDeleteDebt();
   const payM = useCreateDebtPayment();
+  const createTxM = useCreateTransaction();
+
+  // Categoría "Deuda" para auto-log de gastos.
+  const debtCategoryId = useMemo(() => {
+    return (
+      categories.find((c) => c.kind === "expense" && c.name === "Deuda")?.id ??
+      null
+    );
+  }, [categories]);
 
   const [strategy, setStrategy] = useState<Strategy>("avalanche");
   const [debtModalOpen, setDebtModalOpen] = useState(false);
@@ -97,13 +111,41 @@ export function DebtsClient() {
     }
   }
 
-  async function handlePayment(input: { amount: number; occurred_on: string; note: string | null }) {
+  async function handlePayment(input: {
+    amount: number;
+    occurred_on: string;
+    note: string | null;
+    log_as_expense: boolean;
+  }) {
     if (!paymentDebt) return;
+    let transactionId: string | null = null;
+
+    // Si el user pidió registrarlo también como gasto, creamos la
+    // transacción primero para tener el id antes del payment.
+    if (input.log_as_expense && debtCategoryId) {
+      try {
+        const tx = await createTxM.mutateAsync({
+          amount: input.amount,
+          kind: "expense",
+          category_id: debtCategoryId,
+          occurred_on: input.occurred_on,
+          note: `Pago a ${paymentDebt.name}${input.note ? ` · ${input.note}` : ""}`,
+          source: "manual",
+        });
+        transactionId = tx.id;
+      } catch {
+        // Si la creación de la transacción falla, igual seguimos
+        // con el pago — al usuario le importa más auditar la deuda.
+        transactionId = null;
+      }
+    }
+
     await payM.mutateAsync({
       debt_id: paymentDebt.id,
       amount: input.amount,
       occurred_on: input.occurred_on,
       note: input.note,
+      transaction_id: transactionId,
     });
     setPaymentDebt(null);
   }

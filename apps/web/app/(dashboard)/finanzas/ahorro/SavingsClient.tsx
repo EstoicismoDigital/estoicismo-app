@@ -10,6 +10,10 @@ import {
   useSavingsContributions,
   useCreateContribution,
 } from "../../../../hooks/useSavings";
+import {
+  useCreateTransaction,
+  useFinanceCategories,
+} from "../../../../hooks/useFinance";
 import { SavingsGoalModal } from "../../../../components/ahorro/SavingsGoalModal";
 import { ContributeModal } from "../../../../components/ahorro/ContributeModal";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
@@ -22,10 +26,19 @@ export function SavingsClient() {
   const { data: goals = [] } = useSavingsGoals({ include_completed: includeCompleted });
   const { data: contributions = [] } = useSavingsContributions({ limit: 500 });
 
+  const { data: categories = [] } = useFinanceCategories();
   const createM = useCreateSavingsGoal();
   const updateM = useUpdateSavingsGoal();
   const deleteM = useDeleteSavingsGoal();
   const contribM = useCreateContribution();
+  const createTxM = useCreateTransaction();
+
+  const savingsCategoryId = useMemo(
+    () =>
+      categories.find((c) => c.kind === "expense" && c.name === "Ahorro")?.id ??
+      null,
+    [categories]
+  );
 
   const [goalModalOpen, setGoalModalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<SavingsGoal | null>(null);
@@ -157,11 +170,29 @@ export function SavingsClient() {
         onClose={() => setContribGoal(null)}
         onSave={async (input) => {
           if (!contribGoal) return;
+          let transactionId: string | null = null;
+          // Auto-log como gasto si el user pidió y la categoría existe.
+          if (input.log_as_expense && savingsCategoryId && input.amount > 0) {
+            try {
+              const tx = await createTxM.mutateAsync({
+                amount: input.amount,
+                kind: "expense",
+                category_id: savingsCategoryId,
+                occurred_on: input.occurred_on,
+                note: `Abono a ${contribGoal.name}${input.note ? ` · ${input.note}` : ""}`,
+                source: "manual",
+              });
+              transactionId = tx.id;
+            } catch {
+              transactionId = null;
+            }
+          }
           await contribM.mutateAsync({
             goal_id: contribGoal.id,
             amount: input.amount,
             note: input.note,
             occurred_on: input.occurred_on,
+            transaction_id: transactionId,
           });
           // Si completó la meta con este abono, marcar.
           const after =
