@@ -7,3 +7,5 @@ export * from "./fitness";
 export * from "./reading";
 export * from "./savings";
 export * from "./budgets";
+export * from "./business";
+export * from "./pegasso";

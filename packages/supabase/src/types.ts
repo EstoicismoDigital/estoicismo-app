@@ -82,6 +82,20 @@ import type { ReadingBook, ReadingSession } from "./reading";
 import type { SavingsGoal, SavingsContribution } from "./savings";
 import type { Budget } from "./budgets";
 
+import type {
+  BusinessProfile,
+  BusinessProduct,
+  BusinessClient,
+  BusinessTask,
+  BusinessIdea,
+  BusinessSale,
+} from "./business";
+
+import type {
+  PegassoConversation,
+  PegassoMessage,
+} from "./pegasso";
+
 export type Database = {
   public: {
     Tables: {
@@ -188,6 +202,48 @@ export type Database = {
         Row: Budget;
         Insert: Omit<Budget, "id" | "created_at" | "updated_at">;
         Update: Partial<Budget>;
+      };
+      business_profile: {
+        Row: BusinessProfile;
+        Insert: Omit<BusinessProfile, "created_at" | "updated_at">;
+        Update: Partial<BusinessProfile>;
+      };
+      business_products: {
+        Row: BusinessProduct;
+        Insert: Omit<BusinessProduct, "id" | "created_at" | "updated_at">;
+        Update: Partial<BusinessProduct>;
+      };
+      business_clients: {
+        Row: BusinessClient;
+        Insert: Omit<BusinessClient, "id" | "created_at" | "updated_at">;
+        Update: Partial<BusinessClient>;
+      };
+      business_tasks: {
+        Row: BusinessTask;
+        Insert: Omit<BusinessTask, "id" | "created_at" | "updated_at">;
+        Update: Partial<BusinessTask>;
+      };
+      business_ideas: {
+        Row: BusinessIdea;
+        Insert: Omit<BusinessIdea, "id" | "created_at" | "updated_at">;
+        Update: Partial<BusinessIdea>;
+      };
+      business_sales: {
+        Row: BusinessSale;
+        Insert: Omit<BusinessSale, "id" | "created_at">;
+        Update: Partial<BusinessSale>;
+      };
+      pegasso_conversations: {
+        Row: PegassoConversation;
+        Insert: Omit<PegassoConversation, "id" | "created_at" | "updated_at" | "last_message_at"> & {
+          last_message_at?: string;
+        };
+        Update: Partial<PegassoConversation>;
+      };
+      pegasso_messages: {
+        Row: PegassoMessage;
+        Insert: Omit<PegassoMessage, "id" | "created_at">;
+        Update: Partial<PegassoMessage>;
       };
     };
   };
