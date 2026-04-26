@@ -567,16 +567,16 @@ function Step3Experience(props: {
  * Mostramos TODOS los grupos siempre, aunque estén vacíos, para
  * que el user vea la estructura completa y pueda agregar custom.
  */
-const ALL_MUSCLE_GROUPS: { key: ExerciseMuscleGroup; label: string; emoji: string }[] = [
-  { key: "pierna", label: "Pierna", emoji: "🦵" },
-  { key: "pecho", label: "Pecho", emoji: "🤺" },
-  { key: "espalda", label: "Espalda", emoji: "🦴" },
-  { key: "hombro", label: "Hombro", emoji: "💪" },
-  { key: "brazo", label: "Brazo", emoji: "💪" },
-  { key: "core", label: "Core / Abdomen", emoji: "🧘" },
-  { key: "cuerpo-completo", label: "Cuerpo completo", emoji: "🧍" },
-  { key: "cardio", label: "Cardio", emoji: "🏃" },
-  { key: "general", label: "Otros / general", emoji: "🏋️" },
+const ALL_MUSCLE_GROUPS: { key: ExerciseMuscleGroup; label: string }[] = [
+  { key: "pierna", label: "Pierna" },
+  { key: "pecho", label: "Pecho" },
+  { key: "espalda", label: "Espalda" },
+  { key: "hombro", label: "Hombro" },
+  { key: "brazo", label: "Brazo" },
+  { key: "core", label: "Core / Abdomen" },
+  { key: "cuerpo-completo", label: "Cuerpo completo" },
+  { key: "cardio", label: "Cardio" },
+  { key: "general", label: "Otros / general" },
 ];
 
 function Step4Exercises(props: {
@@ -656,8 +656,7 @@ function Step4Exercises(props: {
           return (
             <div key={group.key}>
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[10px] font-mono uppercase tracking-widest text-muted inline-flex items-center gap-1.5">
-                  <span>{group.emoji}</span>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted">
                   {group.label}
                 </p>
                 <button
