@@ -69,6 +69,16 @@ jest.mock("../hooks/useDailyQuote", () => ({
   }),
 }));
 
+// Hooks usados por DailyEssentialsCard (cross-module)
+jest.mock("../hooks/useFitness", () => ({
+  useFitnessMetricForDate: () => ({ data: null }),
+  useWorkouts: () => ({ data: [] }),
+}));
+
+jest.mock("../hooks/useReading", () => ({
+  useReadingSessions: () => ({ data: [] }),
+}));
+
 // Import *after* mocks so jest resolves them correctly
 import { HabitsDashboard } from "../app/(dashboard)/HabitsDashboard";
 

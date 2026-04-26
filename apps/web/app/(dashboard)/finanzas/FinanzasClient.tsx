@@ -9,6 +9,8 @@ import {
   CreditCard,
   Landmark,
   Sparkles,
+  PiggyBank,
+  Wallet,
 } from "lucide-react";
 import type {
   FinanceTransaction,
@@ -32,6 +34,7 @@ import { TransactionList } from "../../../components/finanzas/TransactionList";
 import { FinanceAdvice } from "../../../components/finanzas/FinanceAdvice";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
+import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAlertBanner";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
@@ -126,6 +129,9 @@ export function FinanzasClient() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        {/* Alerta de presupuestos — solo aparece si hay categorías cerca/excedidas */}
+        <BudgetsAlertBanner />
+
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">
           <MonthHero
@@ -149,18 +155,30 @@ export function FinanzasClient() {
 
         {/* Atajos */}
         <section aria-label="Accesos rápidos">
-          <ul className="grid grid-cols-3 gap-2 sm:gap-3" role="list">
+          <ul className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3" role="list">
             <ShortcutCard
               href="/finanzas/calendario"
               Icon={Calendar}
               title="Calendario"
-              desc="Tu mes día a día"
+              desc="Mes día a día"
             />
             <ShortcutCard
               href="/finanzas/tarjetas"
               Icon={CreditCard}
               title="Tarjetas"
               desc="Límites y uso"
+            />
+            <ShortcutCard
+              href="/finanzas/ahorro"
+              Icon={PiggyBank}
+              title="Ahorro"
+              desc="Tus metas"
+            />
+            <ShortcutCard
+              href="/finanzas/presupuestos"
+              Icon={Wallet}
+              title="Presupuestos"
+              desc="Topes mensuales"
             />
             <ShortcutCard
               href="/finanzas/deudas"

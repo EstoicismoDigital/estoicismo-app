@@ -29,6 +29,7 @@ import {
   isHabitDueOn,
 } from "../../components/habits/TodayTimeline";
 import { InsightsPanel } from "../../components/habits/InsightsPanel";
+import { DailyEssentialsCard } from "../../components/habits/DailyEssentialsCard";
 import { CelebrationOverlay } from "../../components/habits/CelebrationOverlay";
 import { ReminderPermissionBanner } from "../../components/habits/ReminderPermissionBanner";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
@@ -344,6 +345,9 @@ export function HabitsDashboard() {
           {!isLoading && habits.length > 0 && (
             <InsightsPanel habits={habits} logs={logs} />
           )}
+
+          {/* Cross-module: Fitness + Lectura del día */}
+          <DailyEssentialsCard />
         </div>
 
         {/* Desktop: right-hand 320px timeline column */}
