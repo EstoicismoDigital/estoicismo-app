@@ -68,6 +68,28 @@ export type BusinessTask = {
   updated_at: string;
 };
 
+export type IdeaMeta = {
+  /** Flujo del wizard que generó la idea. */
+  kind?: "have-idea" | "exploring" | "manual";
+  /** Scores Ikigai 1-5 — null si el user los saltó. */
+  ikigai?: {
+    love: number | null;
+    good_at: number | null;
+    needed: number | null;
+    paid_for: number | null;
+  };
+  /** Cascada de "5 porqués" — el WHY profundo más allá del dinero. */
+  whys?: string[];
+  /** Pre-mortem: imagina 1 año fracasada, qué la mató. */
+  premortem?: string;
+  /** Para flujo "exploring" — respuestas crudas del wizard. */
+  energy_gives?: string;
+  energy_drains?: string;
+  free_8h?: string;
+  called_to_help?: string;
+  frustrating_problem?: string;
+};
+
 export type BusinessIdea = {
   id: string;
   user_id: string;
@@ -80,6 +102,8 @@ export type BusinessIdea = {
   validation_notes: string | null;
   is_favorite: boolean;
   position: number;
+  /** JSONB — output del wizard (ikigai, 5 whys, premortem, etc). */
+  meta: IdeaMeta;
   created_at: string;
   updated_at: string;
 };
@@ -143,6 +167,7 @@ export type CreateIdeaInput = {
   feasibility?: number | null;
   startup_cost_text?: string | null;
   validation_notes?: string | null;
+  meta?: IdeaMeta;
 };
 
 export type UpdateIdeaInput = Partial<CreateIdeaInput> & {
@@ -182,16 +207,20 @@ export async function upsertBusinessProfile(
   userId: string,
   input: UpsertBusinessProfileInput
 ): Promise<BusinessProfile> {
+  // SOLO pasamos las columnas explícitamente definidas en input.
+  // Importante: no defaulteamos `status` aquí porque eso machacaría
+  // un status "active" existente cuando el caller sólo quiere editar
+  // el name (caso típico del ProfileCard).
+  const payload: Record<string, unknown> = { user_id: userId };
+  for (const [k, v] of Object.entries(input)) {
+    if (v !== undefined) payload[k] = v;
+  }
+  // Si NO existe la fila aún (primer insert) y no se pasó status,
+  // PostgreSQL usa el default 'exploring' del schema — limpio.
+
   const { data, error } = await sb
     .from("business_profile")
-    .upsert(
-      {
-        user_id: userId,
-        status: input.status ?? "exploring",
-        ...input,
-      } as never,
-      { onConflict: "user_id" }
-    )
+    .upsert(payload as never, { onConflict: "user_id" })
     .select()
     .single();
   if (error) throw error;
@@ -426,6 +455,7 @@ export async function createIdea(
       feasibility: input.feasibility ?? null,
       startup_cost_text: input.startup_cost_text ?? null,
       validation_notes: input.validation_notes ?? null,
+      meta: input.meta ?? {},
     } as never)
     .select()
     .single();

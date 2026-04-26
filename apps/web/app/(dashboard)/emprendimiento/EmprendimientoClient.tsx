@@ -86,9 +86,7 @@ export function EmprendimientoClient() {
           <div className="flex items-center gap-3 mt-4">
             <StatusPill
               current={status}
-              onChange={(s) =>
-                upsertProfile.mutate({ status: s, ...profile })
-              }
+              onChange={(s) => upsertProfile.mutate({ status: s })}
             />
           </div>
         </div>
@@ -255,13 +253,9 @@ function ExploringSection() {
       </div>
 
       <BrainstormWizard
-        onSaveIdea={(i) =>
-          createIdeaM.mutate({
-            title: i.title,
-            description: i.description,
-            category: i.category,
-          })
-        }
+        onSaveIdeaFull={async (input) => {
+          await createIdeaM.mutateAsync(input);
+        }}
       />
 
       <IdeasList
