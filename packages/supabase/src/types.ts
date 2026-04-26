@@ -96,6 +96,8 @@ import type {
   PegassoMessage,
 } from "./pegasso";
 
+import type { JournalEntry } from "./journal";
+
 export type Database = {
   public: {
     Tables: {
@@ -244,6 +246,11 @@ export type Database = {
         Row: PegassoMessage;
         Insert: Omit<PegassoMessage, "id" | "created_at">;
         Update: Partial<PegassoMessage>;
+      };
+      journal_entries: {
+        Row: JournalEntry;
+        Insert: Omit<JournalEntry, "id" | "created_at" | "updated_at">;
+        Update: Partial<JournalEntry>;
       };
     };
   };
