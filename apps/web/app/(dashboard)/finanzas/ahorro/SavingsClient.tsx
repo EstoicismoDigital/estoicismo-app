@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, PiggyBank, Pencil, Trash2, CheckCircle2, Trophy, Calendar } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -14,9 +15,16 @@ import {
   useCreateTransaction,
   useFinanceCategories,
 } from "../../../../hooks/useFinance";
-import { SavingsGoalModal } from "../../../../components/ahorro/SavingsGoalModal";
-import { ContributeModal } from "../../../../components/ahorro/ContributeModal";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
+
+const SavingsGoalModal = dynamic(
+  () => import("../../../../components/ahorro/SavingsGoalModal").then((m) => m.SavingsGoalModal),
+  { ssr: false }
+);
+const ContributeModal = dynamic(
+  () => import("../../../../components/ahorro/ContributeModal").then((m) => m.ContributeModal),
+  { ssr: false }
+);
 import { progressForAllGoals, type GoalProgress } from "../../../../lib/savings/projection";
 import { formatMoney } from "../../../../lib/finance";
 import type { SavingsGoal, CreateGoalInput } from "@estoicismo/supabase";

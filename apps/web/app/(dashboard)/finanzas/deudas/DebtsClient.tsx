@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Plus,
   Pencil,
@@ -35,13 +36,20 @@ import {
   type Strategy,
 } from "../../../../lib/debt/amortization";
 import { formatMoney } from "../../../../lib/finance";
-import { DebtModal } from "../../../../components/finanzas/DebtModal";
-import { DebtPaymentModal } from "../../../../components/finanzas/DebtPaymentModal";
 import {
   DebtSimulator,
   SingleDebtSimulator,
 } from "../../../../components/finanzas/DebtSimulator";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
+
+const DebtModal = dynamic(
+  () => import("../../../../components/finanzas/DebtModal").then((m) => m.DebtModal),
+  { ssr: false }
+);
+const DebtPaymentModal = dynamic(
+  () => import("../../../../components/finanzas/DebtPaymentModal").then((m) => m.DebtPaymentModal),
+  { ssr: false }
+);
 
 /**
  * Sistema inteligente de deudas.

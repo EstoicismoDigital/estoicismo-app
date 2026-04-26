@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, Settings as SettingsIcon, Pencil, Trash2, Dumbbell, Calendar } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -20,10 +21,20 @@ import { MetricsTodayCard } from "../../../../components/fitness/MetricsTodayCar
 import { LevelOverviewCard } from "../../../../components/fitness/LevelOverviewCard";
 import { LiftLevelsGrid } from "../../../../components/fitness/LiftLevelsGrid";
 import { MetricsTrendCard } from "../../../../components/fitness/MetricsTrendCard";
-import { WorkoutModal, type WorkoutModalSubmit } from "../../../../components/fitness/WorkoutModal";
-import { ProfileSetupModal } from "../../../../components/fitness/ProfileSetupModal";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import type { FitnessWorkout } from "@estoicismo/supabase";
+import type { WorkoutModalSubmit } from "../../../../components/fitness/WorkoutModal";
+
+// Modales pesados → lazy-load. No se cargan hasta que el user
+// los abre, reduciendo el bundle inicial de la página ~15KB.
+const WorkoutModal = dynamic(
+  () => import("../../../../components/fitness/WorkoutModal").then((m) => m.WorkoutModal),
+  { ssr: false }
+);
+const ProfileSetupModal = dynamic(
+  () => import("../../../../components/fitness/ProfileSetupModal").then((m) => m.ProfileSetupModal),
+  { ssr: false }
+);
 
 export function FitnessClient() {
   const { data: profile } = useFitnessProfile();

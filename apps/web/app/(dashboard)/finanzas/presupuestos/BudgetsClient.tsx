@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, Trash2, Pencil, Wallet, AlertTriangle } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -11,8 +12,12 @@ import {
   useFinanceCategories,
   useTransactions,
 } from "../../../../hooks/useFinance";
-import { BudgetModal } from "../../../../components/presupuestos/BudgetModal";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
+
+const BudgetModal = dynamic(
+  () => import("../../../../components/presupuestos/BudgetModal").then((m) => m.BudgetModal),
+  { ssr: false }
+);
 import {
   computeAllBudgetStatuses,
   summarizeBudgets,

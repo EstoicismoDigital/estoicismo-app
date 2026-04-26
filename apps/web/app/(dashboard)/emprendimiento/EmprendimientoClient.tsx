@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   Plus,
   Briefcase,
@@ -40,10 +41,20 @@ import {
   useFinanceCategories,
   useCreateTransaction,
 } from "../../../hooks/useFinance";
-import { BrainstormWizard } from "../../../components/emprendimiento/BrainstormWizard";
 import { IdeasList } from "../../../components/emprendimiento/IdeasList";
-import { SaleQuickModal } from "../../../components/emprendimiento/SaleQuickModal";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+
+// El BrainstormWizard sólo se monta cuando el user está en estado
+// "exploring" — lazy ahorra ~6KB en estado "active". El SaleQuickModal
+// se carga al primer click del CTA.
+const BrainstormWizard = dynamic(
+  () => import("../../../components/emprendimiento/BrainstormWizard").then((m) => m.BrainstormWizard),
+  { ssr: false }
+);
+const SaleQuickModal = dynamic(
+  () => import("../../../components/emprendimiento/SaleQuickModal").then((m) => m.SaleQuickModal),
+  { ssr: false }
+);
 import { formatMoney } from "../../../lib/finance";
 import type { BusinessStatus } from "@estoicismo/supabase";
 

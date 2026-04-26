@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, BookOpen, Library, Trophy, Flame } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -13,8 +14,6 @@ import {
   useDeleteReadingSession,
 } from "../../../../hooks/useReading";
 import { ReadingTimer } from "../../../../components/lectura/ReadingTimer";
-import { SessionSummaryModal } from "../../../../components/lectura/SessionSummaryModal";
-import { BookModal } from "../../../../components/lectura/BookModal";
 import {
   CurrentBookCard,
   BookListItem,
@@ -22,6 +21,16 @@ import {
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import { computeReadingStats, formatDuration } from "../../../../lib/reading/stats";
 import type { ReadingBook, ReadingSession } from "@estoicismo/supabase";
+
+// Modales lazy — sólo se cargan al primer abrir.
+const SessionSummaryModal = dynamic(
+  () => import("../../../../components/lectura/SessionSummaryModal").then((m) => m.SessionSummaryModal),
+  { ssr: false }
+);
+const BookModal = dynamic(
+  () => import("../../../../components/lectura/BookModal").then((m) => m.BookModal),
+  { ssr: false }
+);
 
 export function LecturaClient() {
   const { data: currentBook } = useCurrentBook();
