@@ -3,3 +3,7 @@ export * from "./client";
 export * from "./habits";
 export * from "./finance";
 export * from "./mindset";
+export * from "./fitness";
+export * from "./reading";
+export * from "./savings";
+export * from "./budgets";

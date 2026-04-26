@@ -9,6 +9,8 @@ export type Profile = {
   plan_expires_at: string | null;
   streak_freeze_count: number;
   stripe_customer_id: string | null;
+  /** Estrategia preferida para pagar deudas. */
+  payoff_strategy: "avalanche" | "snowball" | "custom";
   created_at: string;
   updated_at: string;
 };
@@ -55,6 +57,7 @@ import type {
   FinanceTransaction,
   FinanceCreditCard,
   FinanceDebt,
+  FinanceDebtPayment,
   FinanceQuote,
 } from "./finance";
 
@@ -65,6 +68,19 @@ import type {
   MindsetMeditation,
   MindsetFrequencyFavorite,
 } from "./mindset";
+
+// Tipos de Fitness, Lectura, Ahorro, Presupuestos.
+import type {
+  FitnessUserProfile,
+  FitnessMetric,
+  FitnessExercise,
+  FitnessWorkout,
+  FitnessWorkoutSet,
+} from "./fitness";
+
+import type { ReadingBook, ReadingSession } from "./reading";
+import type { SavingsGoal, SavingsContribution } from "./savings";
+import type { Budget } from "./budgets";
 
 export type Database = {
   public: {
@@ -93,6 +109,11 @@ export type Database = {
         Insert: Omit<FinanceDebt, "id" | "created_at" | "updated_at">;
         Update: Partial<FinanceDebt>;
       };
+      finance_debt_payments: {
+        Row: FinanceDebtPayment;
+        Insert: Omit<FinanceDebtPayment, "id" | "created_at">;
+        Update: Partial<FinanceDebtPayment>;
+      };
       finance_quotes: {
         Row: FinanceQuote;
         Insert: Omit<FinanceQuote, "id">;
@@ -117,6 +138,56 @@ export type Database = {
         Row: MindsetFrequencyFavorite;
         Insert: Omit<MindsetFrequencyFavorite, "id" | "created_at">;
         Update: Partial<MindsetFrequencyFavorite>;
+      };
+      fitness_user_profile: {
+        Row: FitnessUserProfile;
+        Insert: Omit<FitnessUserProfile, "created_at" | "updated_at">;
+        Update: Partial<FitnessUserProfile>;
+      };
+      fitness_metrics: {
+        Row: FitnessMetric;
+        Insert: Omit<FitnessMetric, "id" | "created_at" | "updated_at">;
+        Update: Partial<FitnessMetric>;
+      };
+      fitness_exercises: {
+        Row: FitnessExercise;
+        Insert: Omit<FitnessExercise, "id" | "created_at">;
+        Update: Partial<FitnessExercise>;
+      };
+      fitness_workouts: {
+        Row: FitnessWorkout;
+        Insert: Omit<FitnessWorkout, "id" | "created_at" | "updated_at">;
+        Update: Partial<FitnessWorkout>;
+      };
+      fitness_workout_sets: {
+        Row: FitnessWorkoutSet;
+        Insert: Omit<FitnessWorkoutSet, "id" | "created_at">;
+        Update: Partial<FitnessWorkoutSet>;
+      };
+      reading_books: {
+        Row: ReadingBook;
+        Insert: Omit<ReadingBook, "id" | "created_at" | "updated_at">;
+        Update: Partial<ReadingBook>;
+      };
+      reading_sessions: {
+        Row: ReadingSession;
+        Insert: Omit<ReadingSession, "id" | "created_at">;
+        Update: Partial<ReadingSession>;
+      };
+      savings_goals: {
+        Row: SavingsGoal;
+        Insert: Omit<SavingsGoal, "id" | "created_at" | "updated_at">;
+        Update: Partial<SavingsGoal>;
+      };
+      savings_contributions: {
+        Row: SavingsContribution;
+        Insert: Omit<SavingsContribution, "id" | "created_at">;
+        Update: Partial<SavingsContribution>;
+      };
+      budgets: {
+        Row: Budget;
+        Insert: Omit<Budget, "id" | "created_at" | "updated_at">;
+        Update: Partial<Budget>;
       };
     };
   };

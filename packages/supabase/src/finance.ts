@@ -76,14 +76,33 @@ export type FinanceDebt = {
   kind: FinanceDebtKind;
   credit_card_id: string | null;
   balance: number;
+  /** Snapshot del balance al crear la deuda. Sirve para "% pagado". */
+  original_balance: number;
   minimum_payment: number;
   apr: number;
   due_day: number | null;
   currency: string;
   is_paid: boolean;
+  start_date: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type FinanceDebtPayment = {
+  id: string;
+  user_id: string;
+  debt_id: string;
+  amount: number;
+  principal_paid: number;
+  interest_paid: number;
+  transaction_id: string | null;
+  occurred_on: string;
+  note: string | null;
+  created_at: string;
+};
+
+export type PayoffStrategy = "avalanche" | "snowball" | "custom";
 
 export type FinanceQuoteTag =
   | "general"
@@ -140,14 +159,28 @@ export type CreateDebtInput = {
   kind: FinanceDebtKind;
   credit_card_id?: string | null;
   balance: number;
+  original_balance?: number;
   minimum_payment?: number;
   apr?: number;
   due_day?: number | null;
   currency?: string;
+  start_date?: string | null;
+  notes?: string | null;
 };
 
 export type UpdateDebtInput = Partial<CreateDebtInput> & {
   is_paid?: boolean;
+};
+
+export type CreateDebtPaymentInput = {
+  debt_id: string;
+  amount: number;
+  /** Si no se da, el cliente debe calcular split a partir de balance × APR. */
+  principal_paid?: number;
+  interest_paid?: number;
+  occurred_on?: string;
+  note?: string | null;
+  transaction_id?: string | null;
 };
 
 export type CreateCategoryInput = {
@@ -370,11 +403,14 @@ export async function createDebt(
       kind: input.kind,
       credit_card_id: input.credit_card_id ?? null,
       balance: input.balance,
+      original_balance: input.original_balance ?? input.balance,
       minimum_payment: input.minimum_payment ?? 0,
       apr: input.apr ?? 0,
       due_day: input.due_day ?? null,
       currency: input.currency ?? "MXN",
       is_paid: false,
+      start_date: input.start_date ?? null,
+      notes: input.notes ?? null,
     } as never)
     .select()
     .single();
@@ -399,6 +435,109 @@ export async function updateDebt(
 
 export async function deleteDebt(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("finance_debts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEBT PAYMENTS
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Lista de pagos del usuario, opcionalmente filtrados por deuda.
+ * Ordenados por fecha desc.
+ */
+export async function fetchDebtPayments(
+  sb: SB,
+  userId: string,
+  opts: { debt_id?: string; limit?: number; from?: string; to?: string } = {}
+): Promise<FinanceDebtPayment[]> {
+  let q = sb
+    .from("finance_debt_payments")
+    .select("*")
+    .eq("user_id", userId)
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (opts.debt_id) q = q.eq("debt_id", opts.debt_id);
+  if (opts.from) q = q.gte("occurred_on", opts.from);
+  if (opts.to) q = q.lte("occurred_on", opts.to);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FinanceDebtPayment[];
+}
+
+/**
+ * Registra un pago a una deuda. Si NO se proveen los splits
+ * (principal_paid / interest_paid), se calculan en función del
+ * balance vigente y la APR mensual aproximada.
+ *
+ * Después actualiza el balance de la deuda restando el principal.
+ * Si el balance llega a 0 o menos, marca is_paid = true.
+ */
+export async function createDebtPayment(
+  sb: SB,
+  userId: string,
+  input: CreateDebtPaymentInput
+): Promise<{ payment: FinanceDebtPayment; debt: FinanceDebt }> {
+  // 1. Leer deuda actual.
+  const { data: debt, error: debtErr } = await sb
+    .from("finance_debts")
+    .select("*")
+    .eq("id", input.debt_id)
+    .eq("user_id", userId)
+    .single();
+  if (debtErr) throw debtErr;
+  const d = debt as unknown as FinanceDebt;
+
+  // 2. Calcular split si no viene.
+  // Interés mensual ≈ balance × APR/12 (APR en %, así que /100).
+  const monthlyInterestRaw = (d.balance * (d.apr ?? 0)) / 100 / 12;
+  const interestRaw = input.interest_paid ?? Math.min(monthlyInterestRaw, input.amount);
+  const principalRaw = input.principal_paid ?? Math.max(0, input.amount - interestRaw);
+  const interest_paid = Math.round(interestRaw * 100) / 100;
+  const principal_paid = Math.round(principalRaw * 100) / 100;
+
+  // 3. Crear el payment.
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: payment, error: payErr } = await sb
+    .from("finance_debt_payments")
+    .insert({
+      user_id: userId,
+      debt_id: input.debt_id,
+      amount: input.amount,
+      principal_paid,
+      interest_paid,
+      transaction_id: input.transaction_id ?? null,
+      occurred_on: input.occurred_on ?? today,
+      note: input.note ?? null,
+    } as never)
+    .select()
+    .single();
+  if (payErr) throw payErr;
+
+  // 4. Update balance de la deuda.
+  const newBalance = Math.max(0, Math.round((d.balance - principal_paid) * 100) / 100);
+  const isPaid = newBalance <= 0;
+  const { data: updatedDebt, error: updErr } = await sb
+    .from("finance_debts")
+    .update({ balance: newBalance, is_paid: isPaid } as never)
+    .eq("id", d.id)
+    .select()
+    .single();
+  if (updErr) throw updErr;
+
+  return {
+    payment: payment as unknown as FinanceDebtPayment,
+    debt: updatedDebt as unknown as FinanceDebt,
+  };
+}
+
+export async function deleteDebtPayment(sb: SB, id: string): Promise<void> {
+  // Nota: NO revierte el balance — lo dejamos así porque los pagos
+  // del histórico real no deberían "deshacer" el cambio de balance
+  // automáticamente; si el usuario quiere revertir, debe editar la
+  // deuda manualmente. Mantiene auditoría limpia.
+  const { error } = await sb.from("finance_debt_payments").delete().eq("id", id);
   if (error) throw error;
 }
 
