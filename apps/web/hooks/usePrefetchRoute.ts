@@ -42,7 +42,13 @@ async function getUserId(): Promise<string> {
   return user.id;
 }
 
-export type PrefetchTarget = "habits" | "finanzas" | "reflexiones" | "ajustes";
+export type PrefetchTarget =
+  | "habits"
+  | "finanzas"
+  | "reflexiones"
+  | "emprendimiento"
+  | "pegasso"
+  | "ajustes";
 
 export function usePrefetchRoute() {
   const qc = useQueryClient();

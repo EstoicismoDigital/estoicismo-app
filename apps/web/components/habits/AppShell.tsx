@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Settings, LogOut, Crown } from "lucide-react";
+import { Settings, LogOut, Crown, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
@@ -16,7 +16,7 @@ import { OfflineIndicator } from "./OfflineIndicator";
  * [data-module="..."] blocks) and a contextual sub-nav. Order matters:
  * the masthead renders them left-to-right in this array.
  */
-type ModuleKey = "habits" | "finanzas" | "reflexiones";
+type ModuleKey = "habits" | "finanzas" | "reflexiones" | "emprendimiento" | "pegasso";
 type Module = {
   key: ModuleKey;
   label: string;
@@ -54,6 +54,12 @@ const MODULES: Module[] = [
     label: "Mentalidad",
     href: "/reflexiones",
     matches: ["/reflexiones"],
+  },
+  {
+    key: "emprendimiento",
+    label: "Negocio",
+    href: "/emprendimiento",
+    matches: ["/emprendimiento"],
   },
 ];
 
@@ -172,6 +178,29 @@ function SettingsLink({ active }: { active: boolean }) {
 }
 
 /**
+ * Acceso a Pegasso desde cualquier pantalla. Vive junto a Settings
+ * en la barra superior — el chat es global, no pertenece a un módulo.
+ */
+function PegassoLink({ active, compact = false }: { active: boolean; compact?: boolean }) {
+  return (
+    <Link
+      href="/pegasso"
+      aria-label="Hablar con Pegasso"
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        compact ? "w-8 h-8" : "w-9 h-9",
+        active
+          ? "bg-accent text-bg"
+          : "text-accent bg-accent/10 hover:bg-accent/20"
+      )}
+    >
+      <Sparkles size={compact ? 14 : 16} aria-hidden />
+    </Link>
+  );
+}
+
+/**
  * Desktop masthead — editorial, typography-forward. Replaces the old
  * left icon sidebar the user called out as "generic AI-app".
  *
@@ -216,6 +245,7 @@ function DesktopMasthead({
           </Link>
           <div className="flex items-center gap-2">
             <PlanPill />
+            <PegassoLink active={pathname.startsWith("/pegasso")} />
             <SettingsLink active={onAjustes} />
             <SignOutButton />
           </div>
@@ -333,7 +363,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
             <span className="font-display italic text-base text-ink">Digital</span>
           </Link>
-          <PlanPill compact />
+          <div className="flex items-center gap-1.5">
+            <PegassoLink active={pathname.startsWith("/pegasso")} compact />
+            <PlanPill compact />
+          </div>
         </div>
         {(showFinanzasSub || showMentalidadSub) && (
           <nav
