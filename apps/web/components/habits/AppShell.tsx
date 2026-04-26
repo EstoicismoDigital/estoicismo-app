@@ -61,6 +61,8 @@ const MODULES: Module[] = [
  * out of plain links (no icons) and a single typographic treatment. */
 const HABITS_SUBNAV: { href: string; label: string }[] = [
   { href: "/", label: "Hoy" },
+  { href: "/habitos/fitness", label: "Fitness" },
+  { href: "/habitos/lectura", label: "Lectura" },
   { href: "/calendario", label: "Calendario" },
   { href: "/progreso", label: "Progreso" },
   { href: "/revision", label: "Revisión" },
@@ -74,6 +76,8 @@ const FINANZAS_SUBNAV: { href: string; label: string }[] = [
   { href: "/finanzas", label: "Resumen" },
   { href: "/finanzas/calendario", label: "Calendario" },
   { href: "/finanzas/tarjetas", label: "Tarjetas" },
+  { href: "/finanzas/ahorro", label: "Ahorro" },
+  { href: "/finanzas/presupuestos", label: "Presupuestos" },
   { href: "/finanzas/deudas", label: "Deudas" },
 ];
 
