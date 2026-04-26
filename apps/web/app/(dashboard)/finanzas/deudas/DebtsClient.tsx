@@ -1,13 +1,18 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Plus,
   Pencil,
   Trash2,
-  Check,
   Flame,
   Snowflake,
-  Info,
+  Settings as SettingsIcon,
+  Trophy,
+  CreditCard,
+  Calendar,
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { clsx } from "clsx";
 import type { FinanceDebt, CreateDebtInput } from "@estoicismo/supabase";
@@ -16,101 +21,91 @@ import {
   useCreateDebt,
   useUpdateDebt,
   useDeleteDebt,
-} from "../../../../hooks/useFinance";
+  useDebtPayments,
+  useCreateDebtPayment,
+} from "../../../../hooks/useDebts";
 import {
-  buildDebtPlan,
-  formatMoney,
-  type DebtStrategy,
-} from "../../../../lib/finance";
+  orderDebtsByStrategy,
+  payoffMonths,
+  monthlyInterest,
+  type Strategy,
+} from "../../../../lib/debt/amortization";
+import { formatMoney } from "../../../../lib/finance";
 import { DebtModal } from "../../../../components/finanzas/DebtModal";
+import { DebtPaymentModal } from "../../../../components/finanzas/DebtPaymentModal";
+import {
+  DebtSimulator,
+  SingleDebtSimulator,
+} from "../../../../components/finanzas/DebtSimulator";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
-import { FinanceAdvice } from "../../../../components/finanzas/FinanceAdvice";
 
 /**
- * Dashboard de deudas con calculadora de plan avalanche/snowball.
+ * Sistema inteligente de deudas.
  *
- * - Campos: presupuesto mensual, estrategia (toggle).
- * - La tabla muestra por deuda: nombre, saldo, APR, meses hasta liquidar.
- * - Resumen: total pagado, intereses totales, mes en que salís.
- * - Si budget < mínimos, se advierte pero se simula igual para dar
- *   visibilidad del escenario.
+ * - Ordena por estrategia (avalanche / snowball / custom).
+ * - La primera deuda viva en el orden recibe la badge "Pagar primero".
+ * - Cada tarjeta muestra balance, APR, mínimo, % pagado del original,
+ *   meses al pagar mínimo, próximo pago, interés mensual.
+ * - Botón "Registrar pago" → DebtPaymentModal con preview del split
+ *   capital/interés.
+ * - Slider global "Extra mensual" en Simulador → comparativa
+ *   avalanche vs snowball y meses + total interés.
+ * - Por deuda, simulador individual: solo-mínimo vs con-extra.
+ * - Pagos recientes en la sección expandible.
  */
 export function DebtsClient() {
-  const { data: debts = [], isLoading } = useDebts();
+  const { data: debts = [] } = useDebts({ include_paid: false });
+  const { data: paidDebts = [] } = useDebts({ include_paid: true });
   const createM = useCreateDebt();
   const updateM = useUpdateDebt();
   const deleteM = useDeleteDebt();
+  const payM = useCreateDebtPayment();
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<FinanceDebt | null>(null);
+  const [strategy, setStrategy] = useState<Strategy>("avalanche");
+  const [debtModalOpen, setDebtModalOpen] = useState(false);
+  const [editingDebt, setEditingDebt] = useState<FinanceDebt | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<FinanceDebt | null>(null);
+  const [paymentDebt, setPaymentDebt] = useState<FinanceDebt | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const [strategy, setStrategy] = useState<DebtStrategy>("avalanche");
-  const [budgetText, setBudgetText] = useState("");
-
-  const activeDebts = useMemo(
-    () => debts.filter((d) => !d.is_paid && Number(d.balance) > 0),
-    [debts]
+  const ordered = useMemo(
+    () => orderDebtsByStrategy(debts, strategy),
+    [debts, strategy]
   );
 
-  const minimumTotal = useMemo(
-    () => activeDebts.reduce((s, d) => s + (Number(d.minimum_payment) || 0), 0),
-    [activeDebts]
-  );
+  const totals = useMemo(() => {
+    const balance = debts.reduce((s, d) => s + Number(d.balance), 0);
+    const minimum = debts.reduce((s, d) => s + Number(d.minimum_payment), 0);
+    const monthlyInt = debts.reduce((s, d) => s + monthlyInterest(d.balance, d.apr), 0);
+    return { balance, minimum, monthlyInt };
+  }, [debts]);
 
-  // Sugerir un presupuesto razonable: 1.3x mínimos (dejando algo de margen).
-  useEffect(() => {
-    if (budgetText === "" && minimumTotal > 0) {
-      setBudgetText(String(Math.round(minimumTotal * 1.3)));
-    }
-  }, [minimumTotal, budgetText]);
+  const currency = debts[0]?.currency ?? "MXN";
+  const onlyPaidDebts = paidDebts.filter((d) => d.is_paid);
 
-  const budget = Number.parseFloat(budgetText) || 0;
-  const plan = useMemo(
-    () => buildDebtPlan(activeDebts, budget, strategy),
-    [activeDebts, budget, strategy]
-  );
-
-  // Comparativa con el contrario para mostrar el costo de la estrategia.
-  const counter = useMemo(
-    () =>
-      buildDebtPlan(
-        activeDebts,
-        budget,
-        strategy === "avalanche" ? "snowball" : "avalanche"
-      ),
-    [activeDebts, budget, strategy]
-  );
-
-  async function handleSave(input: CreateDebtInput) {
+  async function handleSaveDebt(input: CreateDebtInput) {
     try {
-      if (editing) {
-        await updateM.mutateAsync({ id: editing.id, input });
+      if (editingDebt) {
+        await updateM.mutateAsync({ id: editingDebt.id, input });
       } else {
         await createM.mutateAsync(input);
       }
-      setModalOpen(false);
-      setEditing(null);
+      setDebtModalOpen(false);
+      setEditingDebt(null);
     } catch {
-      /* toast in hook */
+      /* hook toasts */
     }
   }
 
-  async function handleDelete() {
-    if (!confirmDelete) return;
-    try {
-      await deleteM.mutateAsync(confirmDelete.id);
-    } finally {
-      setConfirmDelete(null);
-    }
-  }
-
-  async function togglePaid(d: FinanceDebt) {
-    try {
-      await updateM.mutateAsync({ id: d.id, input: { is_paid: !d.is_paid } });
-    } catch {
-      /* toast */
-    }
+  async function handlePayment(input: { amount: number; occurred_on: string; note: string | null }) {
+    if (!paymentDebt) return;
+    await payM.mutateAsync({
+      debt_id: paymentDebt.id,
+      amount: input.amount,
+      occurred_on: input.occurred_on,
+      note: input.note,
+    });
+    setPaymentDebt(null);
   }
 
   return (
@@ -121,373 +116,154 @@ export function DebtsClient() {
             Finanzas · Deudas
           </p>
           <h1 className="font-display italic text-2xl sm:text-3xl leading-tight">
-            Liberarte es matemática.
+            La deuda es un arma. Apúntala bien.
           </h1>
+          <div className="grid grid-cols-3 gap-3 mt-4 text-sm">
+            <Stat label="Total adeudado" value={formatMoney(totals.balance, currency)} tone="danger" />
+            <Stat label="Mínimo mensual" value={formatMoney(totals.minimum, currency)} />
+            <Stat label="Intereses al mes" value={formatMoney(totals.monthlyInt, currency)} tone="warn" />
+          </div>
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="font-display italic text-xl text-ink">Mis deudas</h2>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex gap-1.5">
+            <StrategyButton
+              active={strategy === "avalanche"}
+              onClick={() => setStrategy("avalanche")}
+              icon={<Flame size={12} />}
+              label="Avalancha"
+            />
+            <StrategyButton
+              active={strategy === "snowball"}
+              onClick={() => setStrategy("snowball")}
+              icon={<Snowflake size={12} />}
+              label="Bola de nieve"
+            />
+            <StrategyButton
+              active={strategy === "custom"}
+              onClick={() => setStrategy("custom")}
+              icon={<SettingsIcon size={12} />}
+              label="Custom"
+            />
+          </div>
           <button
             type="button"
             onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
+              setEditingDebt(null);
+              setDebtModalOpen(true);
             }}
-            className="h-9 px-3 inline-flex items-center gap-1.5 rounded-full bg-accent text-white font-body text-[12px] font-medium hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="px-3 py-1.5 rounded-lg bg-accent text-bg font-mono text-[10px] uppercase tracking-widest hover:opacity-90 inline-flex items-center gap-1.5"
           >
-            <Plus size={14} aria-hidden />
-            Añadir
+            <Plus size={12} /> Nueva deuda
           </button>
         </div>
 
-        {/* List */}
-        {isLoading ? (
-          <ListSkeleton />
-        ) : debts.length === 0 ? (
-          <EmptyState onAdd={() => setModalOpen(true)} />
+        <div className="text-[12px] text-muted italic px-1">
+          {strategy === "avalanche" && "Pagas mínimo en todas + el extra al APR más alto. Matemáticamente óptimo: ahorra el máximo de interés."}
+          {strategy === "snowball" && "Pagas mínimo en todas + el extra al saldo más chico. Psicológicamente óptimo: las victorias rápidas te mantienen."}
+          {strategy === "custom" && "El orden lo decides tú — útil cuando una deuda es tóxica más allá del APR."}
+        </div>
+
+        {debts.length === 0 ? (
+          <div className="rounded-card border border-dashed border-line p-8 text-center space-y-2">
+            <CreditCard className="mx-auto text-muted" size={32} />
+            <p className="text-sm text-ink font-semibold">Sin deudas activas</p>
+            <p className="text-[12px] text-muted">
+              Si tienes alguna, regístrala para diseñar el plan de salida.
+            </p>
+          </div>
         ) : (
-          <ul className="space-y-2" role="list">
-            {debts.map((d) => (
-              <DebtRow
-                key={d.id}
-                debt={d}
-                onEdit={() => {
-                  setEditing(d);
-                  setModalOpen(true);
-                }}
-                onDelete={() => setConfirmDelete(d)}
-                onTogglePaid={() => togglePaid(d)}
-              />
-            ))}
-          </ul>
+          <>
+            <RecommendationCard debt={ordered[0]} strategy={strategy} />
+            <DebtSimulator debts={debts} strategy={strategy} currency={currency} />
+
+            <div className="space-y-3">
+              {ordered.map((d, idx) => (
+                <DebtCard
+                  key={d.id}
+                  debt={d}
+                  isFirst={idx === 0}
+                  expanded={expanded === d.id}
+                  onToggleExpanded={() => setExpanded((cur) => (cur === d.id ? null : d.id))}
+                  onEdit={() => {
+                    setEditingDebt(d);
+                    setDebtModalOpen(true);
+                  }}
+                  onDelete={() => setConfirmDelete(d)}
+                  onPay={() => setPaymentDebt(d)}
+                />
+              ))}
+            </div>
+          </>
         )}
 
-        {/* Strategy panel */}
-        {activeDebts.length > 0 && (
-          <section
-            aria-label="Plan de pago"
-            className="rounded-card border border-line bg-bg-alt/40 p-5 space-y-4"
-          >
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                Plan estratégico
-              </p>
-              <h3 className="font-display italic text-xl text-ink">
-                ¿En cuánto sales?
-              </h3>
-            </div>
-
-            {/* Budget */}
-            <div>
-              <label className="font-mono text-[10px] uppercase tracking-widest text-muted">
-                Presupuesto mensual para deudas
-              </label>
-              <div className="mt-1 flex items-stretch gap-2">
-                <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-display italic text-xl text-muted pointer-events-none">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    step="100"
-                    value={budgetText}
-                    onChange={(e) => setBudgetText(e.target.value)}
-                    className="w-full h-12 pl-8 pr-3 rounded-lg border border-line bg-bg font-body text-[16px] text-ink tabular-nums focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus:border-accent"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <p className="mt-1.5 font-body text-xs text-muted">
-                Mínimo requerido:{" "}
-                <span
-                  className={clsx(
-                    "font-medium tabular-nums",
-                    budget >= minimumTotal ? "text-ink" : "text-danger"
-                  )}
+        {onlyPaidDebts.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-display italic text-lg text-ink flex items-center gap-1.5">
+              <Trophy size={14} className="text-success" />
+              Liquidadas ({onlyPaidDebts.length})
+            </h2>
+            <ul className="space-y-2">
+              {onlyPaidDebts.map((d) => (
+                <li
+                  key={d.id}
+                  className="rounded-card border border-success/30 bg-success/5 p-3 flex items-center gap-2"
                 >
-                  {formatMoney(minimumTotal)}
-                </span>
-                {budget < minimumTotal && (
-                  <> — tu presupuesto no cubre los mínimos.</>
-                )}
-              </p>
-            </div>
-
-            {/* Strategy toggle */}
-            <div>
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-bg-alt">
-                <StrategyButton
-                  active={strategy === "avalanche"}
-                  onClick={() => setStrategy("avalanche")}
-                  Icon={Flame}
-                  label="Avalancha"
-                  sub="Mayor APR primero"
-                />
-                <StrategyButton
-                  active={strategy === "snowball"}
-                  onClick={() => setStrategy("snowball")}
-                  Icon={Snowflake}
-                  label="Bola de nieve"
-                  sub="Menor saldo primero"
-                />
-              </div>
-              <p className="mt-2 font-body text-xs text-muted flex gap-1.5">
-                <Info size={12} aria-hidden className="mt-0.5 shrink-0" />
-                {strategy === "avalanche"
-                  ? "Matemáticamente óptimo: pagás menos intereses totales."
-                  : "Psicológicamente óptimo: ganás momentum liquidando las chicas primero."}
-              </p>
-            </div>
-
-            {/* KPIs */}
-            {plan.months.length > 0 && (
-              <div className="grid grid-cols-3 gap-3">
-                <KpiSmall
-                  label="Meses"
-                  value={
-                    plan.payoffMonths >= 600
-                      ? "+600"
-                      : String(plan.payoffMonths)
-                  }
-                />
-                <KpiSmall
-                  label="Intereses"
-                  value={formatMoney(plan.totalInterest)}
-                  tone="danger"
-                />
-                <KpiSmall
-                  label="Total pagado"
-                  value={formatMoney(plan.totalPaid)}
-                />
-              </div>
-            )}
-
-            {/* Strategy comparison */}
-            {plan.months.length > 0 && counter.months.length > 0 && (
-              <StrategyCompare
-                current={{
-                  strategy,
-                  totalInterest: plan.totalInterest,
-                  payoffMonths: plan.payoffMonths,
-                }}
-                counter={{
-                  strategy: strategy === "avalanche" ? "snowball" : "avalanche",
-                  totalInterest: counter.totalInterest,
-                  payoffMonths: counter.payoffMonths,
-                }}
-              />
-            )}
-
-            {/* Order */}
-            {plan.order.length > 0 && (
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
-                  Orden en que las liquidas
-                </p>
-                <ol className="space-y-1.5" role="list">
-                  {plan.order.map((id, i) => {
-                    const d = debts.find((x) => x.id === id);
-                    if (!d) return null;
-                    const monthCleared =
-                      plan.months.find((m) => m.cleared.includes(id))?.month ??
-                      plan.payoffMonths;
-                    return (
-                      <li
-                        key={id}
-                        className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-line bg-bg"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="font-mono text-xs text-accent shrink-0">
-                            #{i + 1}
-                          </span>
-                          <p className="font-body text-sm text-ink truncate">
-                            {d.name}
-                          </p>
-                        </div>
-                        <p className="font-body text-xs text-muted tabular-nums shrink-0">
-                          Mes {monthCleared}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            )}
+                  <Trophy size={14} className="text-success" />
+                  <p className="text-sm text-ink flex-1">{d.name}</p>
+                  <span className="text-[11px] text-muted">
+                    Original {formatMoney(Number(d.original_balance ?? d.balance), d.currency)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
-
-        <FinanceAdvice tag="debt" />
       </div>
 
       <DebtModal
-        open={modalOpen}
-        editing={editing}
+        open={debtModalOpen}
+        editing={editingDebt}
         saving={createM.isPending || updateM.isPending}
         onClose={() => {
-          setModalOpen(false);
-          setEditing(null);
+          setDebtModalOpen(false);
+          setEditingDebt(null);
         }}
-        onSave={handleSave}
+        onSave={handleSaveDebt}
       />
-
+      <DebtPaymentModal
+        open={!!paymentDebt}
+        debt={paymentDebt}
+        saving={payM.isPending}
+        onClose={() => setPaymentDebt(null)}
+        onSave={handlePayment}
+      />
       <ConfirmDialog
         open={!!confirmDelete}
-        title="¿Borrar esta deuda?"
-        description="Esta acción no se puede deshacer."
-        confirmLabel="Borrar"
+        title="¿Eliminar deuda?"
+        description="Borra la deuda y todos sus pagos asociados. No se puede deshacer."
+        confirmLabel="Eliminar"
         destructive
         onCancel={() => setConfirmDelete(null)}
-        onConfirm={handleDelete}
+        onConfirm={async () => {
+          if (confirmDelete) await deleteM.mutateAsync(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
       />
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Subcomponentes
-// ─────────────────────────────────────────────────────────────
-
-function DebtRow({
-  debt,
-  onEdit,
-  onDelete,
-  onTogglePaid,
-}: {
-  debt: FinanceDebt;
-  onEdit: () => void;
-  onDelete: () => void;
-  onTogglePaid: () => void;
-}) {
-  const balance = Number(debt.balance) || 0;
-  const apr = Number(debt.apr) || 0;
-  const min = Number(debt.minimum_payment) || 0;
+function Stat({ label, value, tone }: { label: string; value: string; tone?: "danger" | "warn" }) {
   return (
-    <li
-      className={clsx(
-        "flex items-center gap-3 p-3 rounded-card border bg-bg transition-opacity",
-        debt.is_paid ? "opacity-60 border-dashed border-line" : "border-line"
-      )}
-    >
-      <button
-        type="button"
-        onClick={onTogglePaid}
-        aria-pressed={debt.is_paid}
-        aria-label={debt.is_paid ? "Marcar como pendiente" : "Marcar como pagada"}
-        className={clsx(
-          "w-8 h-8 shrink-0 rounded-full border-2 inline-flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-          debt.is_paid
-            ? "bg-success border-success text-white"
-            : "border-line hover:border-accent text-transparent"
-        )}
-      >
-        <Check size={14} aria-hidden />
-      </button>
-
-      <div className="flex-1 min-w-0">
-        <p
-          className={clsx(
-            "font-body text-sm text-ink truncate",
-            debt.is_paid && "line-through"
-          )}
-        >
-          {debt.name}
-        </p>
-        <p className="font-body text-xs text-muted">
-          <span className="tabular-nums">{formatMoney(balance)}</span>
-          {apr > 0 && (
-            <>
-              <span className="mx-1">·</span>
-              <span className="tabular-nums">{apr}% APR</span>
-            </>
-          )}
-          {min > 0 && (
-            <>
-              <span className="mx-1">·</span>
-              <span className="tabular-nums">mín {formatMoney(min)}</span>
-            </>
-          )}
-        </p>
-      </div>
-
-      <button
-        type="button"
-        onClick={onEdit}
-        aria-label="Editar"
-        className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-bg-alt focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      >
-        <Pencil size={13} aria-hidden />
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        aria-label="Borrar"
-        className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-full text-muted hover:text-danger hover:bg-danger/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
-      >
-        <Trash2 size={13} aria-hidden />
-      </button>
-    </li>
-  );
-}
-
-function StrategyButton({
-  active,
-  onClick,
-  Icon,
-  label,
-  sub,
-}: {
-  active: boolean;
-  onClick: () => void;
-  Icon: typeof Flame;
-  label: string;
-  sub: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={clsx(
-        "h-auto p-3 rounded-lg text-left transition-all duration-150",
-        active ? "bg-bg text-ink shadow-sm" : "text-muted hover:text-ink"
-      )}
-    >
-      <div className="flex items-center gap-2">
-        <Icon
-          size={14}
-          aria-hidden
-          className={active ? "text-accent" : "text-muted"}
-        />
-        <p className="font-body text-sm font-medium">{label}</p>
-      </div>
-      <p className="font-body text-[11px] text-muted mt-0.5">{sub}</p>
-    </button>
-  );
-}
-
-function KpiSmall({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "danger";
-}) {
-  return (
-    <div className="rounded-lg border border-line bg-bg p-3">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-        {label}
-      </p>
+    <div>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-white/50">{label}</p>
       <p
         className={clsx(
-          "font-display italic text-lg tabular-nums mt-0.5",
-          tone === "danger" ? "text-danger" : "text-ink"
+          "text-base font-semibold",
+          tone === "danger" ? "text-red-300" : tone === "warn" ? "text-amber-300" : "text-white"
         )}
       >
         {value}
@@ -496,82 +272,211 @@ function KpiSmall({
   );
 }
 
-function StrategyCompare({
-  current,
-  counter,
-}: {
-  current: { strategy: DebtStrategy; totalInterest: number; payoffMonths: number };
-  counter: { strategy: DebtStrategy; totalInterest: number; payoffMonths: number };
+function StrategyButton(props: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
 }) {
-  const interestDiff = counter.totalInterest - current.totalInterest;
-  const monthsDiff = counter.payoffMonths - current.payoffMonths;
-  const otherLabel = counter.strategy === "avalanche" ? "Avalancha" : "Bola de nieve";
-  const better =
-    current.strategy === "avalanche"
-      ? interestDiff >= 0
-      : monthsDiff >= 0 || interestDiff >= 0;
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      className={clsx(
+        "px-3 py-1.5 rounded-full border text-[11px] font-mono uppercase tracking-widest inline-flex items-center gap-1.5",
+        props.active
+          ? "bg-accent text-bg border-accent"
+          : "border-line text-muted hover:text-ink"
+      )}
+    >
+      {props.icon}
+      {props.label}
+    </button>
+  );
+}
 
-  if (!better) return null;
+function RecommendationCard(props: { debt: FinanceDebt; strategy: Strategy }) {
+  const { debt, strategy } = props;
+  const months = payoffMonths(debt, debt.minimum_payment);
+  const reason =
+    strategy === "avalanche"
+      ? `APR más alto (${Number(debt.apr).toFixed(1)}%) — cada peso aquí ahorra más en interés.`
+      : strategy === "snowball"
+      ? `Saldo más chico (${formatMoney(debt.balance, debt.currency)}) — la liquidas pronto y libera el mínimo para la siguiente.`
+      : `Marcaste esta como prioridad.`;
 
   return (
-    <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 font-body text-xs text-ink">
-      <p>
-        Con esta estrategia vs. <span className="font-medium">{otherLabel}</span>:{" "}
-        {interestDiff > 1 && (
-          <>
-            ahorrás{" "}
-            <span className="text-success font-medium tabular-nums">
-              {formatMoney(Math.abs(interestDiff))}
-            </span>{" "}
-            en intereses
-          </>
-        )}
-        {interestDiff > 1 && monthsDiff !== 0 && " · "}
-        {monthsDiff > 0 && (
-          <>
-            salís{" "}
-            <span className="text-success font-medium">
-              {monthsDiff} {monthsDiff === 1 ? "mes" : "meses"} antes
+    <section className="rounded-card border border-accent/40 bg-accent/5 p-4 flex items-start gap-3">
+      <div className="w-1 self-stretch bg-accent rounded-full" />
+      <div className="flex-1 min-w-0">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+          Pagar primero
+        </p>
+        <h3 className="font-display italic text-lg text-ink truncate">{debt.name}</h3>
+        <p className="text-[12px] text-muted mt-0.5">{reason}</p>
+        {months !== null && (
+          <p className="text-[11px] text-muted mt-1">
+            Solo con el mínimo, sales en{" "}
+            <span className="text-ink font-semibold">
+              {months}m ({Math.round(months / 12)}a)
             </span>
-          </>
+            .
+          </p>
         )}
-        {interestDiff <= 1 && monthsDiff <= 0 && (
-          <>Los dos escenarios son equivalentes en costo.</>
+        {months === null && (
+          <p className="text-[11px] text-orange-400 mt-1">
+            ⚠️ El mínimo no cubre el interés mensual — la deuda crece.
+          </p>
         )}
-        .
-      </p>
-    </div>
+      </div>
+    </section>
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
-  return (
-    <div className="rounded-card border border-dashed border-line bg-bg-alt/40 p-6 text-center">
-      <p className="font-display italic text-lg text-ink">Sin deudas registradas</p>
-      <p className="font-body text-sm text-muted mt-1 max-w-prose mx-auto">
-        Registra cada deuda con su APR y pago mínimo. Con eso te armo un plan mes a
-        mes — avalancha o bola de nieve.
-      </p>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="mt-3 h-10 px-4 rounded-lg bg-accent text-white font-body text-sm font-medium hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent inline-flex items-center gap-2"
-      >
-        <Plus size={14} aria-hidden /> Añadir deuda
-      </button>
-    </div>
+function DebtCard(props: {
+  debt: FinanceDebt;
+  isFirst: boolean;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onPay: () => void;
+}) {
+  const { debt, isFirst, expanded, onToggleExpanded, onEdit, onDelete, onPay } = props;
+  const monthsToPayoff = useMemo(
+    () => payoffMonths(debt, debt.minimum_payment),
+    [debt]
   );
-}
+  const monthlyInt = monthlyInterest(debt.balance, debt.apr);
+  const original = Number(debt.original_balance ?? debt.balance);
+  const paid = Math.max(0, original - debt.balance);
+  const pctPaid = original > 0 ? (paid / original) * 100 : 0;
 
-function ListSkeleton() {
+  const { data: payments = [] } = useDebtPayments({
+    debt_id: expanded ? debt.id : undefined,
+    limit: 10,
+  });
+
   return (
-    <ul className="space-y-2" aria-hidden>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <li
-          key={i}
-          className="h-[62px] rounded-card border border-line bg-bg animate-pulse"
-        />
-      ))}
-    </ul>
+    <article
+      className={clsx(
+        "rounded-card border bg-bg-alt/40 p-4 space-y-3",
+        isFirst ? "border-accent/40" : "border-line"
+      )}
+    >
+      <header className="flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            {isFirst && (
+              <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-accent/20 text-accent">
+                Prioridad
+              </span>
+            )}
+            <p className="text-sm font-semibold text-ink truncate">{debt.name}</p>
+          </div>
+          <p className="text-[11px] text-muted">
+            APR {Number(debt.apr).toFixed(1)}% · Mínimo{" "}
+            {formatMoney(debt.minimum_payment, debt.currency)} ·{" "}
+            {monthsToPayoff !== null
+              ? `${monthsToPayoff}m mínimo`
+              : "no se paga al mínimo"}
+            {debt.due_day ? ` · día ${debt.due_day}` : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={onEdit} className="p-1 text-muted hover:text-ink rounded">
+            <Pencil size={13} />
+          </button>
+          <button onClick={onDelete} className="p-1 text-muted hover:text-danger rounded">
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </header>
+
+      <div className="space-y-1.5">
+        <div className="flex items-baseline justify-between">
+          <span className="text-2xl font-display italic text-ink">
+            {formatMoney(debt.balance, debt.currency)}
+          </span>
+          <span className="text-[11px] text-muted">
+            {pctPaid.toFixed(0)}% pagado
+          </span>
+        </div>
+        <div className="h-1.5 bg-line/30 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-accent transition-all"
+            style={{ width: `${Math.min(100, pctPaid)}%` }}
+          />
+        </div>
+        <p className="text-[11px] text-muted flex items-center gap-1.5">
+          <TrendingUp size={11} />
+          Interés mensual estimado:{" "}
+          <span className="text-orange-400 font-mono">
+            {formatMoney(monthlyInt, debt.currency)}
+          </span>
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onPay}
+          className="flex-1 py-2 rounded-lg bg-accent text-bg font-mono text-[10px] uppercase tracking-widest hover:opacity-90"
+        >
+          Registrar pago
+        </button>
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          className="px-3 py-2 rounded-lg border border-line text-muted hover:text-ink inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest"
+        >
+          {expanded ? "Ocultar" : "Detalle"}
+          {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="space-y-3 pt-3 border-t border-line/40">
+          <SingleDebtSimulator debt={debt} />
+
+          {payments.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted">
+                Últimos pagos ({payments.length})
+              </p>
+              <ul className="space-y-1">
+                {payments.slice(0, 5).map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between text-[11px] py-1.5 border-b border-line/30 last:border-b-0"
+                  >
+                    <span className="text-muted flex items-center gap-1.5">
+                      <Calendar size={10} />
+                      {new Date(p.occurred_on + "T00:00:00").toLocaleDateString("es-MX", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </span>
+                    <div className="text-right">
+                      <p className="text-ink font-mono">{formatMoney(p.amount, debt.currency)}</p>
+                      <p className="text-[10px] text-muted">
+                        Capital{" "}
+                        <span className="text-success">
+                          {formatMoney(p.principal_paid, debt.currency)}
+                        </span>{" "}
+                        · Interés{" "}
+                        <span className="text-danger">
+                          {formatMoney(p.interest_paid, debt.currency)}
+                        </span>
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
