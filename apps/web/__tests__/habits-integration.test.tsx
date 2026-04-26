@@ -79,6 +79,15 @@ jest.mock("../hooks/useReading", () => ({
   useReadingSessions: () => ({ data: [] }),
 }));
 
+// useJournal lo usa DailyPromptCard via useCreateJournalEntry
+// (mutation, sin query — sólo necesitamos que el hook no rompa).
+jest.mock("../hooks/useJournal", () => ({
+  useCreateJournalEntry: () => ({ mutate: jest.fn(), mutateAsync: jest.fn(), isPending: false }),
+  useJournal: () => ({ data: [] }),
+  useUpdateJournalEntry: () => ({ mutate: jest.fn(), mutateAsync: jest.fn(), isPending: false }),
+  useDeleteJournalEntry: () => ({ mutate: jest.fn(), mutateAsync: jest.fn(), isPending: false }),
+}));
+
 // Import *after* mocks so jest resolves them correctly
 import { HabitsDashboard } from "../app/(dashboard)/HabitsDashboard";
 

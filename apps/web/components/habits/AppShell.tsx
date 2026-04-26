@@ -11,6 +11,7 @@ import { usePrefetchRoute } from "../../hooks/usePrefetchRoute";
 import { BottomNav } from "./BottomNav";
 import { OfflineIndicator } from "./OfflineIndicator";
 import { Logo } from "../brand/Logo";
+import { QuickCaptureFab } from "../journal/QuickCaptureFab";
 
 /**
  * Top-level modules. Each owns a colored accent (see globals.css
@@ -423,6 +424,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <BottomNav pathname={pathname} />
+      <QuickCaptureFab />
     </div>
   );
 }

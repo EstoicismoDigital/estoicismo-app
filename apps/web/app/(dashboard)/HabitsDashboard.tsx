@@ -30,6 +30,7 @@ import {
 } from "../../components/habits/TodayTimeline";
 import { InsightsPanel } from "../../components/habits/InsightsPanel";
 import { DailyEssentialsCard } from "../../components/habits/DailyEssentialsCard";
+import { DailyPromptCard } from "../../components/journal/DailyPromptCard";
 import { CelebrationOverlay } from "../../components/habits/CelebrationOverlay";
 import { ReminderPermissionBanner } from "../../components/habits/ReminderPermissionBanner";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
@@ -348,6 +349,9 @@ export function HabitsDashboard() {
 
           {/* Cross-module: Fitness + Lectura del día */}
           <DailyEssentialsCard />
+
+          {/* Prompt diario para journaling — invita a escribir */}
+          <DailyPromptCard />
         </div>
 
         {/* Desktop: right-hand 320px timeline column */}
