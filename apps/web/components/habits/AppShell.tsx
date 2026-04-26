@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Settings, LogOut, Crown, Sparkles } from "lucide-react";
+import { Settings, LogOut, Crown, Sparkles, NotebookPen } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
@@ -10,6 +10,7 @@ import { clearPersistedCache } from "../providers/QueryProvider";
 import { usePrefetchRoute } from "../../hooks/usePrefetchRoute";
 import { BottomNav } from "./BottomNav";
 import { OfflineIndicator } from "./OfflineIndicator";
+import { Logo } from "../brand/Logo";
 
 /**
  * Top-level modules. Each owns a colored accent (see globals.css
@@ -178,6 +179,29 @@ function SettingsLink({ active }: { active: boolean }) {
 }
 
 /**
+ * Acceso al Diario global desde cualquier pantalla. Vive junto a
+ * Pegasso/Settings — el diario cruza áreas, no pertenece a una.
+ */
+function JournalLink({ active, compact = false }: { active: boolean; compact?: boolean }) {
+  return (
+    <Link
+      href="/notas"
+      aria-label="Abrir diario"
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        compact ? "w-8 h-8" : "w-9 h-9",
+        active
+          ? "bg-ink text-bg"
+          : "text-muted bg-bg-alt hover:text-ink"
+      )}
+    >
+      <NotebookPen size={compact ? 13 : 15} aria-hidden />
+    </Link>
+  );
+}
+
+/**
  * Acceso a Pegasso desde cualquier pantalla. Vive junto a Settings
  * en la barra superior — el chat es global, no pertenece a un módulo.
  */
@@ -232,19 +256,15 @@ function DesktopMasthead({
       className="hidden md:block sticky top-0 z-30 bg-bg/95 backdrop-blur-sm border-b border-line"
       aria-label="Navegación principal"
     >
-      <div className="max-w-6xl mx-auto px-6 pt-5 pb-3">
+      <div className="max-w-6xl mx-auto px-6 pt-4 pb-3">
         {/* Row 1 — brand + utilities */}
-        <div className="flex items-end justify-between mb-4">
-          <Link href="/" className="block group" aria-label="Ir a Hoy">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted mb-0.5 group-hover:text-ink transition-colors">
-              Estoicismo
-            </p>
-            <h1 className="font-display italic text-3xl lg:text-[34px] leading-none text-ink">
-              Digital
-            </h1>
+        <div className="flex items-center justify-between mb-3">
+          <Link href="/" className="block group" aria-label="Estoicismo Digital · Ir a Hoy">
+            <Logo variant="full" size="md" className="block group-hover:opacity-80 transition-opacity" />
           </Link>
           <div className="flex items-center gap-2">
             <PlanPill />
+            <JournalLink active={pathname.startsWith("/notas")} />
             <PegassoLink active={pathname.startsWith("/pegasso")} />
             <SettingsLink active={onAjustes} />
             <SignOutButton />
@@ -357,13 +377,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="h-12 px-4 flex items-center justify-between">
-          <Link href="/" className="flex items-baseline gap-1.5">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
-              Estoicismo
-            </p>
-            <span className="font-display italic text-base text-ink">Digital</span>
+          <Link href="/" className="flex items-center" aria-label="Estoicismo Digital">
+            <Logo variant="full" size="sm" />
           </Link>
           <div className="flex items-center gap-1.5">
+            <JournalLink active={pathname.startsWith("/notas")} compact />
             <PegassoLink active={pathname.startsWith("/pegasso")} compact />
             <PlanPill compact />
           </div>

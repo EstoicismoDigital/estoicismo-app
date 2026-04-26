@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Flame, Coins, Brain, NotebookPen, Settings } from "lucide-react";
+import { Flame, Coins, Brain, Briefcase, Settings } from "lucide-react";
 import { clsx } from "clsx";
 import { usePrefetchRoute, type PrefetchTarget } from "../../hooks/usePrefetchRoute";
 
@@ -9,24 +9,23 @@ type TabItem = {
   label: string;
   Icon: typeof Flame;
   /** Module for per-tab accent color when active. */
-  module?: "habits" | "finanzas" | "reflexiones";
+  module?: "habits" | "finanzas" | "reflexiones" | "emprendimiento";
   /** Additional pathnames that should light this tab as active. */
   matches?: string[];
 };
 
 /**
- * Mobile tabs mirror the desktop module model:
- *   Hábitos (home) — Finanzas — Mentalidad — Notas — Ajustes
+ * Mobile tabs — 5 módulos top-level:
+ *   Hábitos (home) — Finanzas — Mentalidad — Negocio — Ajustes
  *
  * "Mentalidad" sigue viviendo bajo la ruta `/reflexiones` (el URL se
  * conserva por compatibilidad y porque aún alberga reflexiones), pero
  * la etiqueta visible es Mentalidad — el módulo gira en torno al MPD
  * de Napoleón Hill, meditación Dispenza y frecuencias (Aura).
  *
- * Notas stays in the bottom nav because it's high-use across the
- * habits module (users revisit reflections attached to completions).
- * All other habits sub-pages (calendario, progreso, revisión,
- * historial) are reached from the in-page sub-nav on each screen.
+ * Diario (notas) y Pegasso son globales y viven en la top bar (junto
+ * a Settings) para mantener este nav a 5 items — sweet spot UX en
+ * mobile y suficiente para los módulos verticales del producto.
  */
 const TABS: TabItem[] = [
   {
@@ -44,10 +43,10 @@ const TABS: TabItem[] = [
     module: "reflexiones",
   },
   {
-    href: "/notas",
-    label: "Notas",
-    Icon: NotebookPen,
-    module: "habits",
+    href: "/emprendimiento",
+    label: "Negocio",
+    Icon: Briefcase,
+    module: "emprendimiento",
   },
   { href: "/ajustes", label: "Ajustes", Icon: Settings },
 ];
@@ -70,14 +69,11 @@ export function BottomNav({ pathname }: { pathname: string }) {
   const prefetch = usePrefetchRoute();
 
   function prefetchTargetFor(tab: TabItem): PrefetchTarget | null {
-    // Notas vive en el cache de habits (son queries relacionadas),
-    // así que precarga habits al tocar Notas. Ajustes no tiene queries
-    // propias más allá de useProfile (ya montado en el shell).
     if (tab.href === "/ajustes") return "ajustes";
-    if (tab.href === "/notas") return "habits";
     if (tab.module === "habits") return "habits";
     if (tab.module === "finanzas") return "finanzas";
     if (tab.module === "reflexiones") return "reflexiones";
+    if (tab.module === "emprendimiento") return "emprendimiento";
     return null;
   }
 
