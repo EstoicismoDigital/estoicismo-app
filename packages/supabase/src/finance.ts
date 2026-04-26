@@ -378,14 +378,20 @@ export async function deleteCreditCard(sb: SB, id: string): Promise<void> {
 // DEBTS
 // ─────────────────────────────────────────────────────────────
 
-export async function fetchDebts(sb: SB, userId: string): Promise<FinanceDebt[]> {
-  const { data, error } = await sb
+export async function fetchDebts(
+  sb: SB,
+  userId: string,
+  opts: { include_paid?: boolean } = {}
+): Promise<FinanceDebt[]> {
+  let q = sb
     .from("finance_debts")
     .select("*")
     .eq("user_id", userId)
     .order("is_paid", { ascending: true })
     .order("apr", { ascending: false })
     .order("created_at", { ascending: true });
+  if (!opts.include_paid) q = q.eq("is_paid", false);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as unknown as FinanceDebt[];
 }
