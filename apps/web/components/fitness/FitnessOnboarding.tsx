@@ -7,17 +7,19 @@ import {
   Sparkles,
   Scale,
   Ruler,
-  Target,
   Calendar,
-  Award,
-  Dumbbell,
+  Plus,
+  AlertCircle,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useCreateExercise } from "../../hooks/useFitness";
 import type {
   FitnessGoal,
   FitnessSex,
   FitnessExperience,
   FitnessExercise,
+  ExerciseMeasurement,
+  ExerciseMuscleGroup,
   UpsertFitnessProfileInput,
 } from "@estoicismo/supabase";
 
@@ -118,6 +120,8 @@ export function FitnessOnboarding(props: {
   const [weeklyDays, setWeeklyDays] = useState<number>(3);
   const [experience, setExperience] = useState<FitnessExperience>("principiante");
   const [preferred, setPreferred] = useState<Set<string>>(new Set());
+  /** Mensaje de error si falla el upsert del perfil. */
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function next() {
     setStep((s) => Math.min(4, s + 1) as Step);
@@ -133,19 +137,34 @@ export function FitnessOnboarding(props: {
   }
 
   async function handleComplete() {
-    await onComplete({
-      bodyweight_kg: bodyweight ? Number(bodyweight) : null,
-      height_cm: height ? Number(height) : null,
-      birth_year: birthYear ? Number(birthYear) : null,
-      sex,
-      goal,
-      goal_text: goalText.trim() || null,
-      target_weight_kg: targetWeight ? Number(targetWeight) : null,
-      weekly_target_days: weeklyDays,
-      experience_level: experience,
-      preferred_exercises: Array.from(preferred),
-      onboarded_at: new Date().toISOString(),
-    });
+    setSaveError(null);
+    try {
+      await onComplete({
+        bodyweight_kg: bodyweight ? Number(bodyweight) : null,
+        height_cm: height ? Number(height) : null,
+        birth_year: birthYear ? Number(birthYear) : null,
+        sex,
+        goal,
+        goal_text: goalText.trim() || null,
+        target_weight_kg: targetWeight ? Number(targetWeight) : null,
+        weekly_target_days: weeklyDays,
+        experience_level: experience,
+        preferred_exercises: Array.from(preferred),
+        onboarded_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      // Mostramos el error en pantalla — más claro que un toast que
+      // desaparece. Si el error menciona "column" o "does not exist",
+      // damos pista de la migración.
+      const raw = err instanceof Error ? err.message : String(err);
+      const looksLikeMissingColumn =
+        /column.*does not exist|schema cache|onboarded_at|height_cm|weekly_target_days/i.test(raw);
+      setSaveError(
+        looksLikeMissingColumn
+          ? `Tu base de datos no tiene las columnas nuevas. Aplica la migración 20260427200000_fitness_profile_extended.sql en Supabase. Detalle: ${raw}`
+          : raw
+      );
+    }
   }
 
   // Validaciones por paso
@@ -228,6 +247,25 @@ export function FitnessOnboarding(props: {
             />
           )}
         </section>
+
+        {/* Error visible si el guardado falla */}
+        {saveError && (
+          <div className="rounded-card border border-danger/40 bg-danger/5 p-3 flex gap-2 items-start">
+            <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
+            <div className="text-[12px] text-ink flex-1 break-words">
+              <p className="font-semibold mb-1">No se pudo guardar tu perfil.</p>
+              <p className="text-muted leading-snug">{saveError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSaveError(null)}
+              className="text-muted hover:text-ink text-xs"
+              aria-label="Cerrar error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex justify-between items-center">
@@ -523,12 +561,30 @@ function Step3Experience(props: {
   );
 }
 
+/**
+ * Lista canónica de grupos musculares — debe coincidir con el
+ * CHECK constraint de la columna fitness_exercises.muscle_group.
+ * Mostramos TODOS los grupos siempre, aunque estén vacíos, para
+ * que el user vea la estructura completa y pueda agregar custom.
+ */
+const ALL_MUSCLE_GROUPS: { key: ExerciseMuscleGroup; label: string; emoji: string }[] = [
+  { key: "pierna", label: "Pierna", emoji: "🦵" },
+  { key: "pecho", label: "Pecho", emoji: "🤺" },
+  { key: "espalda", label: "Espalda", emoji: "🦴" },
+  { key: "hombro", label: "Hombro", emoji: "💪" },
+  { key: "brazo", label: "Brazo", emoji: "💪" },
+  { key: "core", label: "Core / Abdomen", emoji: "🧘" },
+  { key: "cuerpo-completo", label: "Cuerpo completo", emoji: "🧍" },
+  { key: "cardio", label: "Cardio", emoji: "🏃" },
+  { key: "general", label: "Otros / general", emoji: "🏋️" },
+];
+
 function Step4Exercises(props: {
   exercises: FitnessExercise[];
   preferred: Set<string>;
   togglePreferred: (slug: string) => void;
 }) {
-  // Agrupamos por muscle_group
+  // Agrupamos por muscle_group — incluimos custom (user_id != null) tambien.
   const groups = useMemo(() => {
     const m: Record<string, FitnessExercise[]> = {};
     for (const ex of props.exercises) {
@@ -539,7 +595,42 @@ function Step4Exercises(props: {
     return m;
   }, [props.exercises]);
 
-  const groupOrder = ["pierna", "pecho", "espalda", "hombro", "brazo", "core", "cardio", "general"];
+  // Estado del formulario inline para agregar custom: qué grupo está abierto + datos.
+  const [openGroup, setOpenGroup] = useState<ExerciseMuscleGroup | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newMeasurement, setNewMeasurement] = useState<ExerciseMeasurement>("weight_reps");
+  const createExerciseM = useCreateExercise();
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  async function handleCreate(group: ExerciseMuscleGroup) {
+    setCreateError(null);
+    if (!newName.trim()) return;
+    try {
+      // Generamos slug a partir del nombre. user-XXX-slug para evitar
+      // colisión con los slugs globales del seed.
+      const baseSlug = newName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+      const slug = `custom-${baseSlug || Date.now().toString()}`;
+      const created = await createExerciseM.mutateAsync({
+        slug,
+        name: newName.trim(),
+        muscle_group: group,
+        measurement: newMeasurement,
+      });
+      // Auto-marcamos el ejercicio recién creado como preferido.
+      props.togglePreferred(created.slug);
+      setNewName("");
+      setNewMeasurement("weight_reps");
+      setOpenGroup(null);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : String(err));
+    }
+  }
 
   return (
     <>
@@ -550,38 +641,132 @@ function Step4Exercises(props: {
         <h2 className="font-display italic text-2xl sm:text-3xl text-ink leading-tight">
           Marca los que ya haces o quieres dominar.
         </h2>
-        <p className="text-[12px] text-muted italic">Opcional. Sirve para sugerir tus rutinas.</p>
+        <p className="text-[12px] text-muted italic">
+          Opcional. ¿No ves uno? Agrégalo desde el botón{" "}
+          <span className="inline-flex items-center gap-0.5 font-mono">
+            <Plus size={10} className="inline" />
+          </span>
+          .
+        </p>
       </div>
-      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-        {groupOrder
-          .filter((g) => groups[g]?.length > 0)
-          .map((group) => (
-            <div key={group}>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted mb-1.5">
-                {group}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {groups[group]
-                  .filter((ex) => ex.user_id === null) // sólo defaults
-                  .map((ex) => (
-                    <button
-                      key={ex.id}
-                      type="button"
-                      onClick={() => props.togglePreferred(ex.slug)}
-                      className={clsx(
-                        "px-2.5 py-1 rounded-full text-[11px] border transition-colors",
-                        props.preferred.has(ex.slug)
-                          ? "bg-accent text-bg border-accent"
-                          : "border-line text-muted hover:text-ink"
-                      )}
-                    >
-                      {ex.is_main_lift && "★ "}
-                      {ex.name}
-                    </button>
-                  ))}
+      <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1">
+        {ALL_MUSCLE_GROUPS.map((group) => {
+          const items = groups[group.key] ?? [];
+          const isAdding = openGroup === group.key;
+          return (
+            <div key={group.key}>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-muted inline-flex items-center gap-1.5">
+                  <span>{group.emoji}</span>
+                  {group.label}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isAdding) {
+                      setOpenGroup(null);
+                    } else {
+                      setOpenGroup(group.key);
+                      setCreateError(null);
+                      setNewName("");
+                    }
+                  }}
+                  className={clsx(
+                    "text-[10px] font-mono uppercase tracking-widest inline-flex items-center gap-0.5 transition-colors",
+                    isAdding ? "text-danger hover:text-ink" : "text-accent hover:text-ink"
+                  )}
+                >
+                  {isAdding ? "Cancelar" : (
+                    <>
+                      <Plus size={11} /> Agregar
+                    </>
+                  )}
+                </button>
               </div>
+              <div className="flex flex-wrap gap-1.5">
+                {items.length === 0 && !isAdding && (
+                  <p className="text-[11px] text-muted italic">
+                    Sin ejercicios — agrega los tuyos.
+                  </p>
+                )}
+                {items.map((ex) => (
+                  <button
+                    key={ex.id}
+                    type="button"
+                    onClick={() => props.togglePreferred(ex.slug)}
+                    className={clsx(
+                      "px-2.5 py-1 rounded-full text-[11px] border transition-colors",
+                      props.preferred.has(ex.slug)
+                        ? "bg-accent text-bg border-accent"
+                        : "border-line text-muted hover:text-ink",
+                      // Tag sutil para los custom (user_id != null)
+                      ex.user_id !== null && !props.preferred.has(ex.slug) && "border-accent/30"
+                    )}
+                  >
+                    {ex.is_main_lift && "★ "}
+                    {ex.name}
+                    {ex.user_id !== null && (
+                      <span className="ml-1 text-[8px] opacity-60">tuyo</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Form inline para crear custom en este grupo */}
+              {isAdding && (
+                <div className="mt-2 rounded-lg border border-accent/40 bg-accent/5 p-3 space-y-2">
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder={`Nombre del ejercicio (${group.label.toLowerCase()})`}
+                    className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
+                    autoFocus
+                  />
+                  <div className="flex gap-1">
+                    {(
+                      [
+                        { key: "weight_reps", label: "Peso × reps" },
+                        { key: "reps_only", label: "Sólo reps" },
+                        { key: "duration", label: "Duración" },
+                      ] as { key: ExerciseMeasurement; label: string }[]
+                    ).map((m) => (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setNewMeasurement(m.key)}
+                        className={clsx(
+                          "flex-1 py-1.5 rounded text-[10px] font-mono uppercase tracking-widest border",
+                          newMeasurement === m.key
+                            ? "bg-accent text-bg border-accent"
+                            : "border-line text-muted hover:text-ink"
+                        )}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                  {createError && (
+                    <p className="text-[10px] text-danger">{createError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleCreate(group.key)}
+                    disabled={!newName.trim() || createExerciseM.isPending}
+                    className="w-full py-2 rounded-lg bg-accent text-bg font-mono text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                  >
+                    {createExerciseM.isPending ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <Plus size={11} />
+                    )}
+                    Crear y marcar
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
+          );
+        })}
       </div>
     </>
   );
