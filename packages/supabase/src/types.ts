@@ -76,6 +76,7 @@ import type {
   FitnessExercise,
   FitnessWorkout,
   FitnessWorkoutSet,
+  FitnessBodyMetric,
 } from "./fitness";
 
 import type { ReadingBook, ReadingSession } from "./reading";
@@ -179,6 +180,11 @@ export type Database = {
         Row: FitnessWorkoutSet;
         Insert: Omit<FitnessWorkoutSet, "id" | "created_at">;
         Update: Partial<FitnessWorkoutSet>;
+      };
+      fitness_body_metrics: {
+        Row: FitnessBodyMetric;
+        Insert: Omit<FitnessBodyMetric, "id" | "created_at" | "updated_at">;
+        Update: Partial<FitnessBodyMetric>;
       };
       reading_books: {
         Row: ReadingBook;

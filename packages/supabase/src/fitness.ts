@@ -11,6 +11,7 @@ type SB = SupabaseClient<Database, any, any>;
 export type FitnessGoal = "fuerza" | "hipertrofia" | "resistencia" | "salud";
 export type FitnessUnitSystem = "metric" | "imperial";
 export type FitnessSex = "male" | "female" | "other";
+export type FitnessExperience = "principiante" | "intermedio" | "avanzado";
 
 export type FitnessUserProfile = {
   user_id: string;
@@ -19,6 +20,35 @@ export type FitnessUserProfile = {
   unit_system: FitnessUnitSystem;
   sex: FitnessSex | null;
   birth_year: number | null;
+  /** Estatura en cm. */
+  height_cm: number | null;
+  /** Peso meta para perder/ganar (opcional). */
+  target_weight_kg: number | null;
+  /** Días por semana objetivo en el gym (1-7). */
+  weekly_target_days: number | null;
+  /** Nivel autopercibido. */
+  experience_level: FitnessExperience | null;
+  /** Tu meta en palabras propias (como un mini-MPD de fitness). */
+  goal_text: string | null;
+  /** Slugs de ejercicios preferidos del catálogo. */
+  preferred_exercises: string[];
+  /** Cuándo terminó el onboarding inicial. NULL = no ha onboardeado. */
+  onboarded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FitnessBodyMetric = {
+  id: string;
+  user_id: string;
+  occurred_on: string;
+  chest_cm: number | null;
+  waist_cm: number | null;
+  hips_cm: number | null;
+  arm_cm: number | null;
+  thigh_cm: number | null;
+  body_fat_pct: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -434,4 +464,64 @@ export async function updateWorkoutSet(
 export async function deleteWorkoutSet(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("fitness_workout_sets").delete().eq("id", id);
   if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// BODY METRICS — medidas corporales (cintura, pecho, brazos)
+// ─────────────────────────────────────────────────────────────
+
+export type UpsertBodyMetricInput = {
+  occurred_on: string;
+  chest_cm?: number | null;
+  waist_cm?: number | null;
+  hips_cm?: number | null;
+  arm_cm?: number | null;
+  thigh_cm?: number | null;
+  body_fat_pct?: number | null;
+  notes?: string | null;
+};
+
+export async function fetchBodyMetrics(
+  sb: SB,
+  userId: string,
+  opts: { limit?: number; from?: string; to?: string } = {}
+): Promise<FitnessBodyMetric[]> {
+  let q = sb
+    .from("fitness_body_metrics")
+    .select("*")
+    .eq("user_id", userId)
+    .order("occurred_on", { ascending: false });
+  if (opts.from) q = q.gte("occurred_on", opts.from);
+  if (opts.to) q = q.lte("occurred_on", opts.to);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FitnessBodyMetric[];
+}
+
+export async function upsertBodyMetric(
+  sb: SB,
+  userId: string,
+  input: UpsertBodyMetricInput
+): Promise<FitnessBodyMetric> {
+  const { data, error } = await sb
+    .from("fitness_body_metrics")
+    .upsert(
+      {
+        user_id: userId,
+        occurred_on: input.occurred_on,
+        chest_cm: input.chest_cm ?? null,
+        waist_cm: input.waist_cm ?? null,
+        hips_cm: input.hips_cm ?? null,
+        arm_cm: input.arm_cm ?? null,
+        thigh_cm: input.thigh_cm ?? null,
+        body_fat_pct: input.body_fat_pct ?? null,
+        notes: input.notes ?? null,
+      } as never,
+      { onConflict: "user_id,occurred_on" }
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FitnessBodyMetric;
 }

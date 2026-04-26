@@ -21,12 +21,14 @@ import { MetricsTodayCard } from "../../../../components/fitness/MetricsTodayCar
 import { LevelOverviewCard } from "../../../../components/fitness/LevelOverviewCard";
 import { LiftLevelsGrid } from "../../../../components/fitness/LiftLevelsGrid";
 import { MetricsTrendCard } from "../../../../components/fitness/MetricsTrendCard";
+import { QuickLogCard } from "../../../../components/fitness/QuickLogCard";
+import { PersonalizedPlanCard } from "../../../../components/fitness/PersonalizedPlanCard";
+import { PersonalRecordsCard } from "../../../../components/fitness/PersonalRecordsCard";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import type { FitnessWorkout } from "@estoicismo/supabase";
 import type { WorkoutModalSubmit } from "../../../../components/fitness/WorkoutModal";
 
-// Modales pesados → lazy-load. No se cargan hasta que el user
-// los abre, reduciendo el bundle inicial de la página ~15KB.
+// Modales pesados → lazy-load.
 const WorkoutModal = dynamic(
   () => import("../../../../components/fitness/WorkoutModal").then((m) => m.WorkoutModal),
   { ssr: false }
@@ -35,9 +37,14 @@ const ProfileSetupModal = dynamic(
   () => import("../../../../components/fitness/ProfileSetupModal").then((m) => m.ProfileSetupModal),
   { ssr: false }
 );
+// Onboarding wizard — sólo se monta cuando el user no tiene perfil.
+const FitnessOnboarding = dynamic(
+  () => import("../../../../components/fitness/FitnessOnboarding").then((m) => m.FitnessOnboarding),
+  { ssr: false }
+);
 
 export function FitnessClient() {
-  const { data: profile } = useFitnessProfile();
+  const { data: profile, isLoading: loadingProfile } = useFitnessProfile();
   const upsertProfile = useUpsertFitnessProfile();
   const { data: metrics = [] } = useFitnessMetrics({ limit: 30 });
   const { data: exercises = [] } = useExercises();
@@ -53,11 +60,18 @@ export function FitnessClient() {
   const [workoutOpen, setWorkoutOpen] = useState(false);
   const [editing, setEditing] = useState<FitnessWorkout | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<FitnessWorkout | null>(null);
+  /** Si el user salta el onboarding, lo escondemos en esta sesión. */
+  const [onboardingSkipped, setOnboardingSkipped] = useState(false);
 
   // Si user edita, traemos sus sets
   const { data: editingSets = [] } = useWorkoutSets(editing?.id ?? null);
 
   const goal = profile?.goal ?? "fuerza";
+
+  // Mostrar onboarding si: no terminó de cargar (ok), no tiene
+  // onboarded_at, y no ha decidido saltar.
+  const needsOnboarding =
+    !loadingProfile && !profile?.onboarded_at && !onboardingSkipped;
 
   // Stats simples (workouts por semana)
   const weekCount = useMemo(() => {
@@ -111,6 +125,20 @@ export function FitnessClient() {
     setConfirmDelete(null);
   }
 
+  // ─── ONBOARDING ─── pantalla completa si nunca completaste perfil
+  if (needsOnboarding) {
+    return (
+      <FitnessOnboarding
+        exercises={exercises}
+        saving={upsertProfile.isPending}
+        onComplete={async (input) => {
+          await upsertProfile.mutateAsync(input);
+        }}
+        onSkip={() => setOnboardingSkipped(true)}
+      />
+    );
+  }
+
   return (
     <div data-module="habits" className="min-h-screen bg-bg">
       {/* HERO */}
@@ -122,9 +150,15 @@ export function FitnessClient() {
           <h1 className="font-display italic text-2xl sm:text-3xl leading-tight">
             El cuerpo es el primer instrumento de la mente.
           </h1>
-          <div className="flex items-center gap-3 mt-4 text-sm text-white/70">
+          <div className="flex items-center gap-3 mt-4 text-sm text-white/70 flex-wrap">
             <Stat label="Esta semana" value={`${weekCount} sesión${weekCount === 1 ? "" : "es"}`} />
             <Stat label="Total" value={`${workouts.length}`} />
+            {profile?.weekly_target_days && (
+              <Stat
+                label="Meta semanal"
+                value={`${weekCount}/${profile.weekly_target_days}`}
+              />
+            )}
             <button
               type="button"
               onClick={() => setProfileOpen(true)}
@@ -138,6 +172,17 @@ export function FitnessClient() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Quick log — cómo registrar peso de UNA serie sin abrir modal */}
+        <QuickLogCard
+          exercises={exercises}
+          preferredExerciseSlugs={profile?.preferred_exercises ?? []}
+        />
+
+        {/* Plan personalizado — sólo si tiene perfil mínimo (peso + altura) */}
+        {profile && profile.bodyweight_kg && profile.height_cm && (
+          <PersonalizedPlanCard profile={profile} exercises={exercises} />
+        )}
+
         {/* Métricas hoy */}
         <MetricsTodayCard />
 
@@ -148,6 +193,9 @@ export function FitnessClient() {
           bodyweightKg={profile?.bodyweight_kg ?? null}
           goal={goal}
         />
+
+        {/* Récords personales — sólo si hay sets suficientes */}
+        <PersonalRecordsCard exercises={exercises} sets={allSets} />
 
         {/* Tendencias */}
         <MetricsTrendCard metrics={metrics} />
