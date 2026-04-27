@@ -1,7 +1,14 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Quote, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Check,
+  ArrowRight,
+  Loader2,
+  Volume2,
+  VolumeX,
+  Quote,
+} from "lucide-react";
 import { clsx } from "clsx";
 import {
   useMPD,
@@ -60,6 +67,7 @@ export function AffirmationStripe() {
   }
 
   const read = log?.read_affirmation ?? false;
+  const text = mpd.affirmation || mpd.aim;
 
   return (
     <div
@@ -70,15 +78,12 @@ export function AffirmationStripe() {
           : "border-accent/30 bg-accent/5"
       )}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <Quote size={14} className="text-accent" />
-        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-          Léelo en voz alta
+      <div className="flex items-start gap-3">
+        <p className="font-display italic text-lg sm:text-xl text-ink leading-snug flex-1">
+          {text}
         </p>
+        <SpeakButton text={text} />
       </div>
-      <p className="font-display italic text-lg sm:text-xl text-ink leading-snug">
-        {mpd.affirmation || mpd.aim}
-      </p>
       {mpd.deadline && (
         <p className="font-body text-xs text-muted mt-2">
           Fecha objetivo: {formatDate(mpd.deadline)}
@@ -121,4 +126,50 @@ function formatDate(iso: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+/**
+ * Botón "leer en voz alta" usando Web Speech API. Si el browser no
+ * soporta o el usuario navega fuera mientras habla, abortamos limpio.
+ */
+function SpeakButton({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+
+  function speak() {
+    if (typeof window === "undefined" || !("speechSynthesis" in window))
+      return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "es-MX";
+    u.rate = 0.9; // un poco más lento — afirmaciones se digieren mejor
+    u.pitch = 1;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+  }
+
+  // Esconder si el browser no soporta TTS
+  if (
+    typeof window !== "undefined" &&
+    !("speechSynthesis" in window)
+  ) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={speak}
+      title={speaking ? "Detener" : "Escuchar"}
+      className="h-7 w-7 rounded-full bg-bg-alt hover:bg-line/40 text-muted hover:text-ink flex items-center justify-center transition-colors"
+      aria-label={speaking ? "Detener lectura" : "Leer afirmación en voz alta"}
+    >
+      {speaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
+    </button>
+  );
 }

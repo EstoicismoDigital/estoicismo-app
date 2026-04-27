@@ -354,16 +354,19 @@ export function TodayClient() {
             Más a fondo
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <ShortcutLink href="/habitos" emoji="✓" label="Hábitos" />
             <ShortcutLink href="/reflexiones/respira" emoji="🌬" label="Respira" />
             <ShortcutLink
               href="/reflexiones/meditacion"
               emoji="🧘"
               label="Meditar"
             />
-            <ShortcutLink href="/anuario" emoji="📅" label="Anuario" />
             <ShortcutLink href="/pegasso" emoji="✨" label="Pegasso" />
             <ShortcutLink href="/progreso" emoji="📊" label="Progreso" />
+            <ShortcutLink href="/anuario" emoji="📅" label="Anuario" />
             <ShortcutLink href="/notas" emoji="✍️" label="Diario" />
+            <ShortcutLink href="/calendario" emoji="📆" label="Calendario" />
+            <ShortcutLink href="/revision" emoji="🔍" label="Revisión" />
           </div>
         </section>
 
