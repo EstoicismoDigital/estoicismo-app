@@ -156,3 +156,78 @@ export function useDeleteReadingSession() {
     },
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING GOAL — meta anual
+// ─────────────────────────────────────────────────────────────
+
+export function useReadingGoal(year: number): UseQueryResult<
+  import("@estoicismo/supabase").ReadingGoal | null
+> {
+  return useQuery({
+    queryKey: ["reading", "goal", year],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchReadingGoal } = await import("@estoicismo/supabase");
+      return fetchReadingGoal(sb, await getUserId(), year);
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useUpsertReadingGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").UpsertReadingGoalInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { upsertReadingGoal } = await import("@estoicismo/supabase");
+      return upsertReadingGoal(sb, await getUserId(), input);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["reading", "goal"] });
+      toast.success("Meta guardada");
+    },
+    onError: (err) =>
+      toast.error("No se pudo guardar la meta.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useDeleteReadingGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (year: number) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteReadingGoal } = await import("@estoicismo/supabase");
+      await deleteReadingGoal(sb, await getUserId(), year);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reading", "goal"] }),
+  });
+}
+
+/**
+ * Cantidad de libros que el user terminó en `year` (basado en
+ * reading_books.is_finished y reading_books.finished_at).
+ */
+export function useBooksFinishedInYear(year: number): UseQueryResult<number> {
+  return useQuery({
+    queryKey: ["reading", "books", "finished-in-year", year],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const userId = await getUserId();
+      const { count, error } = await sb
+        .from("reading_books")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_finished", true)
+        .gte("finished_at", `${year}-01-01`)
+        .lte("finished_at", `${year}-12-31`);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}

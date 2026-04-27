@@ -234,6 +234,11 @@ export type Database = {
         Insert: Omit<ReadingSession, "id" | "created_at">;
         Update: Partial<ReadingSession>;
       };
+      reading_goals: {
+        Row: import("./reading").ReadingGoal;
+        Insert: Omit<import("./reading").ReadingGoal, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./reading").ReadingGoal>;
+      };
       savings_goals: {
         Row: SavingsGoal;
         Insert: Omit<SavingsGoal, "id" | "created_at" | "updated_at">;
@@ -278,6 +283,11 @@ export type Database = {
         Row: BusinessSale;
         Insert: Omit<BusinessSale, "id" | "created_at">;
         Update: Partial<BusinessSale>;
+      };
+      business_milestones: {
+        Row: import("./business").BusinessMilestone;
+        Insert: Omit<import("./business").BusinessMilestone, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./business").BusinessMilestone>;
       };
       pegasso_conversations: {
         Row: PegassoConversation;

@@ -18,6 +18,7 @@ import {
   CurrentBookCard,
   BookListItem,
 } from "../../../../components/lectura/CurrentBookCard";
+import { ReadingGoalCard } from "../../../../components/lectura/ReadingGoalCard";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import { computeReadingStats, formatDuration } from "../../../../lib/reading/stats";
 import type { ReadingBook, ReadingSession } from "@estoicismo/supabase";
@@ -86,6 +87,9 @@ export function LecturaClient() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Reto anual */}
+        <ReadingGoalCard />
+
         {/* Libro actual */}
         <CurrentBookCard
           book={currentBook ?? null}

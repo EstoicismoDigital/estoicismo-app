@@ -535,3 +535,110 @@ export async function deleteSale(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("business_sales").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// MILESTONES — hitos del negocio
+// ─────────────────────────────────────────────────────────────
+
+export type BusinessMilestoneKind =
+  | "sales_total"
+  | "sales_count"
+  | "clients_count"
+  | "product_launch"
+  | "custom";
+
+export type BusinessMilestoneStatus = "open" | "achieved" | "abandoned";
+
+export type BusinessMilestone = {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  kind: BusinessMilestoneKind;
+  target_amount: number | null;
+  target_date: string | null;
+  status: BusinessMilestoneStatus;
+  achieved_at: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateMilestoneInput = {
+  title: string;
+  description?: string | null;
+  kind?: BusinessMilestoneKind;
+  target_amount?: number | null;
+  target_date?: string | null;
+  position?: number;
+};
+
+export type UpdateMilestoneInput = Partial<CreateMilestoneInput> & {
+  status?: BusinessMilestoneStatus;
+};
+
+export async function fetchMilestones(
+  sb: SB,
+  userId: string,
+  opts: { status?: BusinessMilestoneStatus } = {}
+): Promise<BusinessMilestone[]> {
+  let q = sb
+    .from("business_milestones")
+    .select("*")
+    .eq("user_id", userId)
+    .order("status", { ascending: true })
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (opts.status) q = q.eq("status", opts.status);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessMilestone[];
+}
+
+export async function createMilestone(
+  sb: SB,
+  userId: string,
+  input: CreateMilestoneInput
+): Promise<BusinessMilestone> {
+  const { data, error } = await sb
+    .from("business_milestones")
+    .insert({
+      user_id: userId,
+      title: input.title,
+      description: input.description ?? null,
+      kind: input.kind ?? "custom",
+      target_amount: input.target_amount ?? null,
+      target_date: input.target_date ?? null,
+      position: input.position ?? 0,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessMilestone;
+}
+
+export async function updateMilestone(
+  sb: SB,
+  id: string,
+  input: UpdateMilestoneInput
+): Promise<BusinessMilestone> {
+  const update: Record<string, unknown> = { ...input };
+  if (input.status === "achieved") {
+    update.achieved_at = new Date().toISOString();
+  } else if (input.status === "open" || input.status === "abandoned") {
+    update.achieved_at = null;
+  }
+  const { data, error } = await sb
+    .from("business_milestones")
+    .update(update as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessMilestone;
+}
+
+export async function deleteMilestone(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("business_milestones").delete().eq("id", id);
+  if (error) throw error;
+}

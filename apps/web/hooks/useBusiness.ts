@@ -333,3 +333,78 @@ export function useDeleteSale() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "sales"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// MILESTONES
+// ─────────────────────────────────────────────────────────────
+
+export function useMilestones(opts: {
+  status?: import("@estoicismo/supabase").BusinessMilestoneStatus;
+} = {}): UseQueryResult<import("@estoicismo/supabase").BusinessMilestone[]> {
+  return useQuery({
+    queryKey: ["business", "milestones", opts.status ?? "all"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchMilestones } = await import("@estoicismo/supabase");
+      return fetchMilestones(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useCreateMilestone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateMilestoneInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createMilestone } = await import("@estoicismo/supabase");
+      return createMilestone(sb, await getUserId(), input);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "milestones"] });
+      toast.success("Hito creado");
+    },
+    onError: (err) =>
+      toast.error("No se pudo crear el hito.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateMilestone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateMilestoneInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateMilestone } = await import("@estoicismo/supabase");
+      return updateMilestone(sb, id, input);
+    },
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: ["business", "milestones"] });
+      if (variables.input.status === "achieved") {
+        toast.success("¡Hito alcanzado! 🏆", { description: data.title });
+      }
+    },
+  });
+}
+
+export function useDeleteMilestone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteMilestone } = await import("@estoicismo/supabase");
+      await deleteMilestone(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "milestones"] }),
+  });
+}

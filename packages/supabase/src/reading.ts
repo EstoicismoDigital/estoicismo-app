@@ -246,3 +246,73 @@ export async function deleteSession(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("reading_sessions").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING GOALS — meta anual
+// ─────────────────────────────────────────────────────────────
+
+export type ReadingGoal = {
+  id: string;
+  user_id: string;
+  year: number;
+  books_target: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UpsertReadingGoalInput = {
+  year: number;
+  books_target: number;
+  notes?: string | null;
+};
+
+export async function fetchReadingGoal(
+  sb: SB,
+  userId: string,
+  year: number
+): Promise<ReadingGoal | null> {
+  const { data, error } = await sb
+    .from("reading_goals")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("year", year)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as unknown as ReadingGoal | null;
+}
+
+export async function upsertReadingGoal(
+  sb: SB,
+  userId: string,
+  input: UpsertReadingGoalInput
+): Promise<ReadingGoal> {
+  const { data, error } = await sb
+    .from("reading_goals")
+    .upsert(
+      {
+        user_id: userId,
+        year: input.year,
+        books_target: input.books_target,
+        notes: input.notes ?? null,
+      } as never,
+      { onConflict: "user_id,year" }
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as ReadingGoal;
+}
+
+export async function deleteReadingGoal(
+  sb: SB,
+  userId: string,
+  year: number
+): Promise<void> {
+  const { error } = await sb
+    .from("reading_goals")
+    .delete()
+    .eq("user_id", userId)
+    .eq("year", year);
+  if (error) throw error;
+}

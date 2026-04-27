@@ -42,6 +42,7 @@ import {
   useCreateTransaction,
 } from "../../../hooks/useFinance";
 import { IdeasList } from "../../../components/emprendimiento/IdeasList";
+import { MilestonesSection } from "../../../components/emprendimiento/MilestonesSection";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 
 // El BrainstormWizard sólo se monta cuando el user está en estado
@@ -347,6 +348,9 @@ function ActiveSection(props: { profileName: string | null }) {
       >
         <Plus size={14} /> Registrar venta
       </button>
+
+      {/* Hitos del negocio */}
+      <MilestonesSection />
 
       {/* Productos */}
       <div className="space-y-2">
