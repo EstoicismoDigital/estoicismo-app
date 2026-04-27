@@ -34,39 +34,44 @@ export function UpcomingDueBanner({ days = 5 }: { days?: number }) {
       daysAway: number;
     }[] = [];
 
-    for (const r of recurring) {
-      const next = nextRecurringOccurrence(r);
-      if (!next) continue;
-      const d = daysUntil(next);
-      if (d >= 0 && d <= days) {
-        items.push({
-          id: r.id,
-          kind: "recurring",
-          label: r.name,
-          dateIso: next,
-          amount: Number(r.amount),
-          currency: r.currency,
-          daysAway: d,
-        });
+    try {
+      for (const r of recurring) {
+        const next = nextRecurringOccurrence(r);
+        if (!next) continue;
+        const d = daysUntil(next);
+        if (d >= 0 && d <= days) {
+          items.push({
+            id: r.id,
+            kind: "recurring",
+            label: r.name,
+            dateIso: next,
+            amount: Number(r.amount),
+            currency: r.currency,
+            daysAway: d,
+          });
+        }
       }
-    }
-    for (const s of subscriptions) {
-      const next = nextSubscriptionRenewal(s);
-      if (!next) continue;
-      const d = daysUntil(next);
-      if (d >= 0 && d <= days) {
-        items.push({
-          id: s.id,
-          kind: "subscription",
-          label: s.name,
-          dateIso: next,
-          amount: Number(s.amount),
-          currency: s.currency,
-          daysAway: d,
-        });
+      for (const s of subscriptions) {
+        const next = nextSubscriptionRenewal(s);
+        if (!next) continue;
+        const d = daysUntil(next);
+        if (d >= 0 && d <= days) {
+          items.push({
+            id: s.id,
+            kind: "subscription",
+            label: s.name,
+            dateIso: next,
+            amount: Number(s.amount),
+            currency: s.currency,
+            daysAway: d,
+          });
+        }
       }
+      items.sort((a, b) => a.daysAway - b.daysAway);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("UpcomingDueBanner failed:", err);
     }
-    items.sort((a, b) => a.daysAway - b.daysAway);
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recurring, subscriptions, days]);

@@ -38,32 +38,43 @@ export function EmergencyFundCard() {
   const { data: txs = [], isLoading: lt } = useTransactions(range);
 
   const stats = useMemo(() => {
-    // Liquid = cuentas líquidas que cuentan en patrimonio
-    const liquidKinds: string[] = ["cash", "checking", "savings"];
-    const liquid = accounts
-      .filter(
-        (a) =>
-          !a.is_archived &&
-          a.include_in_net_worth &&
-          liquidKinds.includes(a.kind)
-      )
-      .reduce((acc, a) => acc + Number(a.current_balance), 0);
+    try {
+      // Liquid = cuentas líquidas que cuentan en patrimonio
+      const liquidKinds: string[] = ["cash", "checking", "savings"];
+      const liquid = accounts
+        .filter(
+          (a) =>
+            !a.is_archived &&
+            a.include_in_net_worth &&
+            liquidKinds.includes(a.kind)
+        )
+        .reduce((acc, a) => acc + Number(a.current_balance), 0);
 
-    // Promedio mensual de gastos (últ 90 días)
-    const totalExpense = txs
-      .filter((t) => t.kind === "expense")
-      .reduce((acc, t) => acc + Number(t.amount), 0);
-    const avgMonthly = totalExpense / 3; // 90d ≈ 3 meses
+      // Promedio mensual de gastos (últ 90 días)
+      const totalExpense = txs
+        .filter((t) => t.kind === "expense")
+        .reduce((acc, t) => acc + Number(t.amount), 0);
+      const avgMonthly = totalExpense / 3; // 90d ≈ 3 meses
 
-    const monthsCovered =
-      avgMonthly > 0 ? +(liquid / avgMonthly).toFixed(1) : null;
+      const monthsCovered =
+        avgMonthly > 0 ? +(liquid / avgMonthly).toFixed(1) : null;
 
-    const currency =
-      accounts.find((a) => a.include_in_net_worth)?.currency ??
-      txs[0]?.currency ??
-      "MXN";
+      const currency =
+        accounts.find((a) => a.include_in_net_worth)?.currency ??
+        txs[0]?.currency ??
+        "MXN";
 
-    return { liquid, avgMonthly, monthsCovered, currency };
+      return { liquid, avgMonthly, monthsCovered, currency };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("EmergencyFund stats failed:", err);
+      return {
+        liquid: 0,
+        avgMonthly: 0,
+        monthsCovered: null,
+        currency: "MXN",
+      };
+    }
   }, [accounts, txs]);
 
   if (la || lt) {

@@ -25,22 +25,28 @@ export function CashFlowProjectionCard() {
 
   const projection = useMemo(() => {
     if (recurring.length === 0 && subscriptions.length === 0) return null;
-    // Saldo inicial = suma de cuentas que cuentan en el patrimonio
-    const startBalance = accounts
-      .filter((a) => a.include_in_net_worth && !a.is_archived)
-      .reduce((acc, a) => acc + Number(a.current_balance), 0);
-    const currency =
-      accounts.find((a) => a.include_in_net_worth)?.currency ??
-      recurring[0]?.currency ??
-      subscriptions[0]?.currency ??
-      "MXN";
-    return buildCashFlowProjection({
-      recurring,
-      subscriptions,
-      daysAhead: 60,
-      startBalance,
-      currency,
-    });
+    try {
+      // Saldo inicial = suma de cuentas que cuentan en el patrimonio
+      const startBalance = accounts
+        .filter((a) => a.include_in_net_worth && !a.is_archived)
+        .reduce((acc, a) => acc + Number(a.current_balance), 0);
+      const currency =
+        accounts.find((a) => a.include_in_net_worth)?.currency ??
+        recurring[0]?.currency ??
+        subscriptions[0]?.currency ??
+        "MXN";
+      return buildCashFlowProjection({
+        recurring,
+        subscriptions,
+        daysAhead: 60,
+        startBalance,
+        currency,
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("CashFlow projection failed:", err);
+      return null;
+    }
   }, [recurring, subscriptions, accounts]);
 
   if (!projection) return null;
@@ -52,8 +58,10 @@ export function CashFlowProjectionCard() {
   const sparkPoints = days
     .filter((_, i) => i % 2 === 0)
     .map((d) => d.cumulative);
-  const sparkMin = Math.min(...sparkPoints);
-  const sparkMax = Math.max(...sparkPoints);
+  // Math.min/max sobre array vacío devuelve Infinity/-Infinity, lo
+  // que rompería el SVG. Guard explícito.
+  const sparkMin = sparkPoints.length > 0 ? Math.min(...sparkPoints) : 0;
+  const sparkMax = sparkPoints.length > 0 ? Math.max(...sparkPoints) : 0;
   const sparkRange = sparkMax - sparkMin || 1;
 
   return (
