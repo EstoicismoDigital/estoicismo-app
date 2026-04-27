@@ -33,6 +33,7 @@ import {
   Dumbbell,
   Library,
   Receipt,
+  Wind,
   X,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -200,6 +201,16 @@ export function CommandPalette({
         kind: "nav",
         icon: Brain,
         href: "/reflexiones/meditacion",
+      },
+      {
+        id: "nav-respira",
+        title: "Respira · breathwork",
+        description: "4·7·8, caja, coherente, Wim Hof",
+        group: "Mentalidad",
+        kind: "nav",
+        icon: Wind,
+        href: "/reflexiones/respira",
+        keywords: ["breath", "respiracion", "calma"],
       },
       {
         id: "nav-aura",

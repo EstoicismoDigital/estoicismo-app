@@ -12,6 +12,7 @@ import {
   Radio,
   Sparkles,
   Target,
+  Wind,
 } from "lucide-react";
 import { clsx } from "clsx";
 import type { MindsetMPD } from "@estoicismo/supabase";
@@ -218,6 +219,12 @@ export function ReflexionesClient() {
             Icon={Brain}
             label="Meditación"
             body="Sesiones guiadas estilo Joe Dispenza — coherencia, romper hábitos, visión."
+          />
+          <ShortcutLink
+            href="/reflexiones/respira"
+            Icon={Wind}
+            label="Respira"
+            body="4·7·8, caja, coherente, Wim Hof — patrones de respiración guiados."
           />
           <ShortcutLink
             href="/reflexiones/aura"

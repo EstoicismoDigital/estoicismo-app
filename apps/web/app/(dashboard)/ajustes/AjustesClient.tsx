@@ -21,6 +21,7 @@ import {
   COMMON_TIMEZONES,
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
+import { FullBackupButton } from "../../../components/habits/FullBackupButton";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { PaletteSelector } from "../../../components/habits/PaletteSelector";
 import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
@@ -315,15 +316,27 @@ export function AjustesClient({
           <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-1 min-w-0">
               <h3 className="font-body text-sm font-medium text-ink">
-                Descarga todo lo que has registrado
+                Solo hábitos
               </h3>
               <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
-                Un archivo JSON con tus hábitos, archivados incluidos, sus
-                completados y tus reflexiones. Es tuyo — guárdalo donde
-                quieras.
+                JSON con tus hábitos (activos + archivados) y todos sus
+                completados. Pequeño y portable.
               </p>
             </div>
             <ExportDataButton />
+          </div>
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">
+                Backup completo
+              </h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                Todas tus tablas: hábitos, finanzas, mente, lectura, fitness,
+                negocio, diario, conversaciones con Pegasso. Tu vida
+                digital — toda. En tu disco.
+              </p>
+            </div>
+            <FullBackupButton />
           </div>
         </div>
 

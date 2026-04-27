@@ -100,6 +100,7 @@ const FINANZAS_SUBNAV: { href: string; label: string }[] = [
 const MENTALIDAD_SUBNAV: { href: string; label: string }[] = [
   { href: "/reflexiones", label: "Propósito" },
   { href: "/reflexiones/meditacion", label: "Meditación" },
+  { href: "/reflexiones/respira", label: "Respira" },
   { href: "/reflexiones/aura", label: "Aura" },
 ];
 

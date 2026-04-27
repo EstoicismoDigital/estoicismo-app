@@ -211,3 +211,56 @@ export async function fetchPinnedMessages(
     conversation_title: r.pegasso_conversations?.title ?? "",
   }));
 }
+
+/**
+ * Búsqueda de texto en mensajes del user. Usa ILIKE (case-insensitive
+ * substring) — suficiente para volúmenes < 10k mensajes. Para escala
+ * mayor, considerar pg_trgm o tsvector.
+ *
+ * Devuelve mensajes que matchean + título de su conversación + un
+ * snippet sencillo (texto completo del mensaje recortado a 200 chars
+ * con la primera ocurrencia centrada).
+ */
+export type ConversationSearchResult = PegassoMessage & {
+  conversation_title: string;
+  snippet: string;
+};
+
+export async function searchConversations(
+  sb: SB,
+  userId: string,
+  query: string,
+  limit = 30
+): Promise<ConversationSearchResult[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const pattern = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
+  const { data, error } = await sb
+    .from("pegasso_messages")
+    .select("*, pegasso_conversations!inner(title)")
+    .eq("user_id", userId)
+    .ilike("content", pattern)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  type Raw = PegassoMessage & {
+    pegasso_conversations: { title: string } | null;
+  };
+  return (data as unknown as Raw[]).map((r) => ({
+    ...r,
+    conversation_title: r.pegasso_conversations?.title ?? "",
+    snippet: buildSnippet(r.content, q),
+  }));
+}
+
+function buildSnippet(content: string, query: string, around = 80): string {
+  const lc = content.toLowerCase();
+  const idx = lc.indexOf(query.toLowerCase());
+  if (idx === -1) return content.slice(0, 200);
+  const start = Math.max(0, idx - around);
+  const end = Math.min(content.length, idx + query.length + around);
+  let snippet = content.slice(start, end);
+  if (start > 0) snippet = "…" + snippet;
+  if (end < content.length) snippet = snippet + "…";
+  return snippet;
+}

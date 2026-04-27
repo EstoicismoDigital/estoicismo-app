@@ -154,3 +154,23 @@ export function usePinnedMessages(): UseQueryResult<
     staleTime: 1000 * 60 * 2,
   });
 }
+
+/**
+ * Búsqueda en mensajes. Requiere `enabled` activable solo cuando hay
+ * query (>= 2 chars) — evita queries vacías al teclear.
+ */
+export function useSearchConversations(
+  query: string
+): UseQueryResult<import("@estoicismo/supabase").ConversationSearchResult[]> {
+  const trimmed = query.trim();
+  return useQuery({
+    queryKey: ["pegasso", "search", trimmed],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { searchConversations } = await import("@estoicismo/supabase");
+      return searchConversations(sb, await getUserId(), trimmed);
+    },
+    enabled: trimmed.length >= 2,
+    staleTime: 1000 * 30,
+  });
+}
