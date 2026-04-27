@@ -9,6 +9,8 @@ export type UpdateProfileInput = {
   default_currency?: string;
   avatar_url?: string | null;
   onboarding_completed?: boolean;
+  phone_e164?: string | null;
+  whatsapp_enabled?: boolean;
 };
 
 export function useUpdateProfile() {

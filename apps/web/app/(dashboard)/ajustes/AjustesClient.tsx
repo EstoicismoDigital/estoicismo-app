@@ -26,6 +26,7 @@ import { CsvImportButton } from "../../../components/finanzas/CsvImportButton";
 import { IcalExportButton } from "../../../components/habits/IcalExportButton";
 import { FontSizeSelector } from "../../../components/ajustes/FontSizeSelector";
 import { CurrencySelector } from "../../../components/ajustes/CurrencySelector";
+import { WhatsappCard } from "../../../components/ajustes/WhatsappCard";
 import { ImageUploadField } from "../../../components/ui/ImageUploadField";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { PaletteSelector } from "../../../components/habits/PaletteSelector";
@@ -310,6 +311,14 @@ export function AjustesClient({
             Finanzas y negocio
           </p>
           <CurrencySelector />
+        </div>
+
+        {/* Pegasso · WhatsApp */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Pegasso
+          </p>
+          <WhatsappCard />
         </div>
 
         {/* Notifications */}

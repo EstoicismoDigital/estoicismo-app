@@ -7,6 +7,7 @@ type SB = SupabaseClient<Database, any, any>;
 export type PegassoMessageRole = "user" | "assistant";
 
 export type PegassoConversationKind = "standard" | "weekly_review" | "onboarding";
+export type PegassoChannel = "web" | "whatsapp";
 
 export type PegassoConversation = {
   id: string;
@@ -16,6 +17,8 @@ export type PegassoConversation = {
   is_archived: boolean;
   /** Tipo de conversación. weekly_review = generada por el botón de review. */
   kind: PegassoConversationKind;
+  /** Canal de origen: web (default) o whatsapp. */
+  channel: PegassoChannel;
   created_at: string;
   updated_at: string;
 };
@@ -64,6 +67,7 @@ export type PegassoMessage = {
 export type CreateConversationInput = {
   title?: string;
   kind?: PegassoConversationKind;
+  channel?: PegassoChannel;
 };
 
 export type CreateMessageInput = {
@@ -108,6 +112,7 @@ export async function createConversation(
       user_id: userId,
       title: input.title ?? "Conversación con Pegasso",
       kind: input.kind ?? "standard",
+      channel: input.channel ?? "web",
     } as never)
     .select()
     .single();

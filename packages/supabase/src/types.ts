@@ -16,6 +16,10 @@ export type Profile = {
   default_currency: string;
   /** True si el user completó el tour de bienvenida. */
   onboarding_completed: boolean;
+  /** Número de WhatsApp en formato E.164 (ej. +525512345678). */
+  phone_e164: string | null;
+  /** True si el user activó la integración con WhatsApp. */
+  whatsapp_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
