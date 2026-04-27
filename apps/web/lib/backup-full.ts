@@ -48,6 +48,7 @@ const TABLES_BY_USER_ID = [
   "mindset_vision_items",
   "mindset_mood_logs",
   "mindset_future_letters",
+  "mindset_gratitude",
   "reading_books",
   "reading_sessions",
   "reading_goals",

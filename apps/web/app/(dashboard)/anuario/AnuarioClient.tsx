@@ -309,7 +309,8 @@ function MindsetSection({ r }: { r: AnnualReport }) {
     mindset.meditationSessions > 0 ||
     mindset.visionAchieved > 0 ||
     mindset.pinnedInsights > 0 ||
-    mindset.futureLetters > 0;
+    mindset.futureLetters > 0 ||
+    mindset.gratitudeDays > 0;
   if (!hasData)
     return (
       <EmptySection
@@ -332,6 +333,15 @@ function MindsetSection({ r }: { r: AnnualReport }) {
           sub={
             mindset.moodAvg !== null
               ? `prom. ${mindset.moodAvg}/5`
+              : undefined
+          }
+        />
+        <BigStat
+          value={mindset.gratitudeDays.toString()}
+          label="Días con gratitud"
+          sub={
+            mindset.gratitudeEntries > 0
+              ? `${mindset.gratitudeEntries} cosas`
               : undefined
           }
         />

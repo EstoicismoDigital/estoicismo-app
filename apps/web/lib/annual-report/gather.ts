@@ -46,6 +46,8 @@ export type AnnualReport = {
     visionAchieved: number;
     pinnedInsights: number;
     futureLetters: number;
+    gratitudeDays: number;
+    gratitudeEntries: number;
   };
   business: {
     salesCount: number;
@@ -108,6 +110,8 @@ export async function gatherAnnualReport(
       visionAchieved: 0,
       pinnedInsights: 0,
       futureLetters: 0,
+      gratitudeDays: 0,
+      gratitudeEntries: 0,
     },
     business: {
       salesCount: 0,
@@ -360,6 +364,20 @@ export async function gatherAnnualReport(
       .gte("created_at", startTs)
       .lte("created_at", endTs);
     result.mindset.futureLetters = letters ?? 0;
+
+    const { data: gratitudeRows } = await sb
+      .from("mindset_gratitude")
+      .select("occurred_on")
+      .eq("user_id", userId)
+      .gte("occurred_on", start)
+      .lte("occurred_on", end);
+    if (gratitudeRows) {
+      const rows = gratitudeRows as { occurred_on: string }[];
+      result.mindset.gratitudeEntries = rows.length;
+      result.mindset.gratitudeDays = new Set(
+        rows.map((r) => r.occurred_on)
+      ).size;
+    }
   } catch {
     /* ignore */
   }

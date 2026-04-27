@@ -536,3 +536,94 @@ export async function deleteFutureLetter(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("mindset_future_letters").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// GRATITUDE — 3 cosas por día
+// ─────────────────────────────────────────────────────────────
+
+export type MindsetGratitude = {
+  id: string;
+  user_id: string;
+  occurred_on: string;
+  slot: number; // 1-3
+  content: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UpsertGratitudeInput = {
+  occurred_on: string;
+  slot: number;
+  content: string;
+};
+
+export async function fetchGratitudeForDate(
+  sb: SB,
+  userId: string,
+  date: string
+): Promise<MindsetGratitude[]> {
+  const { data, error } = await sb
+    .from("mindset_gratitude")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("occurred_on", date)
+    .order("slot", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as MindsetGratitude[];
+}
+
+export async function fetchGratitudeRange(
+  sb: SB,
+  userId: string,
+  opts: { from?: string; to?: string; limit?: number } = {}
+): Promise<MindsetGratitude[]> {
+  let q = sb
+    .from("mindset_gratitude")
+    .select("*")
+    .eq("user_id", userId)
+    .order("occurred_on", { ascending: false })
+    .order("slot", { ascending: true });
+  if (opts.from) q = q.gte("occurred_on", opts.from);
+  if (opts.to) q = q.lte("occurred_on", opts.to);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as MindsetGratitude[];
+}
+
+export async function upsertGratitudeSlot(
+  sb: SB,
+  userId: string,
+  input: UpsertGratitudeInput
+): Promise<MindsetGratitude> {
+  const { data, error } = await sb
+    .from("mindset_gratitude")
+    .upsert(
+      {
+        user_id: userId,
+        occurred_on: input.occurred_on,
+        slot: input.slot,
+        content: input.content,
+      } as never,
+      { onConflict: "user_id,occurred_on,slot" }
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetGratitude;
+}
+
+export async function deleteGratitudeSlot(
+  sb: SB,
+  userId: string,
+  date: string,
+  slot: number
+): Promise<void> {
+  const { error } = await sb
+    .from("mindset_gratitude")
+    .delete()
+    .eq("user_id", userId)
+    .eq("occurred_on", date)
+    .eq("slot", slot);
+  if (error) throw error;
+}

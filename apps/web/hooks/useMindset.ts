@@ -390,3 +390,87 @@ export function useDeleteFutureLetter() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mindset", "future-letters"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// GRATITUDE — 3 things per day
+// ─────────────────────────────────────────────────────────────
+
+export function useGratitudeForDate(date: string): UseQueryResult<
+  import("@estoicismo/supabase").MindsetGratitude[]
+> {
+  return useQuery({
+    queryKey: ["mindset", "gratitude", "date", date],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchGratitudeForDate } = await import("@estoicismo/supabase");
+      return fetchGratitudeForDate(sb, await getUserId(), date);
+    },
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useGratitudeRange(opts: {
+  from?: string;
+  to?: string;
+  limit?: number;
+} = {}): UseQueryResult<import("@estoicismo/supabase").MindsetGratitude[]> {
+  return useQuery({
+    queryKey: ["mindset", "gratitude", "range", opts.from ?? null, opts.to ?? null, opts.limit ?? null],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchGratitudeRange } = await import("@estoicismo/supabase");
+      return fetchGratitudeRange(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useUpsertGratitudeSlot() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").UpsertGratitudeInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { upsertGratitudeSlot } = await import("@estoicismo/supabase");
+      return upsertGratitudeSlot(sb, await getUserId(), input);
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["mindset", "gratitude", "date", variables.occurred_on],
+      });
+      qc.invalidateQueries({
+        queryKey: ["mindset", "gratitude", "range"],
+      });
+    },
+    onError: (err) =>
+      toast.error("No se pudo guardar.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useDeleteGratitudeSlot() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      date,
+      slot,
+    }: {
+      date: string;
+      slot: number;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteGratitudeSlot } = await import("@estoicismo/supabase");
+      await deleteGratitudeSlot(sb, await getUserId(), date, slot);
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["mindset", "gratitude", "date", variables.date],
+      });
+      qc.invalidateQueries({
+        queryKey: ["mindset", "gratitude", "range"],
+      });
+    },
+  });
+}

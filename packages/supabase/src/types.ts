@@ -194,6 +194,11 @@ export type Database = {
         Insert: Omit<import("./mindset").MindsetFutureLetter, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./mindset").MindsetFutureLetter>;
       };
+      mindset_gratitude: {
+        Row: import("./mindset").MindsetGratitude;
+        Insert: Omit<import("./mindset").MindsetGratitude, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./mindset").MindsetGratitude>;
+      };
       fitness_user_profile: {
         Row: FitnessUserProfile;
         Insert: Omit<FitnessUserProfile, "created_at" | "updated_at">;

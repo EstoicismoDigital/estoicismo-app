@@ -29,6 +29,7 @@ import { MINDSET_QUOTES } from "../../../lib/quotes";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { StoicExerciseCard } from "../../../components/mindset/StoicExerciseCard";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
+import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
 import { VisionBoardSection } from "../../../components/mindset/VisionBoardSection";
 import { FutureLetterSection } from "../../../components/mindset/FutureLetterSection";
 
@@ -186,6 +187,11 @@ export function ReflexionesClient() {
       {/* Mood tracker — registro emocional del día */}
       <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
         <MoodTrackerCard />
+      </section>
+
+      {/* Gratitud diaria · 3 cosas */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+        <GratitudeCard />
       </section>
 
       {/* Check-in de hoy */}
