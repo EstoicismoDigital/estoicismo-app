@@ -1,13 +1,17 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Dumbbell, Plus, Loader2, Check } from "lucide-react";
+import { Dumbbell, Plus, Loader2, Check, Timer } from "lucide-react";
 import { clsx } from "clsx";
-import type { FitnessExercise } from "@estoicismo/supabase";
+import type { FitnessExercise, FitnessWorkoutSet } from "@estoicismo/supabase";
 import {
   useCreateWorkout,
   useCreateWorkoutSet,
   useWorkouts,
+  useAllUserSets,
 } from "../../hooks/useFitness";
+import { estimate1RM } from "../../lib/fitness/levels";
+import { RestTimer } from "./RestTimer";
+import { PRCelebration } from "./PRCelebration";
 
 /**
  * QuickLogCard — registrar UNA serie de UN ejercicio en 3 toques.
@@ -50,6 +54,16 @@ export function QuickLogCard(props: {
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [justSaved, setJustSaved] = useState(false);
+  const [restTimerOpen, setRestTimerOpen] = useState(false);
+  const [prData, setPrData] = useState<{
+    exerciseName: string;
+    newRecord: number;
+    unit: "kg" | "reps";
+    previousRecord?: number;
+  } | null>(null);
+
+  // Sets pasados del usuario para detectar PR.
+  const { data: allUserSets = [] } = useAllUserSets({ limit: 500 });
 
   // Si cambia el slug por defecto (ej. después de cargar exercises),
   // sincronizar.
@@ -68,7 +82,14 @@ export function QuickLogCard(props: {
     if (!isRepsOnly && (!w || !r || w < 0 || r <= 0)) return;
 
     try {
-      // 1. Buscar workout de hoy o crear uno.
+      // 1. Detectar PR ANTES de crear el set (con sets pasados).
+      const previousBest = computePreviousBest(allUserSets, exercise.id, exercise.measurement);
+      const newValue = exercise.measurement === "reps_only"
+        ? (r ?? 0)
+        : (w && r ? estimate1RM(w, r) : 0);
+      const isNewPR = newValue > previousBest && newValue > 0;
+
+      // 2. Buscar workout de hoy o crear uno.
       let workoutId = todaysWorkouts[0]?.id;
       if (!workoutId) {
         const created = await createWorkoutM.mutateAsync({
@@ -78,18 +99,11 @@ export function QuickLogCard(props: {
         workoutId = created.id;
       }
 
-      // 2. Calcular set_index (= sets actuales del workout para
-      //    este ejercicio + 1). Aproximación: para no fetchear los
-      //    sets del workout, asumimos que es el siguiente número
-      //    secuencial — el server lo ordena por set_index igual.
-      //    Si fallara por unique constraint, el user re-intenta.
-      const setIndex = 1; // server-side no hay unique aquí, set_index es manual.
-
       // 3. Crear el set.
       await createSetM.mutateAsync({
         workout_id: workoutId,
         exercise_id: exercise.id,
-        set_index: setIndex,
+        set_index: 1,
         weight_kg: isRepsOnly ? null : w,
         reps: r,
         duration_seconds: null,
@@ -102,6 +116,22 @@ export function QuickLogCard(props: {
       setReps("");
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 1800);
+
+      // 5. PR celebration si aplica.
+      if (isNewPR) {
+        setPrData({
+          exerciseName: exercise.name,
+          newRecord: Math.round(newValue * 10) / 10,
+          unit: exercise.measurement === "reps_only" ? "reps" : "kg",
+          previousRecord: previousBest > 0 ? Math.round(previousBest * 10) / 10 : undefined,
+        });
+      }
+
+      // 6. Auto-abrir rest timer (sólo si no fue PR — el PR overlay
+      //    cubre toda la pantalla y interrumpe).
+      if (!isNewPR) {
+        setRestTimerOpen(true);
+      }
     } catch {
       /* hooks toastean */
     }
@@ -202,6 +232,47 @@ export function QuickLogCard(props: {
       <p className="text-[10px] text-center text-muted italic">
         Cada serie cuenta. Para una sesión completa, abre &quot;Nueva sesión&quot; abajo.
       </p>
+
+      {restTimerOpen && (
+        <RestTimer onClose={() => setRestTimerOpen(false)} />
+      )}
+      <PRCelebration
+        open={prData !== null}
+        exerciseName={prData?.exerciseName ?? ""}
+        newRecord={prData?.newRecord ?? 0}
+        unit={prData?.unit ?? "kg"}
+        previousRecord={prData?.previousRecord}
+        onClose={() => {
+          setPrData(null);
+          // Después del PR, abrir el rest timer.
+          setRestTimerOpen(true);
+        }}
+      />
     </section>
   );
+}
+
+/**
+ * Calcula el mejor 1RM (o mejores reps para reps_only) dentro de un
+ * conjunto de sets, filtrando por exercise_id. Sirve para detectar
+ * PRs ANTES de insertar un nuevo set.
+ */
+function computePreviousBest(
+  sets: FitnessWorkoutSet[],
+  exerciseId: string,
+  measurement: "weight_reps" | "reps_only" | "duration"
+): number {
+  let best = 0;
+  for (const s of sets) {
+    if (s.exercise_id !== exerciseId) continue;
+    if (measurement === "weight_reps") {
+      if (s.weight_kg && s.reps) {
+        const rm = estimate1RM(s.weight_kg, s.reps);
+        if (Number.isFinite(rm) && rm > best) best = rm;
+      }
+    } else if (measurement === "reps_only") {
+      if (s.reps && s.reps > best) best = s.reps;
+    }
+  }
+  return best;
 }
