@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchConversations,
@@ -108,7 +109,7 @@ export function useCreateMessage() {
       qc.invalidateQueries({ queryKey: ["pegasso", "conversations"] });
     },
     onError: (err) => toast.error("No se pudo guardar el mensaje.", {
-      description: err instanceof Error ? err.message : undefined,
+      description: extractErrorMessage(err),
     }),
   });
 }

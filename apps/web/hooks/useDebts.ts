@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchDebts,
@@ -54,7 +55,7 @@ export function useCreateDebt() {
     },
     onError: (err) => {
       toast.error("No se pudo crear la deuda.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -72,7 +73,7 @@ export function useUpdateDebt() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar la deuda.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -125,7 +126,7 @@ export function useCreateDebtPayment() {
     },
     onError: (err) => {
       toast.error("No se pudo registrar el pago.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

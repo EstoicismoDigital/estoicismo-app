@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchBusinessProfile,
@@ -81,7 +82,7 @@ export function useUpsertBusinessProfile() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar tu perfil de negocio.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -113,7 +114,7 @@ export function useCreateProduct() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "products"] }),
     onError: (err) => toast.error("No se pudo crear el producto.", {
-      description: err instanceof Error ? err.message : undefined,
+      description: extractErrorMessage(err),
     }),
   });
 }
@@ -166,7 +167,7 @@ export function useCreateClient() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "clients"] }),
     onError: (err) => toast.error("No se pudo crear el cliente.", {
-      description: err instanceof Error ? err.message : undefined,
+      description: extractErrorMessage(err),
     }),
   });
 }
@@ -317,7 +318,7 @@ export function useCreateSale() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "sales"] }),
     onError: (err) => toast.error("No se pudo registrar la venta.", {
-      description: err instanceof Error ? err.message : undefined,
+      description: extractErrorMessage(err),
     }),
   });
 }

@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchGoals,
@@ -54,7 +55,7 @@ export function useCreateSavingsGoal() {
     },
     onError: (err) => {
       toast.error("No se pudo crear la meta.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -114,7 +115,7 @@ export function useCreateContribution() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar el abono.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

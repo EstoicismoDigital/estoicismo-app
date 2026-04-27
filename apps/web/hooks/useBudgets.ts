@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchBudgets,
@@ -47,7 +48,7 @@ export function useUpsertBudget() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar el presupuesto.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

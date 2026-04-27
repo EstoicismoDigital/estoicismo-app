@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchBooks,
@@ -70,7 +71,7 @@ export function useCreateBook() {
     },
     onError: (err) => {
       toast.error("No se pudo crear el libro.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -88,7 +89,7 @@ export function useUpdateBook() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar el libro.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -137,7 +138,7 @@ export function useCreateReadingSession() {
     },
     onError: (err) => {
       toast.error("No se pudo registrar la sesión.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

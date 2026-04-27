@@ -153,18 +153,43 @@ export function FitnessOnboarding(props: {
         onboarded_at: new Date().toISOString(),
       });
     } catch (err) {
-      // Mostramos el error en pantalla — más claro que un toast que
-      // desaparece. Si el error menciona "column" o "does not exist",
-      // damos pista de la migración.
-      const raw = err instanceof Error ? err.message : String(err);
+      // Supabase tira PostgrestError (no Error real) — extraemos
+      // message + details + hint + code para que el banner muestre
+      // algo útil en vez de "[object Object]".
+      const raw = extractErrorMessage(err);
       const looksLikeMissingColumn =
-        /column.*does not exist|schema cache|onboarded_at|height_cm|weekly_target_days/i.test(raw);
+        /column.*does not exist|schema cache|onboarded_at|height_cm|weekly_target_days|preferred_exercises|experience_level|goal_text|target_weight_kg/i.test(
+          raw
+        );
       setSaveError(
         looksLikeMissingColumn
-          ? `Tu base de datos no tiene las columnas nuevas. Aplica la migración 20260427200000_fitness_profile_extended.sql en Supabase. Detalle: ${raw}`
+          ? `Tu base de datos no tiene las columnas nuevas. Aplica la migración 20260427200000_fitness_profile_extended.sql en Supabase.\n\nDetalle: ${raw}`
           : raw
       );
     }
+  }
+
+  /** Extrae mensaje legible de cualquier shape de error (Error, PostgrestError, plain object). */
+  function extractErrorMessage(err: unknown): string {
+    if (err instanceof Error) return err.message;
+    if (typeof err === "string") return err;
+    if (typeof err === "object" && err !== null) {
+      const obj = err as {
+        message?: string;
+        details?: string;
+        hint?: string;
+        code?: string;
+      };
+      const parts = [obj.message, obj.details, obj.hint].filter(Boolean);
+      const code = obj.code ? ` (${obj.code})` : "";
+      if (parts.length > 0) return parts.join(" — ") + code;
+      try {
+        return JSON.stringify(err);
+      } catch {
+        return "Error desconocido";
+      }
+    }
+    return String(err);
   }
 
   // Validaciones por paso
@@ -252,14 +277,16 @@ export function FitnessOnboarding(props: {
         {saveError && (
           <div className="rounded-card border border-danger/40 bg-danger/5 p-3 flex gap-2 items-start">
             <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
-            <div className="text-[12px] text-ink flex-1 break-words">
+            <div className="text-[12px] text-ink flex-1 break-words min-w-0">
               <p className="font-semibold mb-1">No se pudo guardar tu perfil.</p>
-              <p className="text-muted leading-snug">{saveError}</p>
+              <p className="text-muted leading-snug whitespace-pre-wrap font-mono text-[11px]">
+                {saveError}
+              </p>
             </div>
             <button
               type="button"
               onClick={() => setSaveError(null)}
-              className="text-muted hover:text-ink text-xs"
+              className="text-muted hover:text-ink text-xs shrink-0"
               aria-label="Cerrar error"
             >
               ✕

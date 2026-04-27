@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchJournalEntries,
@@ -61,7 +62,7 @@ export function useCreateJournalEntry() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["journal"] }),
     onError: (err) =>
       toast.error("No se pudo guardar la entrada.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       }),
   });
 }

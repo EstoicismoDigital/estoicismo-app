@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchMPD,
@@ -73,7 +74,7 @@ export function useUpsertMPD() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar tu MPD.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -131,7 +132,7 @@ export function useUpsertMPDLog() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar tu registro de hoy.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -164,7 +165,7 @@ export function useCreateMeditation() {
     },
     onError: (err) => {
       toast.error("No se pudo registrar la sesión.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -221,7 +222,7 @@ export function useToggleFrequencyFavorite() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar favorito.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

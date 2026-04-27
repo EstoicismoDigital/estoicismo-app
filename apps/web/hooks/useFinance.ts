@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchFinanceCategories,
@@ -91,7 +92,7 @@ export function useCreateCategory() {
     },
     onError: (err) => {
       toast.error("No se pudo crear la categoría.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -109,7 +110,7 @@ export function useDeleteCategory() {
     },
     onError: (err) => {
       toast.error("No se pudo borrar la categoría.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -158,7 +159,7 @@ export function useCreateTransaction() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar el movimiento.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -182,7 +183,7 @@ export function useUpdateTransaction() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar el movimiento.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -200,7 +201,7 @@ export function useDeleteTransaction() {
     },
     onError: (err) => {
       toast.error("No se pudo borrar el movimiento.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -233,7 +234,7 @@ export function useCreateCreditCard() {
     },
     onError: (err) => {
       toast.error("No se pudo crear la tarjeta.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -257,7 +258,7 @@ export function useUpdateCreditCard() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar la tarjeta.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -275,7 +276,7 @@ export function useDeleteCreditCard() {
     },
     onError: (err) => {
       toast.error("No se pudo archivar la tarjeta.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -308,7 +309,7 @@ export function useCreateDebt() {
     },
     onError: (err) => {
       toast.error("No se pudo crear la deuda.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -332,7 +333,7 @@ export function useUpdateDebt() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar la deuda.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -350,7 +351,7 @@ export function useDeleteDebt() {
     },
     onError: (err) => {
       toast.error("No se pudo borrar la deuda.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });

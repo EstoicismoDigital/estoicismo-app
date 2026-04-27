@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchFitnessProfile,
@@ -73,7 +74,7 @@ export function useUpsertFitnessProfile() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar tu perfil de fitness.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -120,7 +121,7 @@ export function useUpsertFitnessMetric() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar la métrica.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -153,7 +154,7 @@ export function useCreateExercise() {
     },
     onError: (err) => {
       toast.error("No se pudo crear el ejercicio.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -188,7 +189,7 @@ export function useCreateWorkout() {
     },
     onError: (err) => {
       toast.error("No se pudo crear el workout.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -206,7 +207,7 @@ export function useUpdateWorkout() {
     },
     onError: (err) => {
       toast.error("No se pudo actualizar el workout.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
@@ -283,7 +284,7 @@ export function useCreateWorkoutSet() {
     },
     onError: (err) => {
       toast.error("No se pudo guardar la serie.", {
-        description: err instanceof Error ? err.message : undefined,
+        description: extractErrorMessage(err),
       });
     },
   });
