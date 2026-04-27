@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -57,6 +57,11 @@ export function TodayClient() {
   const { data: rawStatus, isLoading: statusLoading } = useTodayRitual();
   const { data: streak = 0 } = useRitualStreak();
   const { isSkipped, toggle: toggleSkip } = useTodaySkips();
+  // Mounted gate: el saludo y la fecha dependen de new Date() y del
+  // profile (client-side), así que evitamos render durante SSR para
+  // que no haya hydration mismatch al hidratar con datos reales.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Mezclar skips locales con el status del DB: skipped sections cuentan
   // como done.
@@ -125,11 +130,11 @@ export function TodayClient() {
       {/* Hero */}
       <section className="bg-bg-deep text-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
-            {greetingByHour()} · {prettyDate()}
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1 min-h-[14px]">
+            {mounted ? `${greetingByHour()} · ${prettyDate()}` : "·"}
           </p>
           <h1 className="font-display italic text-3xl sm:text-4xl leading-tight mb-4">
-            {profile?.username
+            {mounted && profile?.username
               ? `${profile.username}, tu día empieza aquí.`
               : "Tu día empieza aquí."}
           </h1>

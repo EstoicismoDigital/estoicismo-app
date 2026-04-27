@@ -147,6 +147,32 @@ function isActiveHref(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+/**
+ * Match estricto para sub-nav: solo activa si el pathname coincide
+ * EXACTO con el href del item. Si no, el item index del módulo
+ * (ej. "/reflexiones") siempre se marcaba activo en sub-rutas
+ * (ej. "/reflexiones/aura"), porque startsWith aplicaba.
+ */
+function isActiveSubnavHref(
+  pathname: string,
+  href: string,
+  allHrefs: string[]
+): boolean {
+  if (href === "/") return pathname === "/";
+  if (pathname === href) return true;
+  // Si hay otro href más específico que matchea el pathname,
+  // este item no debe estar activo. Ej: pathname="/finanzas/cuentas"
+  // y href="/finanzas" → existe "/finanzas/cuentas" más específico,
+  // así que "Resumen" (href="/finanzas") NO se marca.
+  if (pathname.startsWith(href + "/")) {
+    const moreSpecific = allHrefs.some(
+      (h) => h !== href && h.startsWith(href + "/") && pathname.startsWith(h)
+    );
+    return !moreSpecific;
+  }
+  return false;
+}
+
 function PlanPill({ compact = false }: { compact?: boolean }) {
   const { data: profile } = useProfile();
   const isPremium = profile?.plan === "premium";
@@ -403,8 +429,12 @@ function DesktopMasthead({
                   : showFinanzasSub
                     ? FINANZAS_SUBNAV
                     : MENTALIDAD_SUBNAV
-              ).map((item) => {
-                const active = isActiveHref(pathname, item.href);
+              ).map((item, _, arr) => {
+                const active = isActiveSubnavHref(
+                  pathname,
+                  item.href,
+                  arr.map((i) => i.href)
+                );
                 const subKey = subPrefetchForHref(item.href);
                 const onPrefetch = subKey
                   ? () => prefetchSub(subKey)
@@ -520,8 +550,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 : showFinanzasSub
                   ? FINANZAS_SUBNAV
                   : MENTALIDAD_SUBNAV
-            ).map((item) => {
-              const active = isActiveHref(pathname, item.href);
+            ).map((item, _, arr) => {
+              const active = isActiveSubnavHref(
+                pathname,
+                item.href,
+                arr.map((i) => i.href)
+              );
               const subKey = subPrefetchForHref(item.href);
               const onPrefetch = subKey
                 ? () => prefetchSub(subKey)
