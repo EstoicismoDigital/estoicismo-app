@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Lora, Montserrat } from "next/font/google";
 import { Toaster } from "sonner";
 import { QueryProvider } from "../components/providers/QueryProvider";
+import { ExtensionErrorFilter } from "../components/providers/ExtensionErrorFilter";
 import "./globals.css";
 
 /**
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="bg-bg text-ink font-body antialiased">
+        <ExtensionErrorFilter />
         <QueryProvider>
           {children}
           <Toaster position="top-center" richColors />
