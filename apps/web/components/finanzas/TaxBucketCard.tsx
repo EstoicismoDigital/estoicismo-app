@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { Receipt } from "lucide-react";
 import { useTransactions, useFinanceCategories } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { formatMoney } from "../../lib/finance";
 
 /**
@@ -19,12 +20,13 @@ export function TaxBucketCard() {
 
   const { data: txs = [] } = useTransactions(range);
   const { data: cats = [] } = useFinanceCategories();
+  const defaultCurrency = useDefaultCurrency();
 
   const stats = useMemo(() => {
     const deductible = txs.filter((t) => t.tax_deductible);
     if (deductible.length === 0) return null;
     const total = deductible.reduce((acc, t) => acc + Number(t.amount), 0);
-    const currency = deductible[0]?.currency ?? "MXN";
+    const currency = deductible[0]?.currency ?? defaultCurrency;
     // Desglose por categoría
     const byCat = new Map<string | null, { name: string; color: string; total: number; count: number }>();
     for (const t of deductible) {
@@ -47,7 +49,7 @@ export function TaxBucketCard() {
       .sort((a, b) => b.total - a.total)
       .slice(0, 5);
     return { count: deductible.length, total, currency, breakdown };
-  }, [txs, cats]);
+  }, [txs, cats, defaultCurrency]);
 
   if (!stats) return null;
 

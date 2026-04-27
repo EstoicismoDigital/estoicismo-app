@@ -11,6 +11,7 @@ import {
 } from "../../hooks/useFinance";
 import { useDebts } from "../../hooks/useDebts";
 import { useSavingsGoals, useSavingsContributions } from "../../hooks/useSavings";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 
 /**
  * Net Worth Card — card único en el dashboard de finanzas que muestra:
@@ -26,6 +27,7 @@ export function NetWorthCard() {
   const { data: debts = [] } = useDebts({ include_paid: false });
   const { data: cards = [] } = useCreditCards();
   const { data: investments = [] } = useInvestments();
+  const defaultCurrency = useDefaultCurrency();
 
   const snap = useMemo(
     () =>
@@ -41,7 +43,7 @@ export function NetWorthCard() {
   );
 
   const positive = snap.netWorth >= 0;
-  const currency = [...snap.currencies][0] ?? "MXN";
+  const currency = [...snap.currencies][0] ?? defaultCurrency;
   const mixedCurrencies = snap.currencies.size > 1;
 
   // Si no hay nada que mostrar, no renderizamos.

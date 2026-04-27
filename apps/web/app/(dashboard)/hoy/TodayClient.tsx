@@ -13,6 +13,7 @@ import { useProfile } from "../../../hooks/useProfile";
 import { useTodayRitual, useRitualStreak } from "../../../hooks/useTodayRitual";
 import { useTodaySkips } from "../../../hooks/useTodaySkips";
 import { useTransactions } from "../../../hooks/useFinance";
+import { useDefaultCurrency } from "../../../hooks/useDefaultCurrency";
 import { useExercises, useFitnessProfile } from "../../../hooks/useFitness";
 import { getTodayStr } from "../../../lib/dateUtils";
 import { formatMoney } from "../../../lib/finance";
@@ -88,7 +89,8 @@ export function TodayClient() {
   const expenseToday = txToday
     .filter((t) => t.kind === "expense")
     .reduce((a, t) => a + Number(t.amount), 0);
-  const currency = txToday[0]?.currency ?? "MXN";
+  const defaultCurrency = useDefaultCurrency();
+  const currency = txToday[0]?.currency ?? defaultCurrency;
 
   const exercise = useMemo(() => getStoicExerciseOfDay(), []);
 

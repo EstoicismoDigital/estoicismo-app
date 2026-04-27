@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { TrendingUp, TrendingDown, AlertCircle, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import { useTransactions } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import {
   computeSavingsRate,
   ratingLabel,
@@ -31,7 +32,8 @@ export function SavingsRateCard() {
 
   // Currency: tomar la primera de las tx (asume single currency mes
   // a mes — para multi-currency, el NetWorthCard ya muestra warning).
-  const currency = transactions.find((t) => t.currency)?.currency ?? "MXN";
+  const defaultCurrency = useDefaultCurrency();
+  const currency = transactions.find((t) => t.currency)?.currency ?? defaultCurrency;
 
   const pct = Math.round(snap.ratio * 100);
 

@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
 import type { SavingsGoal, CreateGoalInput } from "@estoicismo/supabase";
+import { ImageUploadField } from "../ui/ImageUploadField";
 
 const PALETTE = [
   "#22774E",
@@ -118,18 +119,16 @@ export function SavingsGoalModal(props: {
               className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
-              Imagen (URL)
-            </label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Una foto del sueño que persigues"
-              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
-            />
-          </div>
+          <ImageUploadField
+            value={imageUrl}
+            onChange={setImageUrl}
+            bucket="savings-goals"
+            purpose="goal"
+            label="Imagen motivacional"
+            aspectRatio="landscape"
+            size="md"
+            helper="Una foto del sueño que persigues. La verás cada vez que abras esta meta."
+          />
           <div>
             <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-2">
               Color

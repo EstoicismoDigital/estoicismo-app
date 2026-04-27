@@ -21,6 +21,7 @@ import type {
   MindsetVisionItem,
   VisionItemKind,
 } from "@estoicismo/supabase";
+import { ImageUploadField } from "../ui/ImageUploadField";
 
 /**
  * Vision Board · "manifesta-lo-que-quieres".
@@ -369,31 +370,18 @@ function VisionItemModal({
             </div>
           </div>
 
-          {/* Image URL */}
+          {/* Image upload */}
           {kind === "image" && (
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-2">
-                URL de imagen
-              </p>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://…"
-                className="w-full rounded-lg border border-line bg-bg-alt px-3 py-2 font-body text-sm text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-              {imageUrl.trim() && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imageUrl}
-                  alt="Preview"
-                  className="mt-3 w-full max-h-48 object-cover rounded-lg border border-line"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              )}
-            </div>
+            <ImageUploadField
+              value={imageUrl}
+              onChange={setImageUrl}
+              bucket="vision-board"
+              purpose="vision"
+              label="Imagen"
+              aspectRatio="square"
+              size="lg"
+              helper="Una foto que represente esa meta. JPG, PNG, HEIC, WebP."
+            />
           )}
 
           {/* Caption / text */}

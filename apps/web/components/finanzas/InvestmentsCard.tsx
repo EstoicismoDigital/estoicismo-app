@@ -16,6 +16,7 @@ import {
   useUpdateInvestment,
   useDeleteInvestment,
 } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { formatMoney } from "../../lib/finance";
 import type {
   FinanceInvestment,
@@ -56,7 +57,8 @@ export function InvestmentsCard() {
       .reduce((acc, i) => acc + Number(i.current_value), 0);
   }, [investments]);
 
-  const currency = investments[0]?.currency ?? "MXN";
+  const defaultCurrency = useDefaultCurrency();
+  const currency = investments[0]?.currency ?? defaultCurrency;
 
   if (investments.length === 0) {
     return (

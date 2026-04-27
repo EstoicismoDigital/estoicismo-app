@@ -7,6 +7,7 @@ import {
   useAccounts,
 } from "../../hooks/useFinance";
 import { useDebts } from "../../hooks/useDebts";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { computeFire, fireStatusLabel } from "../../lib/finance/fire";
 import { formatMoney } from "../../lib/finance";
 
@@ -37,6 +38,7 @@ export function FireCalculatorCard() {
   const { data: txs = [], isLoading: lt } = useTransactions(range);
   const { data: accounts = [] } = useAccounts({});
   const { data: debts = [] } = useDebts({ include_paid: false });
+  const defaultCurrency = useDefaultCurrency();
 
   const snapshot = useMemo(() => {
     try {
@@ -63,7 +65,7 @@ export function FireCalculatorCard() {
       const currency =
         accounts.find((a) => a.include_in_net_worth)?.currency ??
         txs[0]?.currency ??
-        "MXN";
+        defaultCurrency;
 
       return computeFire({
         totalExpense90d,
@@ -76,7 +78,7 @@ export function FireCalculatorCard() {
       console.error("FIRE calc failed:", err);
       return null;
     }
-  }, [txs, accounts, debts]);
+  }, [txs, accounts, debts, defaultCurrency]);
 
   if (lt) {
     return (

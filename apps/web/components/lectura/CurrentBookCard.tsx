@@ -83,7 +83,7 @@ export function CurrentBookCard(props: {
             onClick={onEdit}
             className="text-[11px] font-mono uppercase tracking-widest text-muted hover:text-ink inline-flex items-center gap-1"
           >
-            <Pencil size={11} /> {book.my_summary ? "Editar / resumen" : "Editar"}
+            <Pencil size={11} /> {book.my_summary ? "Editar libro" : "Editar"}
           </button>
           <span className="text-muted">·</span>
           <button
@@ -96,13 +96,13 @@ export function CurrentBookCard(props: {
         </div>
       </div>
 
-      {/* Mi resumen del libro — sólo si está lleno. Bloque ancho debajo. */}
+      {/* Lo más importante que aprendí — sólo si está lleno. Bloque ancho debajo. */}
       {book.my_summary && (
         <div className="basis-full mt-2 pt-3 border-t border-line/40">
           <p className="text-[10px] font-mono uppercase tracking-widest text-accent mb-1">
-            Mi resumen
+            ✦ Lo más importante que aprendí
           </p>
-          <p className="text-[13px] text-ink/90 leading-relaxed whitespace-pre-wrap italic">
+          <p className="text-[13px] text-ink/90 leading-relaxed whitespace-pre-wrap">
             {book.my_summary}
           </p>
         </div>
@@ -155,8 +155,8 @@ export function BookListItem(props: {
           </p>
         )}
         {book.my_summary && (
-          <p className="text-[10px] text-muted italic mt-0.5 line-clamp-1">
-            "{book.my_summary}"
+          <p className="text-[10px] text-muted mt-0.5 line-clamp-1">
+            <span className="text-accent">✦</span> {book.my_summary}
           </p>
         )}
       </div>

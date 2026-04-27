@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { TrendingUp, TrendingDown, AlertTriangle, Calendar } from "lucide-react";
 import { clsx } from "clsx";
 import { useRecurring, useSubscriptions, useAccounts } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { buildCashFlowProjection } from "../../lib/finance/cash-flow";
 import { formatMoney } from "../../lib/finance";
 
@@ -22,6 +23,7 @@ export function CashFlowProjectionCard() {
     status: ["active", "trial"],
   });
   const { data: accounts = [] } = useAccounts({});
+  const defaultCurrency = useDefaultCurrency();
 
   const projection = useMemo(() => {
     if (recurring.length === 0 && subscriptions.length === 0) return null;
@@ -34,7 +36,7 @@ export function CashFlowProjectionCard() {
         accounts.find((a) => a.include_in_net_worth)?.currency ??
         recurring[0]?.currency ??
         subscriptions[0]?.currency ??
-        "MXN";
+        defaultCurrency;
       return buildCashFlowProjection({
         recurring,
         subscriptions,
@@ -47,7 +49,7 @@ export function CashFlowProjectionCard() {
       console.error("CashFlow projection failed:", err);
       return null;
     }
-  }, [recurring, subscriptions, accounts]);
+  }, [recurring, subscriptions, accounts, defaultCurrency]);
 
   if (!projection) return null;
 

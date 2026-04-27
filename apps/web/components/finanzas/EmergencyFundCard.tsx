@@ -4,6 +4,7 @@ import { Shield, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { clsx } from "clsx";
 import { useAccounts, useTransactions } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { formatMoney } from "../../lib/finance";
 
 /**
@@ -36,6 +37,7 @@ export function EmergencyFundCard() {
 
   const { data: accounts = [], isLoading: la } = useAccounts({});
   const { data: txs = [], isLoading: lt } = useTransactions(range);
+  const defaultCurrency = useDefaultCurrency();
 
   const stats = useMemo(() => {
     try {
@@ -62,7 +64,7 @@ export function EmergencyFundCard() {
       const currency =
         accounts.find((a) => a.include_in_net_worth)?.currency ??
         txs[0]?.currency ??
-        "MXN";
+        defaultCurrency;
 
       return { liquid, avgMonthly, monthsCovered, currency };
     } catch (err) {
@@ -72,10 +74,10 @@ export function EmergencyFundCard() {
         liquid: 0,
         avgMonthly: 0,
         monthsCovered: null,
-        currency: "MXN",
+        currency: defaultCurrency,
       };
     }
-  }, [accounts, txs]);
+  }, [accounts, txs, defaultCurrency]);
 
   if (la || lt) {
     return (
