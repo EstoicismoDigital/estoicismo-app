@@ -12,6 +12,7 @@ import { useProfile } from "../../../hooks/useProfile";
 import { useTodayRitual, useRitualStreak } from "../../../hooks/useTodayRitual";
 import { useTodaySkips } from "../../../hooks/useTodaySkips";
 import { useTransactions } from "../../../hooks/useFinance";
+import { useExercises, useFitnessProfile } from "../../../hooks/useFitness";
 import { getTodayStr } from "../../../lib/dateUtils";
 import { formatMoney } from "../../../lib/finance";
 import { getStoicExerciseOfDay } from "../../../lib/mindset/stoic-exercises";
@@ -26,6 +27,7 @@ import { QuickAddReadingRow } from "../../../components/hoy/QuickAddReadingRow";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
 import { DailyPromptCard } from "../../../components/journal/DailyPromptCard";
+import { QuickLogCard } from "../../../components/fitness/QuickLogCard";
 
 /**
  * /hoy · Ritual matutino.
@@ -72,6 +74,10 @@ export function TodayClient() {
 
   // Transacciones de hoy para mostrar en la sección de plata
   const { data: txToday = [] } = useTransactions({ from: today, to: today });
+
+  // Fitness data — solo se carga si el user tiene fitness profile
+  const { data: fitnessProfile } = useFitnessProfile();
+  const { data: exercises = [] } = useExercises();
   const incomeToday = txToday
     .filter((t) => t.kind === "income")
     .reduce((a, t) => a + Number(t.amount), 0);
@@ -267,26 +273,26 @@ export function TodayClient() {
             step={7}
             emoji="💪"
             title="Cuerpo"
-            caption="Workout, sets, medidas — lo que toque hoy."
+            caption="Una serie aquí mismo. Para más, /habitos/fitness."
             done={status?.sections.find((s) => s.id === "body")?.done}
             skipped={isSkipped("body")}
             onSkipToggle={() => toggleSkip("body")}
             anchor="hoy-body"
           >
-            <Link
-              href="/habitos/fitness"
-              className="flex items-center justify-between rounded-lg border border-line bg-bg p-4 hover:border-line-strong transition-colors"
-            >
-              <div>
-                <p className="font-body text-sm text-ink">
-                  Empieza tu workout
-                </p>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
-                  Quick log · plate calculator · rest timer
-                </p>
-              </div>
-              <ArrowRight size={16} className="text-accent" />
-            </Link>
+            <div className="space-y-2">
+              <QuickLogCard
+                exercises={exercises}
+                preferredExerciseSlugs={
+                  fitnessProfile?.preferred_exercises ?? []
+                }
+              />
+              <Link
+                href="/habitos/fitness"
+                className="block text-center font-mono text-[10px] uppercase tracking-widest text-muted hover:text-ink py-1"
+              >
+                Workout completo, PRs, medidas → /habitos/fitness
+              </Link>
+            </div>
           </HoySection>
         )}
 
