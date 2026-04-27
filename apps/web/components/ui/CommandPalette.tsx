@@ -83,6 +83,16 @@ export function CommandPalette({
     () => [
       // ── Navegación: pilares
       {
+        id: "nav-hoy",
+        title: "Hoy · Ritual matutino",
+        description: "Tu pantalla diaria de inicio",
+        group: "Pilares",
+        kind: "nav",
+        icon: Sparkles,
+        href: "/",
+        keywords: ["today", "ritual", "home"],
+      },
+      {
         id: "nav-habitos",
         title: "Hábitos",
         group: "Pilares",

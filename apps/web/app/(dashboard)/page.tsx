@@ -1,8 +1,10 @@
-import { HabitsDashboard } from "./HabitsDashboard";
+import { TodayClient } from "./hoy/TodayClient";
 
 // Auth guard lives in middleware — see apps/web/middleware.ts.
-// Keeping this page as a thin pass-through means no Supabase client init
-// on navigation, so going /finanzas → / doesn't eat an extra roundtrip.
+// `/` ahora es el ritual del día (`TodayClient`). El dashboard de
+// hábitos vive en `/habitos`. Mantenemos esto como pass-through
+// inline (sin redirect) para evitar un round-trip extra al abrir
+// la app en cada navegación.
 export default function DashboardPage() {
-  return <HabitsDashboard />;
+  return <TodayClient />;
 }

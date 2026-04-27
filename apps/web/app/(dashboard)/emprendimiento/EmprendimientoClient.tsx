@@ -44,6 +44,7 @@ import {
 import { IdeasList } from "../../../components/emprendimiento/IdeasList";
 import { MilestonesSection } from "../../../components/emprendimiento/MilestonesSection";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
+import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 
 // El BrainstormWizard sólo se monta cuando el user está en estado
 // "exploring" — lazy ahorra ~6KB en estado "active". El SaleQuickModal
@@ -84,12 +85,27 @@ export function EmprendimientoClient() {
               ? "Antes de la marca, está la pregunta."
               : "Lo pequeño bien hecho — eso es todo."}
           </h1>
+          <p className="font-body text-white/60 text-sm mt-2 max-w-prose leading-relaxed">
+            Tu negocio liviano. Productos, clientes, ventas, hitos — sin
+            saturarte de tabs.
+          </p>
           <div className="flex items-center gap-3 mt-4">
             <StatusPill
               current={status}
               onChange={(s) => upsertProfile.mutate({ status: s })}
             />
           </div>
+          {(status === "active" || status === "starting") && (
+            <ModuleHeroNav
+              items={[
+                { label: "Productos", href: "/emprendimiento#productos", emoji: "📦" },
+                { label: "Clientes", href: "/emprendimiento#clientes", emoji: "👥" },
+                { label: "Ventas", href: "/emprendimiento#ventas", emoji: "🧾" },
+                { label: "Tareas", href: "/emprendimiento#tareas", emoji: "✓" },
+                { label: "Hitos", href: "/emprendimiento#hitos", emoji: "🏆" },
+              ]}
+            />
+          )}
         </div>
       </section>
 

@@ -34,7 +34,11 @@ type Module = {
 const MODULES: Module[] = [
   {
     key: "habits",
-    label: "Hábitos",
+    // Etiqueta "Hoy" — la home (`/`) es el ritual diario (TodayClient),
+    // que cubre los pilares de hábitos + lectura + fitness + diario.
+    // El módulo internamente sigue siendo "habits" para no romper
+    // data-module accent (amarillo) ya cableado en globals.css.
+    label: "Hoy",
     href: "/",
     matches: [
       "/",
@@ -44,6 +48,7 @@ const MODULES: Module[] = [
       "/notas",
       "/historial",
       "/habitos",
+      "/anuario",
     ],
   },
   {
@@ -69,17 +74,17 @@ const MODULES: Module[] = [
   },
 ];
 
-/** Sub-nav surfaced when the user is inside the Hábitos module. Built
- * out of plain links (no icons) and a single typographic treatment. */
+/** Sub-nav surfaced when the user is inside the Hoy/Hábitos module. */
 const HABITS_SUBNAV: { href: string; label: string }[] = [
   { href: "/", label: "Hoy" },
+  { href: "/habitos", label: "Hábitos" },
   { href: "/habitos/fitness", label: "Fitness" },
   { href: "/habitos/lectura", label: "Lectura" },
   { href: "/calendario", label: "Calendario" },
   { href: "/progreso", label: "Progreso" },
   { href: "/revision", label: "Revisión" },
+  { href: "/anuario", label: "Anuario" },
   { href: "/notas", label: "Notas" },
-  { href: "/historial", label: "Historial" },
 ];
 
 /** Sub-nav surfaced when the user is inside Finanzas. Same chip style

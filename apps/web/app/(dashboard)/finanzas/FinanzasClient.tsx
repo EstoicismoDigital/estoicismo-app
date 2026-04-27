@@ -37,6 +37,7 @@ import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAlertBanner";
 import { NetWorthCard } from "../../../components/finanzas/NetWorthCard";
 import { SavingsRateCard } from "../../../components/finanzas/SavingsRateCard";
+import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
@@ -127,6 +128,17 @@ export function FinanzasClient() {
           <p className="font-body text-white/60 text-sm mt-3 max-w-prose leading-relaxed">
             Registra cada ingreso y gasto con un gesto. Lee el mes completo de un vistazo.
           </p>
+          <ModuleHeroNav
+            items={[
+              { href: "/finanzas/cuentas", label: "Cuentas", emoji: "💳" },
+              { href: "/finanzas/recurrentes", label: "Recurrentes", emoji: "🔁" },
+              { href: "/finanzas/tarjetas", label: "Tarjetas", emoji: "💳" },
+              { href: "/finanzas/ahorro", label: "Ahorro", emoji: "🐖" },
+              { href: "/finanzas/presupuestos", label: "Presupuestos", emoji: "🎯" },
+              { href: "/finanzas/deudas", label: "Deudas", emoji: "⚖️" },
+              { href: "/finanzas/calendario", label: "Calendario", emoji: "📅" },
+            ]}
+          />
         </div>
       </section>
 

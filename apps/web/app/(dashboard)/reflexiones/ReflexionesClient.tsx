@@ -32,6 +32,7 @@ import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
 import { VisionBoardSection } from "../../../components/mindset/VisionBoardSection";
 import { FutureLetterSection } from "../../../components/mindset/FutureLetterSection";
+import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 
 /**
  * Mentalidad · Propósito.
@@ -142,6 +143,14 @@ export function ReflexionesClient() {
               />
             </div>
           )}
+
+          <ModuleHeroNav
+            items={[
+              { href: "/reflexiones/meditacion", label: "Meditar", emoji: "🧘" },
+              { href: "/reflexiones/respira", label: "Respira", emoji: "🌬" },
+              { href: "/reflexiones/aura", label: "Aura", emoji: "📻" },
+            ]}
+          />
         </div>
       </section>
 

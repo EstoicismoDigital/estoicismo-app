@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
-import { Flame, Coins, Brain, Briefcase, Settings } from "lucide-react";
+import { Sun, Coins, Brain, Briefcase, Settings } from "lucide-react";
 import { clsx } from "clsx";
 import { usePrefetchRoute, type PrefetchTarget } from "../../hooks/usePrefetchRoute";
 
 type TabItem = {
   href: string;
   label: string;
-  Icon: typeof Flame;
+  Icon: typeof Sun;
   /** Module for per-tab accent color when active. */
   module?: "habits" | "finanzas" | "reflexiones" | "emprendimiento";
   /** Additional pathnames that should light this tab as active. */
@@ -30,10 +30,17 @@ type TabItem = {
 const TABS: TabItem[] = [
   {
     href: "/",
-    label: "Hábitos",
-    Icon: Flame,
+    label: "Hoy",
+    Icon: Sun,
     module: "habits",
-    matches: ["/calendario", "/progreso", "/revision", "/historial", "/habitos"],
+    matches: [
+      "/calendario",
+      "/progreso",
+      "/revision",
+      "/historial",
+      "/habitos",
+      "/anuario",
+    ],
   },
   { href: "/finanzas", label: "Finanzas", Icon: Coins, module: "finanzas" },
   {
