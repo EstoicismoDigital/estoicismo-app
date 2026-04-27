@@ -682,13 +682,15 @@ finanzas y negocio."
 - 20260428600000_default_currency.sql
 - 20260428700000_tax_deductible.sql
 - 20260428800000_time_tracking.sql
+- 20260428900000_client_pipeline.sql
 
 ### Items adicionales del plan-100 cerrados
 
 - #11 Avatar URL en perfil
 - #22 iCal export
 - #23 Diario PDF export
-- #55 Tax bucket category
+- #55 Tax bucket category (con desglose por categoría)
+- #93 Client pipeline (CRM lite con status enum)
 - #95 Time tracking lite
 - #98 Competidores a vigilar
 - + currency selector global (no estaba en el plan original — pedido
@@ -696,5 +698,5 @@ finanzas y negocio."
 
 ### Total acumulado
 
-**62 ítems del plan-100 cerrados** · 14 migraciones · 8 sesiones ·
+**63 ítems del plan-100 cerrados** · 15 migraciones · 8 sesiones ·
 build clean en cada paso.
