@@ -25,6 +25,7 @@ import { TodayHabitsList } from "../../../components/hoy/TodayHabitsList";
 import { QuickAddTransactionRow } from "../../../components/hoy/QuickAddTransactionRow";
 import { QuickAddSaleRow } from "../../../components/hoy/QuickAddSaleRow";
 import { QuickAddReadingRow } from "../../../components/hoy/QuickAddReadingRow";
+import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
 import { DailyPromptCard } from "../../../components/journal/DailyPromptCard";
@@ -207,6 +208,7 @@ export function TodayClient() {
           hint="Tip: Enter para guardar y seguir. Más opciones en /finanzas."
         >
           <div className="space-y-2">
+            <UpcomingDueBanner days={3} />
             <QuickAddTransactionRow defaultKind="expense" />
             <QuickAddTransactionRow defaultKind="income" />
             {txToday.length > 0 && (

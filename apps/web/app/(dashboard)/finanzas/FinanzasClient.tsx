@@ -37,6 +37,7 @@ import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAlertBanner";
 import { NetWorthCard } from "../../../components/finanzas/NetWorthCard";
 import { SavingsRateCard } from "../../../components/finanzas/SavingsRateCard";
+import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
@@ -143,6 +144,9 @@ export function FinanzasClient() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        {/* Próximos vencimientos (recurrentes + suscripciones) */}
+        <UpcomingDueBanner />
+
         {/* Alerta de presupuestos — solo aparece si hay categorías cerca/excedidas */}
         <BudgetsAlertBanner />
 
