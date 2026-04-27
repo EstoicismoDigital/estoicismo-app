@@ -272,6 +272,7 @@ export function PegassoClient() {
                   content={m.content}
                   error={m.error}
                   pinned={m.is_pinned}
+                  suggestedActions={m.metadata?.suggested_actions}
                 />
               ))}
               {isStreaming && (

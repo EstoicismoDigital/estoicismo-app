@@ -2,8 +2,12 @@
 import { clsx } from "clsx";
 import { Sparkles, User2, Pin, PinOff, Copy, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
-import type { PegassoMessageRole } from "@estoicismo/supabase";
+import type {
+  PegassoMessageRole,
+  SuggestedAction,
+} from "@estoicismo/supabase";
 import { useTogglePinMessage } from "../../hooks/usePegasso";
+import { SuggestedActionCard } from "./SuggestedActionCard";
 
 export function MessageBubble(props: {
   role: PegassoMessageRole;
@@ -18,8 +22,10 @@ export function MessageBubble(props: {
   pinned?: boolean;
   /** Estado mientras Pegasso ejecuta tools ("consultando finanzas…"). */
   statusLabel?: string | null;
+  /** Acciones sugeridas (solo en mensajes assistant persistidos). */
+  suggestedActions?: SuggestedAction[];
 }) {
-  const { role, content, streaming, error, id, pinned, statusLabel } = props;
+  const { role, content, streaming, error, id, pinned, statusLabel, suggestedActions } = props;
   const isUser = role === "user";
   const togglePin = useTogglePinMessage();
   const [copied, setCopied] = useState(false);
@@ -75,6 +81,15 @@ export function MessageBubble(props: {
         )}
         {error && (
           <p className="mt-1.5 text-[11px] text-danger italic">⚠️ {error}</p>
+        )}
+
+        {/* Suggested actions — confirmable cards */}
+        {!isUser && id && suggestedActions && suggestedActions.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {suggestedActions.map((a) => (
+              <SuggestedActionCard key={a.id} messageId={id} action={a} />
+            ))}
+          </div>
         )}
 
         {showActions && (

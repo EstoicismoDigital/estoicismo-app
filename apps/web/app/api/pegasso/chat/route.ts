@@ -133,6 +133,8 @@ export async function POST(req: NextRequest) {
       let inputTokens = 0;
       let outputTokens = 0;
       let errored = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const suggestedActions: any[] = [];
 
       function send(payload: Record<string, unknown>) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
@@ -187,6 +189,28 @@ export async function POST(req: NextRequest) {
                 send({ type: "status", value: tool.statusLabel });
                 try {
                   const result = await tool.execute(sb, user.id, block.input);
+                  // Si la tool generó una suggested action, guardarla
+                  // para incluirla en metadata cuando se persista el
+                  // mensaje. Devolvemos a Claude un mensaje conciso
+                  // confirmando que se preparó la action card.
+                  if (
+                    result &&
+                    typeof result === "object" &&
+                    "__suggested_action" in result
+                  ) {
+                    const action = (
+                      result as { __suggested_action: unknown }
+                    ).__suggested_action;
+                    suggestedActions.push(action);
+                    return {
+                      tool_use_id: block.id,
+                      content: JSON.stringify({
+                        ok: true,
+                        message:
+                          "Action card preparada. Mostrada al user; espera su confirmación. Tu respuesta debe ser breve, naturalmente conectando lo que entendiste — no listes el JSON.",
+                      }),
+                    };
+                  }
                   return {
                     tool_use_id: block.id,
                     content: JSON.stringify(result),
@@ -257,6 +281,10 @@ export async function POST(req: NextRequest) {
             input_tokens: inputTokens,
             output_tokens: outputTokens,
             error: null,
+            metadata:
+              suggestedActions.length > 0
+                ? { suggested_actions: suggestedActions }
+                : null,
           });
           send({
             type: "done",

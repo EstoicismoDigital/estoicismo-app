@@ -20,6 +20,30 @@ export type PegassoConversation = {
   updated_at: string;
 };
 
+export type SuggestedActionKind =
+  | "create_transaction"
+  | "create_habit"
+  | "create_journal_entry"
+  | "create_business_idea";
+
+export type SuggestedAction = {
+  id: string;
+  kind: SuggestedActionKind;
+  /** Texto corto para mostrar en la card. Ej: "Gasto · Café · -$50" */
+  summary: string;
+  /** Datos para crear el registro. Estructura depende del kind. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: Record<string, any>;
+  status: "pending" | "confirmed" | "cancelled";
+  /** ID del registro creado, si fue confirmada. */
+  result_id?: string | null;
+  result_at?: string | null;
+};
+
+export type PegassoMessageMetadata = {
+  suggested_actions?: SuggestedAction[];
+};
+
 export type PegassoMessage = {
   id: string;
   conversation_id: string;
@@ -33,6 +57,7 @@ export type PegassoMessage = {
   /** Si el user marcó este mensaje como insight para revisitar. */
   is_pinned: boolean;
   pinned_at: string | null;
+  metadata: PegassoMessageMetadata | null;
   created_at: string;
 };
 
@@ -49,6 +74,7 @@ export type CreateMessageInput = {
   input_tokens?: number | null;
   output_tokens?: number | null;
   error?: string | null;
+  metadata?: PegassoMessageMetadata | null;
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -142,6 +168,7 @@ export async function createMessage(
       input_tokens: input.input_tokens ?? null,
       output_tokens: input.output_tokens ?? null,
       error: input.error ?? null,
+      metadata: input.metadata ?? null,
     } as never)
     .select()
     .single();
