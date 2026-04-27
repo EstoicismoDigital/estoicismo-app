@@ -38,6 +38,8 @@ import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAler
 import { NetWorthCard } from "../../../components/finanzas/NetWorthCard";
 import { SavingsRateCard } from "../../../components/finanzas/SavingsRateCard";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
+import { CashFlowProjectionCard } from "../../../components/finanzas/CashFlowProjectionCard";
+import { EmergencyFundCard } from "../../../components/finanzas/EmergencyFundCard";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
@@ -155,6 +157,12 @@ export function FinanzasClient() {
 
         {/* Tasa de ahorro del mes */}
         <SavingsRateCard />
+
+        {/* Proyección a 60 días basada en recurrentes + suscripciones */}
+        <CashFlowProjectionCard />
+
+        {/* Fondo de emergencia (líquido vs gasto promedio mensual) */}
+        <EmergencyFundCard />
 
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">
