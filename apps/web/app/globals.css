@@ -78,6 +78,7 @@
 }
 
 /* Module scopes — acento = color de marca fijo del pilar. */
+[data-module="hoy"] { --color-accent: var(--brand-habits); }
 [data-module="habits"] { --color-accent: var(--brand-habits); }
 [data-module="finanzas"] { --color-accent: var(--brand-finanzas); }
 [data-module="emprendimiento"] { --color-accent: var(--brand-emprendimiento); }

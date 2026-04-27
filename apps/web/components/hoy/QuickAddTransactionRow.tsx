@@ -158,18 +158,30 @@ export function QuickAddTransactionRow({
         className="w-24 bg-transparent border-0 font-display italic text-lg text-ink placeholder:text-muted/40 focus:outline-none tabular-nums"
       />
 
+      {/* Color dot for selected category */}
+      {effectiveCategoryId && (
+        <span
+          aria-hidden
+          className="h-2.5 w-2.5 rounded-full shrink-0"
+          style={{
+            backgroundColor:
+              filteredCats.find((c) => c.id === effectiveCategoryId)?.color ??
+              "currentColor",
+          }}
+        />
+      )}
+
       {/* Category */}
       <select
         value={effectiveCategoryId ?? ""}
         onChange={(e) => setCategoryId(e.target.value || null)}
-        className="flex-1 min-w-0 bg-transparent border-0 font-body text-sm text-ink focus:outline-none truncate"
+        className="flex-1 min-w-0 bg-transparent border-0 font-body text-sm text-ink focus:outline-none truncate cursor-pointer"
       >
         {filteredCats.length === 0 && (
           <option value="">Sin categorías</option>
         )}
         {filteredCats.map((c) => (
           <option key={c.id} value={c.id}>
-            {c.icon ? `${c.icon} ` : ""}
             {c.name}
           </option>
         ))}

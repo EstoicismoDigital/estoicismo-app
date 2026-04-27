@@ -43,6 +43,7 @@ async function getUserId(): Promise<string> {
 }
 
 export type PrefetchTarget =
+  | "hoy"
   | "habits"
   | "finanzas"
   | "reflexiones"

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Sun, Coins, Brain, Briefcase, Settings } from "lucide-react";
+import { Sun, ListChecks, Coins, Brain, Briefcase } from "lucide-react";
 import { clsx } from "clsx";
 import { usePrefetchRoute, type PrefetchTarget } from "../../hooks/usePrefetchRoute";
 
@@ -16,16 +16,10 @@ type TabItem = {
 
 /**
  * Mobile tabs — 5 módulos top-level:
- *   Hábitos (home) — Finanzas — Mentalidad — Negocio — Ajustes
+ *   Hoy — Hábitos — Finanzas — Mentalidad — Negocio
  *
- * "Mentalidad" sigue viviendo bajo la ruta `/reflexiones` (el URL se
- * conserva por compatibilidad y porque aún alberga reflexiones), pero
- * la etiqueta visible es Mentalidad — el módulo gira en torno al MPD
- * de Napoleón Hill, meditación Dispenza y frecuencias (Aura).
- *
- * Diario (notas) y Pegasso son globales y viven en la top bar (junto
- * a Settings) para mantener este nav a 5 items — sweet spot UX en
- * mobile y suficiente para los módulos verticales del producto.
+ * Ajustes vive en la top bar (junto a Diario, Pegasso, Plan) para
+ * dejar este nav 100% dedicado a los pilares verticales.
  */
 const TABS: TabItem[] = [
   {
@@ -33,13 +27,19 @@ const TABS: TabItem[] = [
     label: "Hoy",
     Icon: Sun,
     module: "habits",
+    matches: ["/anuario"],
+  },
+  {
+    href: "/habitos",
+    label: "Hábitos",
+    Icon: ListChecks,
+    module: "habits",
     matches: [
+      "/habitos",
       "/calendario",
       "/progreso",
       "/revision",
       "/historial",
-      "/habitos",
-      "/anuario",
     ],
   },
   { href: "/finanzas", label: "Finanzas", Icon: Coins, module: "finanzas" },
@@ -55,7 +55,6 @@ const TABS: TabItem[] = [
     Icon: Briefcase,
     module: "emprendimiento",
   },
-  { href: "/ajustes", label: "Ajustes", Icon: Settings },
 ];
 
 /**
@@ -76,7 +75,6 @@ export function BottomNav({ pathname }: { pathname: string }) {
   const prefetch = usePrefetchRoute();
 
   function prefetchTargetFor(tab: TabItem): PrefetchTarget | null {
-    if (tab.href === "/ajustes") return "ajustes";
     if (tab.module === "habits") return "habits";
     if (tab.module === "finanzas") return "finanzas";
     if (tab.module === "reflexiones") return "reflexiones";
@@ -86,10 +84,15 @@ export function BottomNav({ pathname }: { pathname: string }) {
 
   function isActive(tab: TabItem): boolean {
     if (tab.href === "/") {
+      // Hoy es solo "/" exacto (anuario etc. matchean por matches[]).
       if (pathname === "/") return true;
       return tab.matches?.some((p) => isPathMatch(p, pathname)) ?? false;
     }
-    if (pathname === tab.href || pathname.startsWith(tab.href + "/")) return true;
+    // Para otras tabs, evitar que /habitos también se active si estamos
+    // en /finanzas o algo así. Solo prefix match si el path empieza con
+    // tab.href.
+    if (pathname === tab.href) return true;
+    if (pathname.startsWith(tab.href + "/")) return true;
     return tab.matches?.some((p) => isPathMatch(p, pathname)) ?? false;
   }
 

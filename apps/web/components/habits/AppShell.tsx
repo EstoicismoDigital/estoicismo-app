@@ -22,7 +22,13 @@ import {
  * [data-module="..."] blocks) and a contextual sub-nav. Order matters:
  * the masthead renders them left-to-right in this array.
  */
-type ModuleKey = "habits" | "finanzas" | "reflexiones" | "emprendimiento" | "pegasso";
+type ModuleKey =
+  | "hoy"
+  | "habits"
+  | "finanzas"
+  | "reflexiones"
+  | "emprendimiento"
+  | "pegasso";
 type Module = {
   key: ModuleKey;
   label: string;
@@ -33,22 +39,23 @@ type Module = {
 
 const MODULES: Module[] = [
   {
-    key: "habits",
-    // Etiqueta "Hoy" — la home (`/`) es el ritual diario (TodayClient),
-    // que cubre los pilares de hábitos + lectura + fitness + diario.
-    // El módulo internamente sigue siendo "habits" para no romper
-    // data-module accent (amarillo) ya cableado en globals.css.
+    key: "hoy",
+    // `/` es el ritual diario. Comparte accent dorado con Hábitos
+    // (data-module="hoy" en globals.css espeja --brand-habits).
     label: "Hoy",
     href: "/",
+    matches: ["/", "/anuario"],
+  },
+  {
+    key: "habits",
+    label: "Hábitos",
+    href: "/habitos",
     matches: [
-      "/",
+      "/habitos",
       "/calendario",
       "/progreso",
       "/revision",
-      "/notas",
       "/historial",
-      "/habitos",
-      "/anuario",
     ],
   },
   {
@@ -74,51 +81,61 @@ const MODULES: Module[] = [
   },
 ];
 
-/** Sub-nav surfaced when the user is inside the Hoy/Hábitos module. */
-const HABITS_SUBNAV: { href: string; label: string }[] = [
-  { href: "/", label: "Hoy" },
-  { href: "/habitos", label: "Hábitos" },
-  { href: "/habitos/fitness", label: "Fitness" },
-  { href: "/habitos/lectura", label: "Lectura" },
-  { href: "/calendario", label: "Calendario" },
-  { href: "/progreso", label: "Progreso" },
-  { href: "/revision", label: "Revisión" },
-  { href: "/anuario", label: "Anuario" },
-  { href: "/notas", label: "Notas" },
+type SubnavItem = { href: string; label: string; emoji?: string };
+
+/** Sub-nav del módulo Hoy — solo enlaces relevantes al ritual y vista
+ *  cumulativa (anuario). El resto vive bajo Hábitos. */
+const HOY_SUBNAV: SubnavItem[] = [
+  { href: "/", label: "Hoy", emoji: "☀️" },
+  { href: "/anuario", label: "Anuario", emoji: "📅" },
 ];
 
-/** Sub-nav surfaced when the user is inside Finanzas. Same chip style
- *  as habits — typography forward, one accent color. */
-const FINANZAS_SUBNAV: { href: string; label: string }[] = [
-  { href: "/finanzas", label: "Resumen" },
-  { href: "/finanzas/cuentas", label: "Cuentas" },
-  { href: "/finanzas/calendario", label: "Calendario" },
-  { href: "/finanzas/tarjetas", label: "Tarjetas" },
-  { href: "/finanzas/recurrentes", label: "Recurrentes" },
-  { href: "/finanzas/ahorro", label: "Ahorro" },
-  { href: "/finanzas/presupuestos", label: "Presupuestos" },
-  { href: "/finanzas/deudas", label: "Deudas" },
+/** Sub-nav del módulo Hábitos — todo lo de tracking diario y review. */
+const HABITS_SUBNAV: SubnavItem[] = [
+  { href: "/habitos", label: "Hábitos", emoji: "✓" },
+  { href: "/habitos/fitness", label: "Fitness", emoji: "💪" },
+  { href: "/habitos/lectura", label: "Lectura", emoji: "📖" },
+  { href: "/calendario", label: "Calendario", emoji: "📅" },
+  { href: "/progreso", label: "Progreso", emoji: "📊" },
+  { href: "/revision", label: "Revisión", emoji: "🔍" },
+  { href: "/historial", label: "Historial", emoji: "🗄" },
+];
+
+/** Sub-nav surfaced when the user is inside Finanzas. */
+const FINANZAS_SUBNAV: SubnavItem[] = [
+  { href: "/finanzas", label: "Resumen", emoji: "📈" },
+  { href: "/finanzas/cuentas", label: "Cuentas", emoji: "🏦" },
+  { href: "/finanzas/calendario", label: "Calendario", emoji: "📅" },
+  { href: "/finanzas/tarjetas", label: "Tarjetas", emoji: "💳" },
+  { href: "/finanzas/recurrentes", label: "Recurrentes", emoji: "🔁" },
+  { href: "/finanzas/ahorro", label: "Ahorro", emoji: "🐖" },
+  { href: "/finanzas/presupuestos", label: "Presupuestos", emoji: "🎯" },
+  { href: "/finanzas/deudas", label: "Deudas", emoji: "⚖️" },
 ];
 
 /** Sub-nav del módulo Mentalidad. Propósito = home (MPD + check-in
  *  diario); Meditación = sesiones Dispenza; Aura = frecuencias. */
-const MENTALIDAD_SUBNAV: { href: string; label: string }[] = [
-  { href: "/reflexiones", label: "Propósito" },
-  { href: "/reflexiones/meditacion", label: "Meditación" },
-  { href: "/reflexiones/respira", label: "Respira" },
-  { href: "/reflexiones/aura", label: "Aura" },
+const MENTALIDAD_SUBNAV: SubnavItem[] = [
+  { href: "/reflexiones", label: "Propósito", emoji: "✨" },
+  { href: "/reflexiones/meditacion", label: "Meditación", emoji: "🧘" },
+  { href: "/reflexiones/respira", label: "Respira", emoji: "🌬" },
+  { href: "/reflexiones/aura", label: "Aura", emoji: "📻" },
 ];
 
 function moduleFromPathname(pathname: string): ModuleKey {
   // /ajustes and /upgrade are neutral — no module accent.
-  if (pathname.startsWith("/ajustes")) return "habits"; // default; but ajustes itself sets no data-module
+  if (pathname.startsWith("/ajustes")) return "hoy"; // default; but ajustes itself sets no data-module
+  // /notas (diario) tampoco pertenece a un módulo — es transversal,
+  // pero al renderizarse sin data-module hereda el de la ruta padre.
+  // Al venir aquí lo asignamos a "hoy" como fallback visual.
+  if (pathname.startsWith("/notas")) return "hoy";
   for (const m of MODULES) {
     const hit = m.matches.some((p) =>
       p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p + "/")
     );
     if (hit) return m.key;
   }
-  return "habits";
+  return "hoy";
 }
 
 function isActiveHref(pathname: string, href: string) {
@@ -257,6 +274,7 @@ function DesktopMasthead({
   onOpenPalette?: () => void;
 }) {
   const onAjustes = pathname.startsWith("/ajustes");
+  const showHoySub = activeModule === "hoy" && !onAjustes;
   const showHabitsSub = activeModule === "habits" && !onAjustes;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
@@ -337,25 +355,32 @@ function DesktopMasthead({
         </nav>
       </div>
 
-      {/* Row 3 — contextual sub-nav (Hábitos / Finanzas / Mentalidad) */}
-      {(showHabitsSub || showFinanzasSub || showMentalidadSub) && (
+      {/* Row 3 — contextual sub-nav */}
+      {(showHoySub ||
+        showHabitsSub ||
+        showFinanzasSub ||
+        showMentalidadSub) && (
         <div className="border-t border-line/60">
           <div className="max-w-6xl mx-auto px-6">
             <nav
               aria-label={
-                showHabitsSub
-                  ? "Secciones de Hábitos"
-                  : showFinanzasSub
-                  ? "Secciones de Finanzas"
-                  : "Secciones de Mentalidad"
+                showHoySub
+                  ? "Secciones de Hoy"
+                  : showHabitsSub
+                    ? "Secciones de Hábitos"
+                    : showFinanzasSub
+                      ? "Secciones de Finanzas"
+                      : "Secciones de Mentalidad"
               }
               className="flex items-center gap-1 overflow-x-auto py-2 -mx-1 px-1"
             >
-              {(showHabitsSub
-                ? HABITS_SUBNAV
-                : showFinanzasSub
-                ? FINANZAS_SUBNAV
-                : MENTALIDAD_SUBNAV
+              {(showHoySub
+                ? HOY_SUBNAV
+                : showHabitsSub
+                  ? HABITS_SUBNAV
+                  : showFinanzasSub
+                    ? FINANZAS_SUBNAV
+                    : MENTALIDAD_SUBNAV
               ).map((item) => {
                 const active = isActiveHref(pathname, item.href);
                 return (
@@ -364,12 +389,17 @@ function DesktopMasthead({
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={clsx(
-                      "inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                      "inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                       active
                         ? "bg-accent/10 text-accent"
                         : "text-muted hover:text-ink hover:bg-bg-alt"
                     )}
                   >
+                    {item.emoji && (
+                      <span aria-hidden className="text-[12px]">
+                        {item.emoji}
+                      </span>
+                    )}
                     {item.label}
                   </Link>
                 );
@@ -389,6 +419,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // /ajustes is a neutral shell — no module accent. Everything else
   // gets scoped by the active module so --color-accent matches.
   const dataModule = onAjustes ? undefined : activeModule;
+  const showHoySub = activeModule === "hoy" && !onAjustes;
   const showHabitsSub = activeModule === "habits" && !onAjustes;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
@@ -427,28 +458,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Logo variant="full" size="sm" />
           </Link>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <JournalLink active={pathname.startsWith("/notas")} compact />
             <PegassoLink active={pathname.startsWith("/pegasso")} compact />
+            <SettingsLink active={onAjustes} />
             <PlanPill compact />
           </div>
         </div>
-        {(showHabitsSub || showFinanzasSub || showMentalidadSub) && (
+        {(showHoySub ||
+          showHabitsSub ||
+          showFinanzasSub ||
+          showMentalidadSub) && (
           <nav
             aria-label={
-              showFinanzasSub
-                ? "Secciones de Finanzas"
-                : showMentalidadSub
-                  ? "Secciones de Mentalidad"
-                  : "Secciones de Hoy"
+              showHoySub
+                ? "Secciones de Hoy"
+                : showHabitsSub
+                  ? "Secciones de Hábitos"
+                  : showFinanzasSub
+                    ? "Secciones de Finanzas"
+                    : "Secciones de Mentalidad"
             }
             className="flex items-center gap-1 overflow-x-auto py-1.5 px-3 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {(showFinanzasSub
-              ? FINANZAS_SUBNAV
-              : showMentalidadSub
-                ? MENTALIDAD_SUBNAV
-                : HABITS_SUBNAV
+            {(showHoySub
+              ? HOY_SUBNAV
+              : showHabitsSub
+                ? HABITS_SUBNAV
+                : showFinanzasSub
+                  ? FINANZAS_SUBNAV
+                  : MENTALIDAD_SUBNAV
             ).map((item) => {
               const active = isActiveHref(pathname, item.href);
               return (
@@ -457,12 +496,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={clsx(
-                    "inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    "inline-flex items-center gap-1 whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                     active
                       ? "bg-accent/10 text-accent"
                       : "text-muted hover:text-ink"
                   )}
                 >
+                  {item.emoji && (
+                    <span aria-hidden className="text-[11px]">
+                      {item.emoji}
+                    </span>
+                  )}
                   {item.label}
                 </Link>
               );
