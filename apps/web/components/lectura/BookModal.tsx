@@ -23,6 +23,8 @@ export function BookModal(props: {
   const [coverUrl, setCoverUrl] = useState(book?.cover_url ?? "");
   const [category, setCategory] = useState(book?.category ?? "");
   const [isCurrent, setIsCurrent] = useState(book?.is_current ?? !book);
+  const [mySummary, setMySummary] = useState(book?.my_summary ?? "");
+  const [notes, setNotes] = useState(book?.notes ?? "");
 
   useEffect(() => {
     if (!open) return;
@@ -33,6 +35,8 @@ export function BookModal(props: {
     setCoverUrl(book?.cover_url ?? "");
     setCategory(book?.category ?? "");
     setIsCurrent(book?.is_current ?? !book);
+    setMySummary(book?.my_summary ?? "");
+    setNotes(book?.notes ?? "");
   }, [open, book]);
 
   useEffect(() => {
@@ -145,6 +149,37 @@ export function BookModal(props: {
             />
             <span className="text-sm text-ink">Marcar como mi libro actual</span>
           </label>
+
+          {/* Mi resumen — el take global del libro entero. */}
+          <div className="pt-2 border-t border-line/50">
+            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
+              Mi resumen del libro
+            </label>
+            <textarea
+              value={mySummary}
+              onChange={(e) => setMySummary(e.target.value)}
+              rows={6}
+              placeholder="Lo que te llevas del libro entero. La idea central, las 3 cosas que cambiaron tu cabeza, lo que le contarías a un amigo si tuvieras un minuto."
+              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink resize-none focus:outline-none focus:border-accent leading-relaxed"
+            />
+            <p className="text-[10px] text-muted italic mt-1">
+              Distinto del resumen por sesión — esto es tu visión global, escríbelo cuando lo termines.
+            </p>
+          </div>
+
+          {/* Notas / quotes / scratch */}
+          <div>
+            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
+              Notas y citas (opcional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Citas favoritas, páginas a recordar, scratch."
+              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink resize-none focus:outline-none focus:border-accent"
+            />
+          </div>
         </div>
         <div className="border-t border-line px-5 py-3 flex justify-end gap-2 sticky bottom-0 bg-bg-alt/95">
           <button
@@ -167,6 +202,8 @@ export function BookModal(props: {
                 cover_url: coverUrl.trim() || null,
                 category: category.trim() || null,
                 is_current: isCurrent,
+                my_summary: mySummary.trim() || null,
+                notes: notes.trim() || null,
               });
             }}
             className={clsx(

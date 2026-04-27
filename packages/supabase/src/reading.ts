@@ -20,7 +20,10 @@ export type ReadingBook = {
   is_current: boolean;
   is_finished: boolean;
   rating: number | null;
+  /** Notas, quotes, scratch — texto libre. */
   notes: string | null;
+  /** Tu resumen GLOBAL del libro. Lo que te llevas del libro entero. */
+  my_summary: string | null;
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
@@ -55,6 +58,7 @@ export type CreateBookInput = {
   category?: string | null;
   is_current?: boolean;
   notes?: string | null;
+  my_summary?: string | null;
   started_at?: string | null;
 };
 
@@ -141,6 +145,7 @@ export async function createBook(
       category: input.category ?? null,
       is_current: input.is_current ?? false,
       notes: input.notes ?? null,
+      my_summary: input.my_summary ?? null,
       started_at: input.started_at ?? null,
     } as never)
     .select()
