@@ -41,6 +41,7 @@ import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanne
 import { CashFlowProjectionCard } from "../../../components/finanzas/CashFlowProjectionCard";
 import { EmergencyFundCard } from "../../../components/finanzas/EmergencyFundCard";
 import { FireCalculatorCard } from "../../../components/finanzas/FireCalculatorCard";
+import { InvestmentsCard } from "../../../components/finanzas/InvestmentsCard";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
@@ -155,6 +156,9 @@ export function FinanzasClient() {
 
         {/* Net worth — sólo aparece si hay cuentas/deudas/cards/savings con saldo */}
         <NetWorthCard />
+
+        {/* Inversiones (manual) */}
+        <InvestmentsCard />
 
         {/* Tasa de ahorro del mes */}
         <SavingsRateCard />

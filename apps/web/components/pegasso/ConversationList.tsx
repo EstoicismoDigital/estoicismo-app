@@ -52,7 +52,10 @@ export function ConversationList(props: {
     useSearchConversations(query);
 
   return (
-    <aside className="w-full lg:w-72 lg:border-r lg:border-line lg:bg-bg-alt/30 flex flex-col">
+    <aside
+      data-print-hide
+      className="w-full lg:w-72 lg:border-r lg:border-line lg:bg-bg-alt/30 flex flex-col print:hidden"
+    >
       <div className="px-4 py-3 border-b border-line flex items-center justify-between">
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
           Conversaciones

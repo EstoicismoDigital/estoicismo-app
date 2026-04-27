@@ -69,7 +69,7 @@ export function MessageBubble(props: {
         )}
 
         {showActions && (
-          <div className="mt-2 pt-2 border-t border-line/50 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <div className="mt-2 pt-2 border-t border-line/50 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity print:hidden">
             <button
               type="button"
               onClick={() => togglePin.mutate({ id, pin: !pinned })}

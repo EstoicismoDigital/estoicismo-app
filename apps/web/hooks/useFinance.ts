@@ -565,3 +565,71 @@ export function useDeleteSubscription() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "subscriptions"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// INVESTMENTS — portafolio manual (#54)
+// ─────────────────────────────────────────────────────────────
+
+export function useInvestments(opts: { include_archived?: boolean } = {}): UseQueryResult<
+  import("@estoicismo/supabase").FinanceInvestment[]
+> {
+  return useQuery({
+    queryKey: ["finance", "investments", opts.include_archived ?? false],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchInvestments } = await import("@estoicismo/supabase");
+      return fetchInvestments(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useCreateInvestment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateInvestmentInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createInvestment } = await import("@estoicismo/supabase");
+      return createInvestment(sb, await getUserId(), input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "investments"] }),
+    onError: (err) =>
+      toast.error("No se pudo guardar.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateInvestment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateInvestmentInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateInvestment } = await import("@estoicismo/supabase");
+      return updateInvestment(sb, id, input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["finance", "investments"] }),
+  });
+}
+
+export function useDeleteInvestment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteInvestment } = await import("@estoicismo/supabase");
+      await deleteInvestment(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["finance", "investments"] }),
+  });
+}

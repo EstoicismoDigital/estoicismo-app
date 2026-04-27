@@ -316,3 +316,93 @@ export async function deleteReadingGoal(
     .eq("year", year);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING CHALLENGES — metas categorizadas (#70)
+// ─────────────────────────────────────────────────────────────
+
+export type ReadingChallenge = {
+  id: string;
+  user_id: string;
+  year: number;
+  category: string;
+  label: string;
+  target: number;
+  emoji: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateReadingChallengeInput = {
+  year: number;
+  category: string;
+  label: string;
+  target: number;
+  emoji?: string;
+  position?: number;
+};
+
+export type UpdateReadingChallengeInput =
+  Partial<CreateReadingChallengeInput>;
+
+export async function fetchReadingChallenges(
+  sb: SB,
+  userId: string,
+  year: number
+): Promise<ReadingChallenge[]> {
+  const { data, error } = await sb
+    .from("reading_challenges")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("year", year)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as ReadingChallenge[];
+}
+
+export async function createReadingChallenge(
+  sb: SB,
+  userId: string,
+  input: CreateReadingChallengeInput
+): Promise<ReadingChallenge> {
+  const { data, error } = await sb
+    .from("reading_challenges")
+    .insert({
+      user_id: userId,
+      year: input.year,
+      category: input.category,
+      label: input.label,
+      target: input.target,
+      emoji: input.emoji ?? "📖",
+      position: input.position ?? 0,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as ReadingChallenge;
+}
+
+export async function updateReadingChallenge(
+  sb: SB,
+  id: string,
+  input: UpdateReadingChallengeInput
+): Promise<ReadingChallenge> {
+  const { data, error } = await sb
+    .from("reading_challenges")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as ReadingChallenge;
+}
+
+export async function deleteReadingChallenge(
+  sb: SB,
+  id: string
+): Promise<void> {
+  const { error } = await sb.from("reading_challenges").delete().eq("id", id);
+  if (error) throw error;
+}

@@ -231,3 +231,72 @@ export function useBooksFinishedInYear(year: number): UseQueryResult<number> {
     staleTime: 1000 * 60 * 2,
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING CHALLENGES — metas categorizadas anuales (#70)
+// ─────────────────────────────────────────────────────────────
+
+export function useReadingChallenges(year: number): UseQueryResult<
+  import("@estoicismo/supabase").ReadingChallenge[]
+> {
+  return useQuery({
+    queryKey: ["reading", "challenges", year],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchReadingChallenges } = await import("@estoicismo/supabase");
+      return fetchReadingChallenges(sb, await getUserId(), year);
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+export function useCreateReadingChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateReadingChallengeInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createReadingChallenge } = await import("@estoicismo/supabase");
+      return createReadingChallenge(sb, await getUserId(), input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "challenges"] }),
+    onError: (err) =>
+      toast.error("No se pudo crear el desafío.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateReadingChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateReadingChallengeInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateReadingChallenge } = await import("@estoicismo/supabase");
+      return updateReadingChallenge(sb, id, input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "challenges"] }),
+  });
+}
+
+export function useDeleteReadingChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteReadingChallenge } = await import("@estoicismo/supabase");
+      await deleteReadingChallenge(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "challenges"] }),
+  });
+}

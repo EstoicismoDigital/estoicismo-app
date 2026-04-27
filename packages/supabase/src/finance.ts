@@ -898,3 +898,125 @@ export async function deleteSubscription(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("finance_subscriptions").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// INVESTMENTS — portafolio manual (#54)
+// ─────────────────────────────────────────────────────────────
+
+export type InvestmentKind =
+  | "stock"
+  | "etf"
+  | "crypto"
+  | "real_estate"
+  | "fund"
+  | "other";
+
+export type FinanceInvestment = {
+  id: string;
+  user_id: string;
+  name: string;
+  kind: InvestmentKind;
+  symbol: string | null;
+  quantity: number | null;
+  avg_buy_price: number | null;
+  current_value: number;
+  currency: string;
+  include_in_net_worth: boolean;
+  notes: string | null;
+  last_priced_at: string | null;
+  is_archived: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateInvestmentInput = {
+  name: string;
+  kind?: InvestmentKind;
+  symbol?: string | null;
+  quantity?: number | null;
+  avg_buy_price?: number | null;
+  current_value: number;
+  currency?: string;
+  include_in_net_worth?: boolean;
+  notes?: string | null;
+  position?: number;
+};
+
+export type UpdateInvestmentInput = Partial<CreateInvestmentInput> & {
+  is_archived?: boolean;
+  last_priced_at?: string | null;
+};
+
+export async function fetchInvestments(
+  sb: SB,
+  userId: string,
+  opts: { include_archived?: boolean } = {}
+): Promise<FinanceInvestment[]> {
+  let q = sb
+    .from("finance_investments")
+    .select("*")
+    .eq("user_id", userId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (!opts.include_archived) q = q.eq("is_archived", false);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FinanceInvestment[];
+}
+
+export async function createInvestment(
+  sb: SB,
+  userId: string,
+  input: CreateInvestmentInput
+): Promise<FinanceInvestment> {
+  const { data, error } = await sb
+    .from("finance_investments")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      kind: input.kind ?? "stock",
+      symbol: input.symbol ?? null,
+      quantity: input.quantity ?? null,
+      avg_buy_price: input.avg_buy_price ?? null,
+      current_value: input.current_value,
+      currency: input.currency ?? "MXN",
+      include_in_net_worth: input.include_in_net_worth ?? true,
+      notes: input.notes ?? null,
+      last_priced_at: new Date().toISOString(),
+      position: input.position ?? 0,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceInvestment;
+}
+
+export async function updateInvestment(
+  sb: SB,
+  id: string,
+  input: UpdateInvestmentInput
+): Promise<FinanceInvestment> {
+  const update: Record<string, unknown> = { ...input };
+  // Si cambia current_value, marcamos last_priced_at = now (a menos
+  // que el caller lo sobreescriba explícitamente).
+  if (input.current_value !== undefined && !("last_priced_at" in input)) {
+    update.last_priced_at = new Date().toISOString();
+  }
+  const { data, error } = await sb
+    .from("finance_investments")
+    .update(update as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceInvestment;
+}
+
+export async function deleteInvestment(sb: SB, id: string): Promise<void> {
+  const { error } = await sb
+    .from("finance_investments")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}

@@ -4,7 +4,11 @@ import { TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { clsx } from "clsx";
 import { computeNetWorth } from "../../lib/finance/net-worth";
 import { formatMoney } from "../../lib/finance";
-import { useAccounts, useCreditCards } from "../../hooks/useFinance";
+import {
+  useAccounts,
+  useCreditCards,
+  useInvestments,
+} from "../../hooks/useFinance";
 import { useDebts } from "../../hooks/useDebts";
 import { useSavingsGoals, useSavingsContributions } from "../../hooks/useSavings";
 
@@ -21,10 +25,19 @@ export function NetWorthCard() {
   const { data: contributions = [] } = useSavingsContributions({ limit: 1000 });
   const { data: debts = [] } = useDebts({ include_paid: false });
   const { data: cards = [] } = useCreditCards();
+  const { data: investments = [] } = useInvestments();
 
   const snap = useMemo(
-    () => computeNetWorth({ accounts, goals, contributions, debts, cards }),
-    [accounts, goals, contributions, debts, cards]
+    () =>
+      computeNetWorth({
+        accounts,
+        goals,
+        contributions,
+        investments,
+        debts,
+        cards,
+      }),
+    [accounts, goals, contributions, investments, debts, cards]
   );
 
   const positive = snap.netWorth >= 0;

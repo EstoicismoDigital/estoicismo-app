@@ -22,6 +22,7 @@ import type {
   FinanceAccount,
   FinanceDebt,
   FinanceCreditCard,
+  FinanceInvestment,
   SavingsGoal,
   SavingsContribution,
 } from "@estoicismo/supabase";
@@ -34,6 +35,7 @@ export type NetWorthSnapshot = {
   breakdown: {
     accounts: { name: string; balance: number; color: string }[];
     savings: { name: string; balance: number; color: string }[];
+    investments: { name: string; balance: number }[];
     debts: { name: string; balance: number }[];
     cards: { name: string; balance: number }[];
   };
@@ -45,10 +47,11 @@ export function computeNetWorth(args: {
   accounts: FinanceAccount[];
   goals: SavingsGoal[];
   contributions: SavingsContribution[];
+  investments?: FinanceInvestment[];
   debts: FinanceDebt[];
   cards: FinanceCreditCard[];
 }): NetWorthSnapshot {
-  const { accounts, goals, contributions, debts, cards } = args;
+  const { accounts, goals, contributions, investments, debts, cards } = args;
   const currencies = new Set<string>();
 
   // Cuentas (solo include_in_net_worth)
@@ -72,6 +75,18 @@ export function computeNetWorth(args: {
       savingsBreakdown.push({ name: g.name, balance: b, color: g.color });
       assetsTotal += b;
       currencies.add(g.currency);
+    }
+  }
+
+  // Inversiones (solo include_in_net_worth + no archivadas)
+  const investmentBreakdown: { name: string; balance: number }[] = [];
+  for (const inv of investments ?? []) {
+    if (!inv.include_in_net_worth || inv.is_archived) continue;
+    const b = Number(inv.current_value);
+    if (b > 0) {
+      investmentBreakdown.push({ name: inv.name, balance: b });
+      assetsTotal += b;
+      currencies.add(inv.currency);
     }
   }
 
@@ -103,6 +118,7 @@ export function computeNetWorth(args: {
     breakdown: {
       accounts: accountBreakdown,
       savings: savingsBreakdown,
+      investments: investmentBreakdown,
       debts: debtBreakdown,
       cards: cardBreakdown,
     },

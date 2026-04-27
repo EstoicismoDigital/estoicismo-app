@@ -19,6 +19,7 @@ import {
   BookListItem,
 } from "../../../../components/lectura/CurrentBookCard";
 import { ReadingGoalCard } from "../../../../components/lectura/ReadingGoalCard";
+import { ReadingChallengesCard } from "../../../../components/lectura/ReadingChallengesCard";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import { computeReadingStats, formatDuration } from "../../../../lib/reading/stats";
 import type { ReadingBook, ReadingSession } from "@estoicismo/supabase";
@@ -89,6 +90,9 @@ export function LecturaClient() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Reto anual */}
         <ReadingGoalCard />
+
+        {/* Desafíos categorizados */}
+        <ReadingChallengesCard />
 
         {/* Libro actual */}
         <CurrentBookCard

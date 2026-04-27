@@ -166,6 +166,11 @@ export type Database = {
         Insert: Omit<FinanceSubscription, "id" | "created_at" | "updated_at">;
         Update: Partial<FinanceSubscription>;
       };
+      finance_investments: {
+        Row: import("./finance").FinanceInvestment;
+        Insert: Omit<import("./finance").FinanceInvestment, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./finance").FinanceInvestment>;
+      };
       mindset_mpd: {
         Row: MindsetMPD;
         Insert: Omit<MindsetMPD, "id" | "created_at" | "updated_at">;
@@ -250,6 +255,11 @@ export type Database = {
         Row: import("./reading").ReadingGoal;
         Insert: Omit<import("./reading").ReadingGoal, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./reading").ReadingGoal>;
+      };
+      reading_challenges: {
+        Row: import("./reading").ReadingChallenge;
+        Insert: Omit<import("./reading").ReadingChallenge, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./reading").ReadingChallenge>;
       };
       savings_goals: {
         Row: SavingsGoal;

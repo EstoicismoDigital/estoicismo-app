@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  Loader2,
+  AlertCircle,
+  Printer,
+} from "lucide-react";
 import { clsx } from "clsx";
 import { toast } from "sonner";
 import {
@@ -42,6 +48,7 @@ export function PegassoClient() {
   const { persona, setPersona } = usePegassoPersona();
 
   const { data: conversations = [] } = useConversations();
+  const currentConv = conversations.find((c) => c.id === activeId);
   const { data: messages = [], refetch: refetchMessages } = useMessages(activeId);
   const createConvM = useCreateConversation();
   const updateConvM = useUpdateConversation();
@@ -198,7 +205,7 @@ export function PegassoClient() {
 
       <main className="flex-1 flex flex-col h-screen min-h-screen">
         {/* Header */}
-        <header className="px-4 sm:px-6 py-3 border-b border-line bg-bg-alt/40 flex items-center gap-3">
+        <header className="px-4 sm:px-6 py-3 border-b border-line bg-bg-alt/40 flex items-center gap-3 print:hidden">
           <div className="w-9 h-9 rounded-full bg-accent/15 text-accent flex items-center justify-center">
             <Sparkles size={16} />
           </div>
@@ -210,10 +217,40 @@ export function PegassoClient() {
               Tu consejero estoico
             </p>
           </div>
+          {activeId && messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              title="Imprimir / Guardar PDF de esta conversación"
+              aria-label="Exportar conversación"
+              className="h-8 w-8 rounded-full text-muted hover:text-ink hover:bg-bg-alt flex items-center justify-center"
+            >
+              <Printer size={14} />
+            </button>
+          )}
         </header>
 
         {/* Mensajes */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-4">
+          {/* Print-only header — identifica la conversación cuando se exporta a PDF */}
+          {activeId && messages.length > 0 && (
+            <div className="hidden print:block mb-6 pb-4 border-b border-line">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+                Pegasso · {currentConv?.title ?? "Conversación"}
+              </p>
+              <p className="font-mono text-[10px] text-muted">
+                Exportado{" "}
+                {new Date().toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}{" "}
+                · {messages.length}{" "}
+                {messages.length === 1 ? "mensaje" : "mensajes"}
+              </p>
+            </div>
+          )}
+
           {!activeId && messages.length === 0 ? (
             <Onboarding onPick={(p) => void handleSend(p)} />
           ) : (
@@ -252,7 +289,7 @@ export function PegassoClient() {
         </div>
 
         {/* Input */}
-        <div className="border-t border-line bg-bg-alt/40 px-4 sm:px-6 py-3 sticky bottom-0">
+        <div className="border-t border-line bg-bg-alt/40 px-4 sm:px-6 py-3 sticky bottom-0 print:hidden" data-print-hide>
           <div className="flex items-end gap-2">
             <textarea
               value={input}
