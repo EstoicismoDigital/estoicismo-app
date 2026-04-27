@@ -477,3 +477,57 @@ por default — los elementos saltan sólo cuando son relevantes
 
 ### Migraciones aplicadas
 - 20260428000000_habit_graduate.sql — graduated_at + index parcial.
+
+---
+
+## Resultado · sesión 5 (2026-04-28 continuación)
+
+User: "continua".
+
+### Features
+
+**#63 Rest day detection** — `RestRecommendationCard` arriba de
+QuickLogCard. Cuenta consecutivos:
+- 4+ → descansa
+- 3 → modera
+- 7+ sin entrenar → vuelve suave
+
+**#97 OKRs trimestrales** — `OkrsCard` en /emprendimiento. Máximo 3
+ambiciones por trimestre. Inline title editing + slider 0-100. Auto
+status="done" al 100%.
+
+**#13 Font size (a11y)** — 4 niveles (14/16/18/20px) aplicados via
+clase en `<html>`. Boot script previene FOUC. Selector con preview
+live "Aa" en /ajustes.
+
+**#89 Personalidades de Pegasso** — 4 modos:
+- Estoico (sabio, sereno)
+- Paterno (cálido, pregunta cómo te sientes)
+- Hermano mayor (directo, te confronta)
+- Mentora (socrática, busca la raíz)
+
+systemAppend al base prompt. Persiste en localStorage. Selector
+dropdown en sidebar de /pegasso. Cambio aplica desde siguiente
+respuesta.
+
+### Migraciones aplicadas (sesión 5)
+- 20260428100000_business_okrs.sql
+
+### Resumen total acumulado
+
+5 sesiones · 50+ commits · 8 migraciones · build clean en cada paso.
+
+Features cerradas del plan-100:
+- A · UX/UI: 6, 14, 15, 13 + nav restructure + /hoy + ModuleHeroNav
+- B · Datos: 24, 25
+- C · Hábitos: 35, 40
+- D · Finanzas: 41, 42, 44, 45, 48, 50, 51, 52, 53
+- E · Fitness: 56, 57, 58, 59, 60, 62, 63, 65
+- F · Lectura: 67
+- G · Mentalidad: 72, 73, 74, 76, 78, 79, 80
+- H · Pegasso: 81, 87, 89, 90
+- I · Negocio: 91, 92, 96 (parcial), 97, 99
+
+Pendientes: items que requieren Storage upload (#16, #43, #61, #94),
+APIs externas (#18-#20, #29, #47), AI extra (#69, #82-#85), o
+schema cambios fuertes (#32, #33, #95).
