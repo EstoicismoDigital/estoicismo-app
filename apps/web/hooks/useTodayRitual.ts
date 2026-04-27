@@ -157,7 +157,13 @@ export function useTodayRitual() {
         journalEntriesToday: journalToday.count ?? 0,
       });
     },
-    staleTime: 1000 * 60, // 1 min
+    // 5s stale + auto-refetch cada 20s mientras la pestaña está visible.
+    // El user fillea secciones y al instante ve el ring subir sin que
+    // tengamos que invalidar manualmente desde cada mutation.
+    staleTime: 1000 * 5,
+    refetchInterval: 1000 * 20,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
   });
 }
 

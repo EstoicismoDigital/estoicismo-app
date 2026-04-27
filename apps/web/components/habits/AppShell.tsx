@@ -420,7 +420,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="h-12 px-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center" aria-label="Estoicismo Digital">
+          <Link
+            href="/"
+            className="flex items-center"
+            aria-label="Estoicismo Digital · Ir a Hoy"
+          >
             <Logo variant="full" size="sm" />
           </Link>
           <div className="flex items-center gap-1.5">
