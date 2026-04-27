@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, ArrowDownCircle, ArrowUpCircle, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
 import { toast } from "sonner";
@@ -9,6 +9,26 @@ import {
 } from "../../hooks/useFinance";
 import { getTodayStr } from "../../lib/dateUtils";
 import type { FinanceKind } from "@estoicismo/supabase";
+
+const LAST_CAT_KEY_PREFIX = "finance:last-category:";
+
+function readLastCategory(kind: FinanceKind): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(LAST_CAT_KEY_PREFIX + kind);
+  } catch {
+    return null;
+  }
+}
+
+function writeLastCategory(kind: FinanceKind, id: string | null): void {
+  if (typeof window === "undefined" || !id) return;
+  try {
+    window.localStorage.setItem(LAST_CAT_KEY_PREFIX + kind, id);
+  } catch {
+    /* ignore */
+  }
+}
 
 /**
  * Inline transaction logger · una sola fila, dos taps.
@@ -44,7 +64,18 @@ export function QuickAddTransactionRow({
     [cats, kind]
   );
 
-  // Default category: the first one of the kind, if user hasn't picked
+  // Cuando cambia el kind, intentar usar la última categoría guardada
+  // de ese kind (si sigue existiendo). Si no, fallback a la primera.
+  useEffect(() => {
+    setCategoryId(null);
+    const last = readLastCategory(kind);
+    if (last && filteredCats.some((c) => c.id === last)) {
+      setCategoryId(last);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind, filteredCats.length]);
+
+  // Default category: la guardada > la primera del kind > null
   const effectiveCategoryId =
     categoryId ?? filteredCats[0]?.id ?? null;
 
@@ -67,8 +98,12 @@ export function QuickAddTransactionRow({
         category_id: effectiveCategoryId,
         occurred_on: getTodayStr(),
       });
+      // Recordar la última categoría usada (por kind) — la próxima
+      // vez aparece preseleccionada.
+      writeLastCategory(kind, effectiveCategoryId);
       setAmount("");
-      setCategoryId(null);
+      // No reseteamos categoryId — el user típicamente registra varios
+      // gastos de la misma categoría seguidos.
       onSaved?.();
     } catch {
       // toast handled by hook

@@ -35,7 +35,7 @@ export function DailyHeader({
     <section className="bg-bg-deep text-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-widest text-accent mb-2">
-          {dateStr}
+          Hábitos · {dateStr}
         </p>
 
         <p className="font-display italic text-white/90 text-xl sm:text-2xl mb-5 leading-snug">

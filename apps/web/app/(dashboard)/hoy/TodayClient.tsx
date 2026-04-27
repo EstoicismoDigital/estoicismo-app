@@ -83,7 +83,11 @@ export function TodayClient() {
   const exercise = useMemo(() => getStoicExerciseOfDay(), []);
 
   function jumpTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    // The ring emits the section's RitualSectionId ("inspire", "mood",
+    // …) but our HoySection anchors are prefixed with "hoy-".
+    document
+      .getElementById(`hoy-${id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
