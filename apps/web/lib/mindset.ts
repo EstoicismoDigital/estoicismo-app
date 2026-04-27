@@ -68,19 +68,84 @@ export const HILL_SIX_STEPS: HillStep[] = [
 ];
 
 export const HILL_PRINCIPLES: { key: string; label: string; summary: string }[] = [
-  { key: "deseo", label: "Deseo", summary: "El punto de partida de todo logro." },
-  { key: "fe", label: "Fe", summary: "Visualización y creencia en el logro del deseo." },
-  { key: "autosugestion", label: "Autosugestión", summary: "Medio para influir en el subconsciente." },
-  { key: "conocimiento", label: "Conocimiento especializado", summary: "Experiencias personales u observadas." },
-  { key: "imaginacion", label: "Imaginación", summary: "Taller de la mente." },
-  { key: "planificacion", label: "Planificación organizada", summary: "Cristalización del deseo en acción." },
-  { key: "decision", label: "Decisión", summary: "Dominio de la postergación." },
-  { key: "persistencia", label: "Persistencia", summary: "Esfuerzo sostenido necesario para inducir fe." },
-  { key: "mastermind", label: "Mente maestra", summary: "Poder de la cooperación estratégica." },
-  { key: "energia-sexual", label: "Transmutación sexual", summary: "Canalización de la energía creativa." },
-  { key: "subconsciente", label: "Mente subconsciente", summary: "El eslabón con la inteligencia infinita." },
-  { key: "cerebro", label: "El cerebro", summary: "Estación emisora y receptora del pensamiento." },
-  { key: "sexto-sentido", label: "Sexto sentido", summary: "La puerta al templo de la sabiduría." },
+  {
+    key: "deseo",
+    label: "Deseo",
+    summary:
+      "El motor de todo. No basta con querer — debe ser un deseo ardiente, específico, casi obsesivo. Hill: «todo lo que la mente concibe y cree, lo logra», pero solo si el deseo está respaldado por planes y persistencia.",
+  },
+  {
+    key: "fe",
+    label: "Fe",
+    summary:
+      "Visualizar lo que quieres como si ya fuera tuyo. La fe se cultiva repitiendo afirmaciones positivas hasta que el subconsciente las acepta como verdad. Sin fe, el deseo se estanca.",
+  },
+  {
+    key: "autosugestion",
+    label: "Autosugestión",
+    summary:
+      "El método para hablarle a tu subconsciente: leer tu MPD en voz alta, dos veces al día, sintiéndolo. Es el puente entre la mente consciente y la subconsciente.",
+  },
+  {
+    key: "conocimiento",
+    label: "Conocimiento especializado",
+    summary:
+      "El conocimiento general no genera dinero — el especializado sí. No tienes que saberlo todo: solo cómo y dónde conseguir lo que necesitas. La maestría supera a la educación formal.",
+  },
+  {
+    key: "imaginacion",
+    label: "Imaginación",
+    summary:
+      "El taller donde se forjan los planes. Hay imaginación sintética (combinar ideas existentes) y creativa (recibir ideas nuevas). Toda fortuna empezó como una imagen mental.",
+  },
+  {
+    key: "planificacion",
+    label: "Planificación organizada",
+    summary:
+      "Cristaliza el deseo en pasos concretos. Si tu plan falla, no abandones — crea uno nuevo. La derrota llega solo cuando dejas de planear.",
+  },
+  {
+    key: "decision",
+    label: "Decisión",
+    summary:
+      "La gente que fracasa decide lentamente y cambia rápido. La que triunfa decide rápido y cambia despacio. Vencer la postergación es el sello de los exitosos.",
+  },
+  {
+    key: "persistencia",
+    label: "Persistencia",
+    summary:
+      "Lo único que separa a los que llegan de los que no. La mayoría se rinde justo antes del éxito. Persistir es el carbono que vuelve acero al carácter.",
+  },
+  {
+    key: "mastermind",
+    label: "Mente maestra",
+    summary:
+      "Rodéate de personas que te complementen y compartan tu propósito. Dos mentes alineadas crean una tercera, invisible y poderosa. Nadie llega solo.",
+  },
+  {
+    key: "energia-sexual",
+    label: "Transmutación sexual",
+    summary:
+      "La energía sexual canalizada hacia el trabajo creativo es uno de los motores más fuertes del logro. Hill estudió genios y descubrió que la mayoría aprendió a redirigir esa energía.",
+  },
+  {
+    key: "subconsciente",
+    label: "Mente subconsciente",
+    summary:
+      "Trabaja 24/7 en lo que tú le instales. Si le das pensamientos de logro y fe, ejecuta hacia eso. Si le das duda y miedo, también. Tú eliges qué sembrar.",
+  },
+  {
+    key: "cerebro",
+    label: "El cerebro",
+    summary:
+      "Funciona como estación de radio: transmite y recibe pensamientos. Cuando tu mente vibra alto (fe, deseo), atrae mentes y oportunidades en la misma frecuencia.",
+  },
+  {
+    key: "sexto-sentido",
+    label: "Sexto sentido",
+    summary:
+      "La intuición refinada — el último principio, accesible solo cuando dominas los doce anteriores. Te avisa de oportunidades y peligros antes que la lógica.",
+  },
 ];
 
 // Quotes rotativas — visibles en cabecera y en el check-in diario.

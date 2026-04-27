@@ -39,14 +39,40 @@ export function JournalEntryModal(props: {
     setPinned(entry?.is_pinned ?? false);
   }, [open, entry, initialArea, today]);
 
+  async function handleSave() {
+    if (!content.trim()) return;
+    const tags = tagsInput
+      .split(/\s+/)
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => t.length > 0);
+    await onSave({
+      title: title.trim() || null,
+      content: content.trim(),
+      mood,
+      area,
+      tags,
+      occurred_on: occurredOn,
+      is_pinned: pinned,
+    });
+  }
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      // Cmd/Ctrl+Enter guarda desde cualquier campo del modal
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        void handleSave();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, onClose, content, tagsInput, title, mood, area, occurredOn, pinned]);
 
   if (!mounted || !open) return null;
 
@@ -204,26 +230,12 @@ export function JournalEntryModal(props: {
           <button
             type="button"
             disabled={!content.trim() || saving}
-            onClick={async () => {
-              if (!content.trim()) return;
-              const tags = tagsInput
-                .split(/\s+/)
-                .map((t) => t.trim().toLowerCase())
-                .filter((t) => t.length > 0);
-              await onSave({
-                title: title.trim() || null,
-                content: content.trim(),
-                mood,
-                area,
-                tags,
-                occurred_on: occurredOn,
-                is_pinned: pinned,
-              });
-            }}
+            onClick={handleSave}
             className={clsx(
               "px-5 py-2 rounded-lg bg-accent text-bg font-mono text-[11px] uppercase tracking-widest",
               "hover:opacity-90 disabled:opacity-40 inline-flex items-center gap-2"
             )}
+            title="Guardar (⌘ + Enter)"
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : null}
             {entry ? "Guardar" : "Crear entrada"}

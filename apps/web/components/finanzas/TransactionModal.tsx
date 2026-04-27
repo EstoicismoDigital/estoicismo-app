@@ -130,13 +130,19 @@ export function TransactionModal({
     };
   }, [open, editing, defaultKind]);
 
-  // Esc + focus trap
+  // Esc + Cmd/Ctrl+Enter + focus trap
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
+        return;
+      }
+      // Cmd/Ctrl+Enter submits desde cualquier campo
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        dialogRef.current?.requestSubmit();
         return;
       }
       if (e.key === "Tab" && dialogRef.current) {

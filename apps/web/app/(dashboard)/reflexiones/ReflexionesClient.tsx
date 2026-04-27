@@ -24,7 +24,7 @@ import {
   useUpsertMPDLog,
 } from "../../../hooks/useMindset";
 import { getTodayStr, computeStreak } from "../../../lib/dateUtils";
-import { HILL_SIX_STEPS } from "../../../lib/mindset";
+import { HILL_SIX_STEPS, HILL_PRINCIPLES } from "../../../lib/mindset";
 import { MINDSET_QUOTES } from "../../../lib/quotes";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { StoicExerciseCard } from "../../../components/mindset/StoicExerciseCard";
@@ -456,7 +456,62 @@ function MPDEditor({
           </button>
         </div>
       </form>
+
+      {/* Aprende más — los 13 principios completos de Hill */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-12">
+        <HillPrinciplesAccordion />
+      </div>
     </div>
+  );
+}
+
+function HillPrinciplesAccordion() {
+  const [open, setOpen] = useState(false);
+  return (
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className="rounded-card border border-line/60 bg-bg-alt/30 overflow-hidden"
+    >
+      <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between hover:bg-bg-alt/60 transition-colors">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-0.5">
+            Aprende más
+          </p>
+          <p className="font-body text-sm text-ink">
+            Los 13 principios completos de Napoleón Hill
+          </p>
+        </div>
+        <span className="font-mono text-xs text-muted">
+          {open ? "Cerrar" : "Abrir"}
+        </span>
+      </summary>
+      <div className="border-t border-line/60 px-5 py-5 space-y-4">
+        <p className="font-body text-xs text-muted leading-relaxed italic">
+          Hill identificó 13 principios después de entrevistar 500
+          personas exitosas durante 25 años. El MPD es la práctica
+          diaria; estos son los pilares que la sostienen. No tienes
+          que leerlos hoy — están aquí cuando los necesites.
+        </p>
+        <ol className="space-y-4">
+          {HILL_PRINCIPLES.map((p, idx) => (
+            <li key={p.key} className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full border border-accent/30 text-accent font-mono text-[10px] flex items-center justify-center mt-0.5">
+                {idx + 1}
+              </span>
+              <div className="flex-1 space-y-1">
+                <p className="font-body text-sm font-medium text-ink">
+                  {p.label}
+                </p>
+                <p className="font-body text-[13px] text-ink/75 leading-relaxed">
+                  {p.summary}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </details>
   );
 }
 

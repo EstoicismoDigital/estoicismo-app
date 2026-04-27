@@ -40,14 +40,37 @@ export function BookModal(props: {
     setNotes(book?.notes ?? "");
   }, [open, book]);
 
+  async function handleSave() {
+    if (!title.trim()) return;
+    await onSave({
+      title: title.trim(),
+      author: author.trim() || null,
+      total_pages: totalPages !== "" ? Number(totalPages) : null,
+      current_page: currentPage !== "" ? Number(currentPage) : 0,
+      cover_url: coverUrl.trim() || null,
+      category: category.trim() || null,
+      is_current: isCurrent,
+      my_summary: mySummary.trim() || null,
+      notes: notes.trim() || null,
+    });
+  }
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        void handleSave();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, onClose, title, author, totalPages, currentPage, coverUrl, category, isCurrent, mySummary, notes]);
 
   if (!mounted || !open) return null;
 
@@ -196,20 +219,8 @@ export function BookModal(props: {
           <button
             type="button"
             disabled={!title.trim() || saving}
-            onClick={async () => {
-              if (!title.trim()) return;
-              await onSave({
-                title: title.trim(),
-                author: author.trim() || null,
-                total_pages: totalPages !== "" ? Number(totalPages) : null,
-                current_page: currentPage !== "" ? Number(currentPage) : 0,
-                cover_url: coverUrl.trim() || null,
-                category: category.trim() || null,
-                is_current: isCurrent,
-                my_summary: mySummary.trim() || null,
-                notes: notes.trim() || null,
-              });
-            }}
+            onClick={handleSave}
+            title="Guardar (⌘ + Enter)"
             className={clsx(
               "px-5 py-2 rounded-lg bg-accent text-bg font-mono text-[11px] uppercase tracking-widest",
               "hover:opacity-90 disabled:opacity-40 inline-flex items-center gap-2"
