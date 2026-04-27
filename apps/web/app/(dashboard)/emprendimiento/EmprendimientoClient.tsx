@@ -251,6 +251,7 @@ function ProfileCard(props: {
 // ─────────────────────────────────────────────────────────────
 
 function ExploringSection() {
+  const { data: profile } = useBusinessProfile();
   const { data: ideas = [] } = useIdeas();
   const createIdeaM = useCreateIdea();
   const updateIdeaM = useUpdateIdea();
@@ -281,6 +282,7 @@ function ExploringSection() {
           updateIdeaM.mutate({ id, input: { is_favorite: !current } })
         }
         onDelete={(id) => setConfirmDelete(id)}
+        hasExistingBusiness={!!profile?.name && profile.status !== "exploring"}
       />
 
       <ConfirmDialog

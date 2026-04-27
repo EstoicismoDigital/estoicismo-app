@@ -1,17 +1,32 @@
 "use client";
 import { useState } from "react";
-import { Star, StarOff, Trash2, ChevronDown, ChevronUp, Target, Skull } from "lucide-react";
+import {
+  Star,
+  StarOff,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Target,
+  Skull,
+  Rocket,
+} from "lucide-react";
 import { clsx } from "clsx";
 import type { BusinessIdea } from "@estoicismo/supabase";
 import { ikigaiOverallScore, IKIGAI_AXES } from "../../lib/business/ikigai";
 import { IkigaiRadar } from "./IkigaiRadar";
+import { ActivateIdeaModal } from "./ActivateIdeaModal";
 
 export function IdeasList(props: {
   ideas: BusinessIdea[];
   onToggleFavorite: (id: string, current: boolean) => void;
   onDelete: (id: string) => void;
+  /** Si el user ya tiene un negocio configurado — modal advierte. */
+  hasExistingBusiness?: boolean;
 }) {
-  const { ideas, onToggleFavorite, onDelete } = props;
+  const { ideas, onToggleFavorite, onDelete, hasExistingBusiness } = props;
+  const [activatingIdea, setActivatingIdea] = useState<BusinessIdea | null>(
+    null
+  );
   if (ideas.length === 0) return null;
   return (
     <section className="space-y-3">
@@ -23,9 +38,17 @@ export function IdeasList(props: {
             idea={i}
             onToggleFavorite={() => onToggleFavorite(i.id, i.is_favorite)}
             onDelete={() => onDelete(i.id)}
+            onActivate={() => setActivatingIdea(i)}
           />
         ))}
       </ul>
+      {activatingIdea && (
+        <ActivateIdeaModal
+          idea={activatingIdea}
+          hasExistingBusiness={hasExistingBusiness ?? false}
+          onClose={() => setActivatingIdea(null)}
+        />
+      )}
     </section>
   );
 }
@@ -34,9 +57,11 @@ function IdeaCard(props: {
   idea: BusinessIdea;
   onToggleFavorite: () => void;
   onDelete: () => void;
+  onActivate: () => void;
 }) {
-  const { idea, onToggleFavorite, onDelete } = props;
+  const { idea, onToggleFavorite, onDelete, onActivate } = props;
   const [expanded, setExpanded] = useState(false);
+  const isActivated = idea.title.startsWith("✓ ");
 
   const meta = idea.meta ?? {};
   const ikigaiOverall = meta.ikigai
@@ -107,6 +132,17 @@ function IdeaCard(props: {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {!isActivated && (
+            <button
+              type="button"
+              onClick={onActivate}
+              className="text-accent hover:opacity-80 p-1"
+              aria-label="Activar como mi negocio"
+              title="Convertir en mi negocio activo"
+            >
+              <Rocket size={14} />
+            </button>
+          )}
           {(hasIkigai || deepestWhy || meta.premortem) && (
             <button
               type="button"
