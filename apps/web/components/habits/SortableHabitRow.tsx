@@ -13,6 +13,7 @@ type Props = {
   onToggle: (habit: Habit, isCompleted: boolean, date?: string) => void;
   onEdit: (habit: Habit) => void;
   onArchive: (habit: Habit) => void;
+  onGraduate?: (habit: Habit) => void;
   onNote?: (habit: Habit, currentNote: string | null) => void;
   onViewDetail?: (habit: Habit) => void;
 };

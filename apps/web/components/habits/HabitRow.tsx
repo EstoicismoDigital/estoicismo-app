@@ -13,6 +13,7 @@ export function HabitRow({
   onToggle,
   onEdit,
   onArchive,
+  onGraduate,
   onNote,
   onViewDetail,
   dragHandle,
@@ -27,6 +28,8 @@ export function HabitRow({
   onToggle: (habit: Habit, isCompleted: boolean, date?: string) => void;
   onEdit: (habit: Habit) => void;
   onArchive: (habit: Habit) => void;
+  /** Si se provee, aparece "Graduar" en el menú cuando streak >= 30. */
+  onGraduate?: (habit: Habit) => void;
   /** Optional. Opens the note dialog for today's log. Ignored if habit isn't completed today. */
   onNote?: (habit: Habit, currentNote: string | null) => void;
   /** Optional. Navigates to the habit's detail page. */
@@ -208,6 +211,8 @@ export function HabitRow({
         onClose={() => setMenuOpen(false)}
         onEdit={() => onEdit(habit)}
         onArchive={() => onArchive(habit)}
+        onGraduate={onGraduate ? () => onGraduate(habit) : undefined}
+        canGraduate={streak >= 30}
         onNote={
           isCompletedToday && onNote
             ? () => onNote(habit, noteForToday)

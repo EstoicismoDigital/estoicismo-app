@@ -1,7 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { RotateCcw, Trash2, ArchiveRestore } from "lucide-react";
+import {
+  RotateCcw,
+  Trash2,
+  ArchiveRestore,
+  GraduationCap,
+} from "lucide-react";
 import {
   useArchivedHabits,
   useUnarchiveHabit,
@@ -15,6 +20,17 @@ export function HistorialClient() {
   const del = useDeleteHabit();
 
   const [confirmDelete, setConfirmDelete] = useState<Habit | null>(null);
+
+  // Separar graduados de archivados normales
+  const { graduated, archived } = useMemo(() => {
+    const g: Habit[] = [];
+    const a: Habit[] = [];
+    for (const h of habits) {
+      if (h.graduated_at) g.push(h);
+      else a.push(h);
+    }
+    return { graduated: g, archived: a };
+  }, [habits]);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -33,7 +49,7 @@ export function HistorialClient() {
         </div>
       </section>
 
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
         {isLoading ? (
           <div className="flex flex-col gap-2.5">
             {Array.from({ length: 2 }).map((_, i) => (
@@ -46,18 +62,64 @@ export function HistorialClient() {
         ) : habits.length === 0 ? (
           <EmptyArchive />
         ) : (
-          <ul className="flex flex-col gap-2.5" role="list">
-            {habits.map((habit) => (
-              <li key={habit.id}>
-                <ArchivedRow
-                  habit={habit}
-                  onRestore={() => unarchive.mutate(habit.id)}
-                  onDelete={() => setConfirmDelete(habit)}
-                  busy={unarchive.isPending || del.isPending}
-                />
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* Graduados — sección de logros */}
+            {graduated.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <GraduationCap size={14} className="text-success" />
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-success">
+                    Logros · {graduated.length}{" "}
+                    {graduated.length === 1 ? "graduado" : "graduados"}
+                  </p>
+                  <span className="h-px flex-1 bg-line" />
+                </div>
+                <p className="font-body text-sm text-muted leading-relaxed -mt-1">
+                  Hábitos que dominaste — ya son parte de ti, no necesitas
+                  rastrearlos más.
+                </p>
+                <ul className="flex flex-col gap-2.5" role="list">
+                  {graduated.map((habit) => (
+                    <li key={habit.id}>
+                      <ArchivedRow
+                        habit={habit}
+                        onRestore={() => unarchive.mutate(habit.id)}
+                        onDelete={() => setConfirmDelete(habit)}
+                        busy={unarchive.isPending || del.isPending}
+                        graduated
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Archivados normales */}
+            {archived.length > 0 && (
+              <div className="space-y-3">
+                {graduated.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
+                      Archivados · {archived.length}
+                    </p>
+                    <span className="h-px flex-1 bg-line" />
+                  </div>
+                )}
+                <ul className="flex flex-col gap-2.5" role="list">
+                  {archived.map((habit) => (
+                    <li key={habit.id}>
+                      <ArchivedRow
+                        habit={habit}
+                        onRestore={() => unarchive.mutate(habit.id)}
+                        onDelete={() => setConfirmDelete(habit)}
+                        busy={unarchive.isPending || del.isPending}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -102,27 +164,48 @@ function ArchivedRow({
   onRestore,
   onDelete,
   busy,
+  graduated,
 }: {
   habit: Habit;
   onRestore: () => void;
   onDelete: () => void;
   busy: boolean;
+  graduated?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-card bg-bg border border-line">
+    <div
+      className={
+        graduated
+          ? "flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-card bg-success/5 border border-success/30"
+          : "flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-card bg-bg border border-line"
+      }
+    >
       <div
-        className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+        className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl relative"
         style={{ backgroundColor: `${habit.color}22`, color: habit.color }}
         aria-hidden
       >
         <span>{habit.icon}</span>
+        {graduated && (
+          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-success text-white flex items-center justify-center text-xs">
+            🎓
+          </span>
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-body font-medium text-[15px] sm:text-base text-ink truncate">
           {habit.name}
         </h3>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5">
-          Archivado
+        <p
+          className={
+            graduated
+              ? "font-mono text-[10px] uppercase tracking-widest text-success mt-0.5"
+              : "font-mono text-[10px] uppercase tracking-widest text-muted mt-0.5"
+          }
+        >
+          {graduated
+            ? `Graduado ${formatRelative(habit.graduated_at ?? null)}`
+            : "Archivado"}
         </p>
       </div>
       <div className="flex items-center gap-1.5">
@@ -202,4 +285,21 @@ function DeleteConfirm({
       </div>
     </div>
   );
+}
+
+function formatRelative(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const now = new Date();
+  const days = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (days === 0) return "hoy";
+  if (days === 1) return "ayer";
+  if (days < 30) return `hace ${days} días`;
+  return date.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }

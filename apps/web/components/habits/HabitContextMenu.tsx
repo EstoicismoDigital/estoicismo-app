@@ -6,6 +6,8 @@ export function HabitContextMenu({
   onClose,
   onEdit,
   onArchive,
+  onGraduate,
+  canGraduate,
   onNote,
   onViewDetail,
   hasNote,
@@ -14,6 +16,10 @@ export function HabitContextMenu({
   onClose: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  /** Si onGraduate viene + canGraduate=true, se muestra "Graduar". */
+  onGraduate?: () => void;
+  /** Sólo permite graduar cuando hay racha suficiente (>=30 días). */
+  canGraduate?: boolean;
   /** Optional. If omitted, the "note" entry is hidden. */
   onNote?: () => void;
   /** Optional. If omitted, the "view detail" entry is hidden. */
@@ -85,6 +91,21 @@ export function HabitContextMenu({
       >
         Editar
       </button>
+      {onGraduate && canGraduate && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            onClose();
+            onGraduate();
+          }}
+          className="w-full text-left px-4 py-2.5 font-body text-sm text-success hover:bg-success/5 transition-colors border-t border-line inline-flex items-center gap-2"
+          title="Lo dominé — ya es parte de mí"
+        >
+          <span>🎓</span>
+          <span>Graduar</span>
+        </button>
+      )}
       <button
         type="button"
         role="menuitem"

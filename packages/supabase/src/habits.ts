@@ -79,10 +79,29 @@ export async function archiveHabit(sb: SB, id: string): Promise<void> {
   if (error) throw error;
 }
 
+/**
+ * Graduate — lo dominé, ya es parte de mí. Distinto de archive:
+ * el user lo lleva con orgullo, aparece en "Logros" en /historial
+ * con badge.
+ */
+export async function graduateHabit(sb: SB, id: string): Promise<void> {
+  const { error } = await sb
+    .from("habits")
+    .update({
+      is_archived: true,
+      graduated_at: new Date().toISOString(),
+    } as never)
+    .eq("id", id);
+  if (error) throw error;
+}
+
 export async function unarchiveHabit(sb: SB, id: string): Promise<void> {
   const { error } = await sb
     .from("habits")
-    .update({ is_archived: false } as never)
+    .update({
+      is_archived: false,
+      graduated_at: null,
+    } as never)
     .eq("id", id);
   if (error) throw error;
 }

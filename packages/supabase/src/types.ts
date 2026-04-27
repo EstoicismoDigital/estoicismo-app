@@ -25,6 +25,13 @@ export type Habit = {
   reminder_time: string | null;
   is_archived: boolean;
   /**
+   * Si el user "graduó" el hábito (lo dominé — lo retiro porque ya
+   * es parte de mí). graduated_at no-null implica is_archived=true,
+   * pero la UI lo trata distinto que un archivado normal: aparece
+   * en "Logros" en /historial con badge.
+   */
+  graduated_at?: string | null;
+  /**
    * Manual sort order. Lower = higher in the list. Ties broken by created_at.
    * Optional + nullable in the type so older fixtures/tests continue to work —
    * the live DB column is NOT NULL with a server default of 0, so fetched rows

@@ -42,6 +42,7 @@ import {
   useCreateHabit,
   useUpdateHabit,
   useArchiveHabit,
+  useGraduateHabit,
   useUpsertHabitLogNote,
   useReorderHabits,
 } from "../../hooks/useHabits";
@@ -82,6 +83,7 @@ export function HabitsDashboard() {
   const createM = useCreateHabit();
   const updateM = useUpdateHabit();
   const archiveM = useArchiveHabit();
+  const graduateM = useGraduateHabit();
   const noteM = useUpsertHabitLogNote();
   const reorderM = useReorderHabits();
 
@@ -321,6 +323,7 @@ export function HabitsDashboard() {
                         }
                         onEdit={openEdit}
                         onArchive={requestArchive}
+                        onGraduate={(h) => graduateM.mutate(h.id)}
                         onNote={openNote}
                         onViewDetail={(h) => router.push(`/habitos/${h.id}`)}
                       />

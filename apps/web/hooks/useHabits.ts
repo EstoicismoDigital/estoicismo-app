@@ -357,6 +357,24 @@ export function useArchiveHabit() {
   });
 }
 
+export function useGraduateHabit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { graduateHabit } = await import("@estoicismo/supabase");
+      await graduateHabit(sb, id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["habits"] });
+      toast.success("🎓 Hábito graduado", {
+        description: "Lo dominaste — ya es parte de ti. Vive en /historial.",
+      });
+    },
+    onError: () => toast.error("No se pudo graduar."),
+  });
+}
+
 // ─────────────────────────────────────────────────────────────
 // STREAK FREEZES — congelar un día para no romper la racha
 // ─────────────────────────────────────────────────────────────
