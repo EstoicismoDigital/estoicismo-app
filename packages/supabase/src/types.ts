@@ -108,6 +108,11 @@ export type Database = {
       profiles: { Row: Profile; Insert: Omit<Profile, "created_at" | "updated_at">; Update: Partial<Profile> };
       habits: { Row: Habit; Insert: Omit<Habit, "id" | "created_at">; Update: Partial<Habit> };
       habit_logs: { Row: HabitLog; Insert: Omit<HabitLog, "id">; Update: Partial<HabitLog> };
+      habit_streak_freezes: {
+        Row: import("./habits").HabitStreakFreeze;
+        Insert: Omit<import("./habits").HabitStreakFreeze, "id" | "created_at">;
+        Update: Partial<import("./habits").HabitStreakFreeze>;
+      };
       stoic_quotes: { Row: StoricQuote; Insert: Omit<StoricQuote, "id">; Update: Partial<StoricQuote> };
       finance_categories: {
         Row: FinanceCategory;

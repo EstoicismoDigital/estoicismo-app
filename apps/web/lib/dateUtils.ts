@@ -40,10 +40,11 @@ export function getMonthGrid(year: number, month: number): (string | null)[] {
   return cells;
 }
 
-export function computeStreak(dates: string[]): number {
-  // dates: sorted list of "YYYY-MM-DD" (descending or ascending, we'll sort)
-  if (!dates.length) return 0;
-  const set = new Set(dates);
+export function computeStreak(dates: string[], frozenDates: string[] = []): number {
+  // dates: completados; frozenDates: días "congelados" que NO rompen el chain.
+  if (!dates.length && !frozenDates.length) return 0;
+  // Set unificado: completed + frozen cuentan ambos como "no roto".
+  const set = new Set<string>([...dates, ...frozenDates]);
   let streak = 0;
   const d = new Date();
   const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

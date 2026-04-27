@@ -209,3 +209,57 @@ export const HABIT_EMOJIS = [
   "📝",
   "🌅",
 ] as const;
+
+// ─────────────────────────────────────────────────────────────
+// STREAK FREEZES
+// ─────────────────────────────────────────────────────────────
+
+export type HabitStreakFreeze = {
+  id: string;
+  user_id: string;
+  habit_id: string;
+  frozen_on: string;
+  reason: string | null;
+  created_at: string;
+};
+
+export async function fetchStreakFreezes(
+  sb: SB,
+  userId: string,
+  opts: { habit_id?: string; limit?: number } = {}
+): Promise<HabitStreakFreeze[]> {
+  let q = sb
+    .from("habit_streak_freezes")
+    .select("*")
+    .eq("user_id", userId)
+    .order("frozen_on", { ascending: false });
+  if (opts.habit_id) q = q.eq("habit_id", opts.habit_id);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as HabitStreakFreeze[];
+}
+
+export async function createStreakFreeze(
+  sb: SB,
+  userId: string,
+  input: { habit_id: string; frozen_on: string; reason?: string | null }
+): Promise<HabitStreakFreeze> {
+  const { data, error } = await sb
+    .from("habit_streak_freezes")
+    .insert({
+      user_id: userId,
+      habit_id: input.habit_id,
+      frozen_on: input.frozen_on,
+      reason: input.reason ?? null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as HabitStreakFreeze;
+}
+
+export async function deleteStreakFreeze(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("habit_streak_freezes").delete().eq("id", id);
+  if (error) throw error;
+}

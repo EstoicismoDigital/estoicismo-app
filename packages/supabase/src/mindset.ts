@@ -288,3 +288,251 @@ export async function toggleFrequencyFavorite(
     if (error) throw error;
   }
 }
+
+// ─────────────────────────────────────────────────────────────
+// VISION ITEMS · MOOD LOGS · FUTURE LETTERS
+// ─────────────────────────────────────────────────────────────
+
+export type VisionItemKind = "image" | "text" | "quote";
+
+export type MindsetVisionItem = {
+  id: string;
+  user_id: string;
+  kind: VisionItemKind;
+  image_url: string | null;
+  caption: string | null;
+  category: string | null;
+  position: number;
+  weight: number | null;
+  achieved: boolean;
+  achieved_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateVisionItemInput = {
+  kind?: VisionItemKind;
+  image_url?: string | null;
+  caption?: string | null;
+  category?: string | null;
+  weight?: number | null;
+};
+export type UpdateVisionItemInput = Partial<CreateVisionItemInput> & {
+  achieved?: boolean;
+  position?: number;
+};
+
+export async function fetchVisionItems(
+  sb: SB,
+  userId: string,
+  opts: { include_achieved?: boolean } = {}
+): Promise<MindsetVisionItem[]> {
+  let q = sb
+    .from("mindset_vision_items")
+    .select("*")
+    .eq("user_id", userId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (opts.include_achieved === false) q = q.eq("achieved", false);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as MindsetVisionItem[];
+}
+
+export async function createVisionItem(
+  sb: SB,
+  userId: string,
+  input: CreateVisionItemInput
+): Promise<MindsetVisionItem> {
+  const { data, error } = await sb
+    .from("mindset_vision_items")
+    .insert({
+      user_id: userId,
+      kind: input.kind ?? "image",
+      image_url: input.image_url ?? null,
+      caption: input.caption ?? null,
+      category: input.category ?? null,
+      weight: input.weight ?? null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetVisionItem;
+}
+
+export async function updateVisionItem(
+  sb: SB,
+  id: string,
+  input: UpdateVisionItemInput
+): Promise<MindsetVisionItem> {
+  const update: Record<string, unknown> = { ...input };
+  if (input.achieved === true) update.achieved_at = new Date().toISOString();
+  if (input.achieved === false) update.achieved_at = null;
+  const { data, error } = await sb
+    .from("mindset_vision_items")
+    .update(update as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetVisionItem;
+}
+
+export async function deleteVisionItem(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("mindset_vision_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// MOOD LOGS
+// ─────────────────────────────────────────────────────────────
+
+export type MindsetMoodLog = {
+  id: string;
+  user_id: string;
+  occurred_on: string;
+  mood: number;
+  energy: number | null;
+  tags: string[];
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UpsertMoodLogInput = {
+  occurred_on: string;
+  mood: number;
+  energy?: number | null;
+  tags?: string[];
+  notes?: string | null;
+};
+
+export async function fetchMoodLogs(
+  sb: SB,
+  userId: string,
+  opts: { from?: string; to?: string; limit?: number } = {}
+): Promise<MindsetMoodLog[]> {
+  let q = sb
+    .from("mindset_mood_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("occurred_on", { ascending: false });
+  if (opts.from) q = q.gte("occurred_on", opts.from);
+  if (opts.to) q = q.lte("occurred_on", opts.to);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as MindsetMoodLog[];
+}
+
+export async function fetchMoodLogForDate(
+  sb: SB,
+  userId: string,
+  date: string
+): Promise<MindsetMoodLog | null> {
+  const { data, error } = await sb
+    .from("mindset_mood_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("occurred_on", date)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as unknown as MindsetMoodLog | null;
+}
+
+export async function upsertMoodLog(
+  sb: SB,
+  userId: string,
+  input: UpsertMoodLogInput
+): Promise<MindsetMoodLog> {
+  const { data, error } = await sb
+    .from("mindset_mood_logs")
+    .upsert(
+      {
+        user_id: userId,
+        occurred_on: input.occurred_on,
+        mood: input.mood,
+        energy: input.energy ?? null,
+        tags: input.tags ?? [],
+        notes: input.notes ?? null,
+      } as never,
+      { onConflict: "user_id,occurred_on" }
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetMoodLog;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FUTURE LETTERS
+// ─────────────────────────────────────────────────────────────
+
+export type MindsetFutureLetter = {
+  id: string;
+  user_id: string;
+  open_on: string;
+  title: string | null;
+  content: string;
+  is_opened: boolean;
+  opened_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateFutureLetterInput = {
+  open_on: string;
+  title?: string | null;
+  content: string;
+};
+
+export async function fetchFutureLetters(
+  sb: SB,
+  userId: string
+): Promise<MindsetFutureLetter[]> {
+  const { data, error } = await sb
+    .from("mindset_future_letters")
+    .select("*")
+    .eq("user_id", userId)
+    .order("open_on", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as MindsetFutureLetter[];
+}
+
+export async function createFutureLetter(
+  sb: SB,
+  userId: string,
+  input: CreateFutureLetterInput
+): Promise<MindsetFutureLetter> {
+  const { data, error } = await sb
+    .from("mindset_future_letters")
+    .insert({
+      user_id: userId,
+      open_on: input.open_on,
+      title: input.title ?? null,
+      content: input.content,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetFutureLetter;
+}
+
+export async function openFutureLetter(
+  sb: SB,
+  id: string
+): Promise<MindsetFutureLetter> {
+  const { data, error } = await sb
+    .from("mindset_future_letters")
+    .update({ is_opened: true, opened_at: new Date().toISOString() } as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as MindsetFutureLetter;
+}
+
+export async function deleteFutureLetter(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("mindset_future_letters").delete().eq("id", id);
+  if (error) throw error;
+}

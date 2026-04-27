@@ -1,6 +1,7 @@
 "use client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractErrorMessage } from "../lib/errors";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import {
   fetchHabits,
@@ -353,5 +354,53 @@ export function useArchiveHabit() {
       toast.success("Hábito archivado");
     },
     onError: () => toast.error("No se pudo archivar."),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// STREAK FREEZES — congelar un día para no romper la racha
+// ─────────────────────────────────────────────────────────────
+
+export function useStreakFreezes(habitId?: string): UseQueryResult<
+  import("@estoicismo/supabase").HabitStreakFreeze[]
+> {
+  return useQuery({
+    queryKey: ["habits", "freezes", habitId ?? "all"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchStreakFreezes } = await import("@estoicismo/supabase");
+      return fetchStreakFreezes(sb, await getUserId(), { habit_id: habitId });
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+export function useFreezeDay() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { habit_id: string; frozen_on: string; reason?: string | null }) => {
+      const sb = getSupabaseBrowserClient();
+      const { createStreakFreeze } = await import("@estoicismo/supabase");
+      return createStreakFreeze(sb, await getUserId(), input);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["habits", "freezes"] });
+      toast.success("Día congelado", { description: "No rompe tu racha." });
+    },
+    onError: (err) => toast.error("No se pudo congelar el día.", {
+      description: extractErrorMessage(err),
+    }),
+  });
+}
+
+export function useUnfreezeDay() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteStreakFreeze } = await import("@estoicismo/supabase");
+      await deleteStreakFreeze(sb, id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["habits", "freezes"] }),
   });
 }
