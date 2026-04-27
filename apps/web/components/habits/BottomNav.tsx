@@ -89,7 +89,8 @@ export function BottomNav({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Navegación principal"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-alt/95 backdrop-blur-sm border-t border-line"
+      data-print-hide
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-bg-alt/95 backdrop-blur-sm border-t border-line print:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="flex items-stretch justify-around h-14" role="list">

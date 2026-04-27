@@ -50,7 +50,8 @@ export function QuickCaptureFab() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Captura rápida en diario"
-        className="md:hidden fixed left-4 bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] z-30 w-12 h-12 rounded-full bg-ink text-bg shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+        data-print-hide
+        className="md:hidden fixed left-4 bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] z-30 w-12 h-12 rounded-full bg-ink text-bg shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all print:hidden"
       >
         <Pencil size={18} />
       </button>

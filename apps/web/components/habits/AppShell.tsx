@@ -12,6 +12,10 @@ import { BottomNav } from "./BottomNav";
 import { OfflineIndicator } from "./OfflineIndicator";
 import { Logo } from "../brand/Logo";
 import { QuickCaptureFab } from "../journal/QuickCaptureFab";
+import {
+  CommandPalette,
+  useCommandPaletteShortcut,
+} from "../ui/CommandPalette";
 
 /**
  * Top-level modules. Each owns a colored accent (see globals.css
@@ -365,6 +369,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dataModule = onAjustes ? undefined : activeModule;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
+  const palette = useCommandPaletteShortcut();
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
@@ -427,6 +432,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <BottomNav pathname={pathname} />
       <QuickCaptureFab />
+      <CommandPalette
+        open={palette.open}
+        onClose={() => palette.setOpen(false)}
+      />
     </div>
   );
 }

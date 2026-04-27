@@ -195,3 +195,21 @@ button {
 .font-mono.uppercase {
   font-weight: 500;
 }
+
+/* Print styles · usadas por el anuario (window.print).
+   Forzamos blanco para no quemar tinta y ocultamos UI no esencial. */
+@media print {
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  /* Header móvil, bottom nav, fab, comando palette: fuera. */
+  header.md\:hidden,
+  [data-print-hide] {
+    display: none !important;
+  }
+  main {
+    padding-bottom: 0 !important;
+  }
+}
