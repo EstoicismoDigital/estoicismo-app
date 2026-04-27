@@ -8,6 +8,7 @@ import {
   Compass,
   Sparkles,
 } from "lucide-react";
+import { clsx } from "clsx";
 import { useProfile } from "../../../hooks/useProfile";
 import { useTodayRitual, useRitualStreak } from "../../../hooks/useTodayRitual";
 import { useTodaySkips } from "../../../hooks/useTodaySkips";
@@ -210,7 +211,7 @@ export function TodayClient() {
             <QuickAddTransactionRow defaultKind="income" />
             {txToday.length > 0 && (
               <div className="rounded-lg border border-line bg-bg-alt/40 p-3 mt-2">
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-2">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-muted">
                     Hoy: {txToday.length}{" "}
                     {txToday.length === 1 ? "movimiento" : "movimientos"}
@@ -222,7 +223,44 @@ export function TodayClient() {
                     Ver todas →
                   </Link>
                 </div>
-                <div className="flex items-baseline gap-3 flex-wrap">
+
+                {/* Lista de los últimos 3 movimientos del día */}
+                <ul className="space-y-1 mb-2">
+                  {txToday.slice(0, 3).map((t) => (
+                    <li
+                      key={t.id}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      <span
+                        className={clsx(
+                          "h-1.5 w-1.5 rounded-full shrink-0",
+                          t.kind === "income" ? "bg-success" : "bg-danger"
+                        )}
+                      />
+                      <span className="font-body text-ink truncate flex-1">
+                        {t.note ?? "—"}
+                      </span>
+                      <span
+                        className={clsx(
+                          "font-mono tabular-nums shrink-0",
+                          t.kind === "income"
+                            ? "text-success"
+                            : "text-danger"
+                        )}
+                      >
+                        {t.kind === "income" ? "+" : "-"}
+                        {formatMoney(Number(t.amount), t.currency)}
+                      </span>
+                    </li>
+                  ))}
+                  {txToday.length > 3 && (
+                    <li className="font-mono text-[10px] text-muted text-center pt-1">
+                      +{txToday.length - 3} más
+                    </li>
+                  )}
+                </ul>
+
+                <div className="flex items-baseline gap-3 flex-wrap pt-2 border-t border-line/60">
                   {incomeToday > 0 && (
                     <span className="text-success font-display italic text-sm">
                       +{formatMoney(incomeToday, currency)}
