@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useProfile } from "../../../hooks/useProfile";
 import { useTodayRitual, useRitualStreak } from "../../../hooks/useTodayRitual";
+import { useTodaySkips } from "../../../hooks/useTodaySkips";
 import { useTransactions } from "../../../hooks/useFinance";
 import { getTodayStr } from "../../../lib/dateUtils";
 import { formatMoney } from "../../../lib/finance";
@@ -42,8 +43,32 @@ import { DailyPromptCard } from "../../../components/journal/DailyPromptCard";
 export function TodayClient() {
   const today = useMemo(() => getTodayStr(), []);
   const { data: profile } = useProfile();
-  const { data: status, isLoading: statusLoading } = useTodayRitual();
+  const { data: rawStatus, isLoading: statusLoading } = useTodayRitual();
   const { data: streak = 0 } = useRitualStreak();
+  const { isSkipped, toggle: toggleSkip } = useTodaySkips();
+
+  // Mezclar skips locales con el status del DB: skipped sections cuentan
+  // como done.
+  const status = useMemo(() => {
+    if (!rawStatus) return rawStatus;
+    const sections = rawStatus.sections.map((s) => ({
+      ...s,
+      done: s.done || isSkipped(s.id),
+    }));
+    const available = sections.filter((s) => s.available);
+    const done = available.filter((s) => s.done);
+    const completedCount = done.length;
+    const availableCount = available.length;
+    const ratio = availableCount > 0 ? completedCount / availableCount : 0;
+    return {
+      ...rawStatus,
+      sections,
+      completedCount,
+      availableCount,
+      ratio,
+      ritualMet: completedCount >= Math.min(4, availableCount),
+    };
+  }, [rawStatus, isSkipped]);
 
   // Transacciones de hoy para mostrar en la sección de plata
   const { data: txToday = [] } = useTransactions({ from: today, to: today });
@@ -106,6 +131,8 @@ export function TodayClient() {
           title="Tu por qué"
           caption="Léelo antes que nada. Tu cerebro escucha."
           done={status?.sections.find((s) => s.id === "inspire")?.done}
+          skipped={isSkipped("inspire")}
+          onSkipToggle={() => toggleSkip("inspire")}
           anchor="hoy-inspire"
         >
           <AffirmationStripe />
@@ -118,9 +145,11 @@ export function TodayClient() {
           title="¿Cómo amaneces?"
           caption="Un toque. Sin pensarlo dos veces."
           done={status?.sections.find((s) => s.id === "mood")?.done}
+          skipped={isSkipped("mood")}
+          onSkipToggle={() => toggleSkip("mood")}
           anchor="hoy-mood"
         >
-          <MoodTrackerCard />
+          <MoodTrackerCard embed />
         </HoySection>
 
         {/* 3. Gratitud */}
@@ -130,9 +159,11 @@ export function TodayClient() {
           title="Tres gracias"
           caption="No tienen que ser grandes. La práctica es notar."
           done={status?.sections.find((s) => s.id === "gratitude")?.done}
+          skipped={isSkipped("gratitude")}
+          onSkipToggle={() => toggleSkip("gratitude")}
           anchor="hoy-gratitude"
         >
-          <GratitudeCard />
+          <GratitudeCard embed />
         </HoySection>
 
         {/* 4. Hábitos */}
@@ -143,6 +174,8 @@ export function TodayClient() {
             title="Hábitos de hoy"
             caption="Solo los que aplican según tu frecuencia."
             done={status?.sections.find((s) => s.id === "habits")?.done}
+            skipped={isSkipped("habits")}
+            onSkipToggle={() => toggleSkip("habits")}
             anchor="hoy-habits"
           >
             <TodayHabitsList />
@@ -156,6 +189,8 @@ export function TodayClient() {
           title="Plata de hoy"
           caption="Cada peso registrado hoy. Hazlo en frío, no esperes a fin de mes."
           done={status?.sections.find((s) => s.id === "money")?.done}
+          skipped={isSkipped("money")}
+          onSkipToggle={() => toggleSkip("money")}
           anchor="hoy-money"
           hint="Tip: Enter para guardar y seguir. Más opciones en /finanzas."
         >
@@ -205,6 +240,8 @@ export function TodayClient() {
             title="Negocio"
             caption="Si vendiste hoy o cerraste tarea — acá."
             done={status?.sections.find((s) => s.id === "business")?.done}
+            skipped={isSkipped("business")}
+            onSkipToggle={() => toggleSkip("business")}
             anchor="hoy-business"
           >
             <div className="space-y-2">
@@ -227,6 +264,8 @@ export function TodayClient() {
             title="Cuerpo"
             caption="Workout, sets, medidas — lo que toque hoy."
             done={status?.sections.find((s) => s.id === "body")?.done}
+            skipped={isSkipped("body")}
+            onSkipToggle={() => toggleSkip("body")}
             anchor="hoy-body"
           >
             <Link
@@ -254,6 +293,8 @@ export function TodayClient() {
             title="Lectura"
             caption="20 minutos hoy = 12 libros al año."
             done={status?.sections.find((s) => s.id === "reading")?.done}
+            skipped={isSkipped("reading")}
+            onSkipToggle={() => toggleSkip("reading")}
             anchor="hoy-reading"
           >
             <QuickAddReadingRow />
@@ -267,6 +308,8 @@ export function TodayClient() {
           title="Reflexión"
           caption="Cierra tu mañana con un pensamiento real."
           done={status?.sections.find((s) => s.id === "reflect")?.done}
+          skipped={isSkipped("reflect")}
+          onSkipToggle={() => toggleSkip("reflect")}
           anchor="hoy-reflect"
         >
           <div className="space-y-3">

@@ -44,7 +44,7 @@ const COMMON_TAGS = [
   "amor",
 ];
 
-export function MoodTrackerCard() {
+export function MoodTrackerCard({ embed = false }: { embed?: boolean } = {}) {
   const today = useMemo(() => getTodayStr(), []);
   const { data: log, isLoading } = useMoodLogForDate(today);
   const upsert = useUpsertMoodLog();
@@ -100,34 +100,47 @@ export function MoodTrackerCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6 flex items-center justify-center min-h-[120px]">
+      <div
+        className={clsx(
+          "flex items-center justify-center min-h-[120px]",
+          embed ? "py-4" : "rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6"
+        )}
+      >
         <Loader2 size={18} className="animate-spin text-muted" />
       </div>
     );
   }
 
   return (
-    <div className="rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <HeartPulse size={14} className="text-accent" />
-        <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-          Tu estado · hoy
-        </p>
-        <span className="h-px flex-1 bg-line" />
-        {(upsert.isPending || saved) && (
-          <span className="font-mono text-[9px] uppercase tracking-widest text-muted inline-flex items-center gap-1">
-            {upsert.isPending ? (
-              <>
-                <Loader2 size={10} className="animate-spin" /> guardando
-              </>
-            ) : (
-              <>
-                <Check size={10} className="text-success" /> guardado
-              </>
-            )}
-          </span>
-        )}
-      </div>
+    <div
+      className={
+        embed
+          ? ""
+          : "rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6"
+      }
+    >
+      {!embed && (
+        <div className="flex items-center gap-2 mb-4">
+          <HeartPulse size={14} className="text-accent" />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Tu estado · hoy
+          </p>
+          <span className="h-px flex-1 bg-line" />
+          {(upsert.isPending || saved) && (
+            <span className="font-mono text-[9px] uppercase tracking-widest text-muted inline-flex items-center gap-1">
+              {upsert.isPending ? (
+                <>
+                  <Loader2 size={10} className="animate-spin" /> guardando
+                </>
+              ) : (
+                <>
+                  <Check size={10} className="text-success" /> guardado
+                </>
+              )}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Mood selector */}
       <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-2">

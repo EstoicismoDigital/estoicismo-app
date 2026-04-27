@@ -73,7 +73,7 @@ export function AffirmationStripe() {
       <div className="flex items-center gap-2 mb-2">
         <Quote size={14} className="text-accent" />
         <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
-          Tu por qué · léelo en voz alta
+          Léelo en voz alta
         </p>
       </div>
       <p className="font-display italic text-lg sm:text-xl text-ink leading-snug">

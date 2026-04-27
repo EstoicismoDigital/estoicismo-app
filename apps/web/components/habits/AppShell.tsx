@@ -250,9 +250,11 @@ function PegassoLink({ active, compact = false }: { active: boolean; compact?: b
 function DesktopMasthead({
   pathname,
   activeModule,
+  onOpenPalette,
 }: {
   pathname: string;
   activeModule: ModuleKey;
+  onOpenPalette?: () => void;
 }) {
   const onAjustes = pathname.startsWith("/ajustes");
   const showHabitsSub = activeModule === "habits" && !onAjustes;
@@ -276,6 +278,20 @@ function DesktopMasthead({
             <Logo variant="full" size="md" className="block group-hover:opacity-80 transition-opacity" />
           </Link>
           <div className="flex items-center gap-2">
+            {onOpenPalette && (
+              <button
+                type="button"
+                onClick={onOpenPalette}
+                aria-label="Abrir paleta de comandos"
+                title="Cmd+K · busca cualquier cosa"
+                className="hidden lg:inline-flex items-center gap-2 h-9 pl-3 pr-1.5 rounded-full border border-line text-muted hover:text-ink hover:border-line-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <span className="font-body text-xs">Buscar…</span>
+                <kbd className="font-mono text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-bg-alt border border-line text-muted">
+                  ⌘K
+                </kbd>
+              </button>
+            )}
             <PlanPill />
             <JournalLink active={pathname.startsWith("/notas")} />
             <PegassoLink active={pathname.startsWith("/pegasso")} />
@@ -373,6 +389,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // /ajustes is a neutral shell — no module accent. Everything else
   // gets scoped by the active module so --color-accent matches.
   const dataModule = onAjustes ? undefined : activeModule;
+  const showHabitsSub = activeModule === "habits" && !onAjustes;
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
   const palette = useCommandPaletteShortcut();
@@ -391,7 +408,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <OfflineIndicator />
 
       {/* Desktop masthead */}
-      <DesktopMasthead pathname={pathname} activeModule={activeModule} />
+      <DesktopMasthead
+        pathname={pathname}
+        activeModule={activeModule}
+        onOpenPalette={() => palette.setOpen(true)}
+      />
 
       {/* Mobile top bar (brand + plan pill; nav at bottom) */}
       <header
@@ -408,16 +429,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <PlanPill compact />
           </div>
         </div>
-        {(showFinanzasSub || showMentalidadSub) && (
+        {(showHabitsSub || showFinanzasSub || showMentalidadSub) && (
           <nav
             aria-label={
               showFinanzasSub
                 ? "Secciones de Finanzas"
-                : "Secciones de Mentalidad"
+                : showMentalidadSub
+                  ? "Secciones de Mentalidad"
+                  : "Secciones de Hoy"
             }
             className="flex items-center gap-1 overflow-x-auto py-1.5 px-3 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {(showFinanzasSub ? FINANZAS_SUBNAV : MENTALIDAD_SUBNAV).map((item) => {
+            {(showFinanzasSub
+              ? FINANZAS_SUBNAV
+              : showMentalidadSub
+                ? MENTALIDAD_SUBNAV
+                : HABITS_SUBNAV
+            ).map((item) => {
               const active = isActiveHref(pathname, item.href);
               return (
                 <Link

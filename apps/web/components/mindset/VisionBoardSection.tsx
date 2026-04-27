@@ -99,13 +99,27 @@ export function VisionBoardSection() {
       </div>
 
       {visible.length === 0 ? (
-        <div className="py-10 text-center">
+        <div className="py-10 text-center max-w-sm mx-auto">
           <ImagePlus size={28} className="mx-auto text-muted/50 mb-3" />
-          <p className="font-body text-sm text-muted">
+          <p className="font-display italic text-base text-ink mb-1">
             {filter === "achieved"
-              ? "Aún no has marcado ningún sueño como logrado."
-              : "Empieza tu vision board: añade tu primer sueño."}
+              ? "Aún no marcas un sueño como logrado."
+              : "Lo que la mente ve, el cuerpo persigue."}
           </p>
+          <p className="font-body text-sm text-muted leading-relaxed mb-4">
+            {filter === "achieved"
+              ? "Vuelve cuando uno se cumpla — vas a quererlo recordar."
+              : "Imagen, texto, cita. Pega lo que tu yo de mañana necesita ver."}
+          </p>
+          {filter !== "achieved" && (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="inline-flex items-center gap-1 h-9 px-4 rounded-full bg-accent text-bg font-body text-xs font-medium"
+            >
+              <Plus size={12} /> Añadir mi primer sueño
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
