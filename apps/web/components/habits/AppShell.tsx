@@ -374,6 +374,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
+      {/* Skip to content — first focusable for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:bg-accent focus:text-bg focus:px-4 focus:py-2 focus:rounded-lg focus:font-mono focus:text-[11px] focus:uppercase focus:tracking-widest focus:shadow-lg"
+      >
+        Saltar al contenido
+      </a>
+
       {/* Offline banner — hidden by default; only mounts DOM when offline */}
       <OfflineIndicator />
 
@@ -427,7 +435,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Content */}
-      <main className="min-h-screen pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+      <main
+        id="main-content"
+        className="min-h-screen pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0"
+      >
         {children}
       </main>
 

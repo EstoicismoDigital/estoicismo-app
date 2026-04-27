@@ -1,13 +1,16 @@
 "use client";
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { Sparkles, RefreshCw, ArrowRight } from "lucide-react";
+import { Sparkles, RefreshCw, ArrowRight, HeartPulse } from "lucide-react";
 import {
-  getDailyJournalPrompt,
+  getMoodAwareJournalPrompt,
+  moodBucket,
   type JournalPrompt,
 } from "../../lib/journal/prompts";
 import { getAreaMeta } from "../../lib/journal/areas";
 import { useCreateJournalEntry } from "../../hooks/useJournal";
+import { useMoodLogForDate } from "../../hooks/useMindset";
+import { getTodayStr } from "../../lib/dateUtils";
 import type { CreateJournalEntryInput } from "@estoicismo/supabase";
 
 const JournalEntryModal = dynamic(
@@ -16,18 +19,23 @@ const JournalEntryModal = dynamic(
 );
 
 /**
- * Tarjeta del prompt diario para journaling — aparece en home y en
- * /notas. Determinística por día del año, con un botón "Otro" que
- * permite navegar al siguiente sin perder el del día.
+ * Tarjeta del prompt diario para journaling.
+ *
+ * Si el user registró su mood hoy → el prompt se adapta (low/mid/high).
+ * Si no → fallback determinístico día-del-año.
+ * Botón "Otro" permite navegar.
  */
 export function DailyPromptCard() {
+  const today = useMemo(() => getTodayStr(), []);
   const [seedOffset, setSeedOffset] = useState(0);
   const [open, setOpen] = useState(false);
   const createM = useCreateJournalEntry();
+  const { data: todayMood } = useMoodLogForDate(today);
+  const bucket = moodBucket(todayMood?.mood);
 
   const prompt: JournalPrompt = useMemo(
-    () => getDailyJournalPrompt(seedOffset),
-    [seedOffset]
+    () => getMoodAwareJournalPrompt(todayMood?.mood ?? null, seedOffset),
+    [seedOffset, todayMood?.mood]
   );
   const meta = getAreaMeta(prompt.suggestedArea ?? "free");
 
@@ -40,10 +48,20 @@ export function DailyPromptCard() {
           borderColor: `${meta.color}40`,
         }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-1">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted inline-flex items-center gap-1">
             <Sparkles size={11} className="text-accent" />
             Prompt del día
+            {bucket && (
+              <span className="ml-1 inline-flex items-center gap-1 text-accent">
+                <HeartPulse size={10} />
+                {bucket === "low"
+                  ? "para días duros"
+                  : bucket === "high"
+                    ? "para días buenos"
+                    : "neutral"}
+              </span>
+            )}
           </p>
           <button
             type="button"

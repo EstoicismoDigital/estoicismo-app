@@ -26,6 +26,14 @@ export type JournalPrompt = {
     | "lectura"
     | "finanzas"
     | "emprendimiento";
+  /**
+   * A qué mood "calza" mejor este prompt. low=1-2, mid=3, high=4-5,
+   * any=universal. Default any.
+   *   low → preguntas que sostienen, abren válvula, observan dolor
+   *   mid → preguntas analíticas, neutrales
+   *   high → preguntas de aprovechar el impulso, reflexión sobre éxito
+   */
+  moodFit?: "low" | "mid" | "high" | "any";
 };
 
 export const JOURNAL_PROMPTS: JournalPrompt[] = [
@@ -318,6 +326,111 @@ export const JOURNAL_PROMPTS: JournalPrompt[] = [
   },
 ];
 
+// ─────────────────────────────────────────────────────────────
+// MOOD-FIT PROMPTS — preguntas que se adaptan al estado del user
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Prompts curados por mood. Se inyectan en el pool global pero la
+ * UI puede elegir uno de aquí cuando sabe el mood del día.
+ *
+ * Filosofía:
+ *  - low: validar dolor sin alimentarlo. Abrir válvula, no resolver.
+ *  - mid: aprovechar la calma para analizar.
+ *  - high: capturar el impulso, no romántico. Lo que hizo bien tu yo
+ *    de hoy → para tu yo del lunes que estará cansado.
+ */
+export const MOOD_PROMPTS: JournalPrompt[] = [
+  // LOW — días duros
+  {
+    id: "low-1",
+    text: "Sin filtro: ¿qué duele hoy? No lo arregles, sólo nómbralo.",
+    moodFit: "low",
+    suggestedArea: "mentalidad",
+  },
+  {
+    id: "low-2",
+    text: "¿Qué pequeñísima cosa hoy fue un alivio, aunque dure 5 segundos?",
+    moodFit: "low",
+    suggestedArea: "mentalidad",
+  },
+  {
+    id: "low-3",
+    text: "Si un amigo querido sintiera lo que tú hoy, ¿qué le dirías? Léelo después en voz alta — para ti.",
+    moodFit: "low",
+    suggestedArea: "mentalidad",
+  },
+  {
+    id: "low-4",
+    text: "¿Qué necesitas que NADIE te ha dado y puedas darte tú esta noche?",
+    moodFit: "low",
+    suggestedArea: "free",
+  },
+  {
+    id: "low-5",
+    text: "¿Qué es lo MÍNIMO que tienes que hacer hoy para no destrozarte mañana? Sólo eso. El resto puede esperar.",
+    moodFit: "low",
+    suggestedArea: "habits",
+  },
+  {
+    id: "low-6",
+    text: "Lo que sientes ahora, ¿lo has sentido antes? ¿Cómo se acabó la vez pasada?",
+    moodFit: "low",
+    source: "Stoa",
+    suggestedArea: "mentalidad",
+  },
+
+  // MID — neutral, analítico
+  {
+    id: "mid-1",
+    text: "¿Qué patrón se repite esta semana — bueno o malo? Obsérvalo sin juicio.",
+    moodFit: "mid",
+    suggestedArea: "free",
+  },
+  {
+    id: "mid-2",
+    text: "Si todo lo que pasa hoy fuera entrenamiento, ¿qué músculo creció?",
+    moodFit: "mid",
+    suggestedArea: "mentalidad",
+  },
+  {
+    id: "mid-3",
+    text: "Tres decisiones de hoy: ¿cuál la harías diferente con lo que sabes ahora?",
+    moodFit: "mid",
+    suggestedArea: "free",
+  },
+
+  // HIGH — días buenos
+  {
+    id: "high-1",
+    text: "Hoy te sentiste bien. Captúralo: ¿qué hizo de hoy un buen día? Tu yo de un mal día lo va a leer.",
+    moodFit: "high",
+    suggestedArea: "mentalidad",
+  },
+  {
+    id: "high-2",
+    text: "¿Quién, sin que se lo diga, hizo posible tu día bueno? Mándale algo — un mensaje, un gracias.",
+    moodFit: "high",
+    suggestedArea: "free",
+  },
+  {
+    id: "high-3",
+    text: "Estás en racha. ¿Cuál es la SIGUIENTE cosa que tu yo del próximo trimestre te agradecerá si la haces hoy?",
+    moodFit: "high",
+    suggestedArea: "habits",
+  },
+  {
+    id: "high-4",
+    text: "El éxito es ruidoso pero engañoso. ¿Qué del éxito de hoy es realmente tuyo, qué fue suerte?",
+    moodFit: "high",
+    source: "Séneca",
+    suggestedArea: "mentalidad",
+  },
+];
+
+// Pool combinado para el random / day-of-year fallback
+const ALL_PROMPTS: JournalPrompt[] = [...JOURNAL_PROMPTS, ...MOOD_PROMPTS];
+
 /**
  * Día del año (1-365/6) — compatible con timezone local del user.
  */
@@ -342,4 +455,36 @@ export function getDailyJournalPrompt(seed = 0): JournalPrompt {
 
 export function getRandomJournalPrompt(): JournalPrompt {
   return JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)];
+}
+
+/**
+ * Devuelve el prompt del día adaptado al mood actual del user.
+ *
+ * Si `mood` es null/undefined → mismo comportamiento que getDailyJournalPrompt.
+ * Si `mood` está definido → elige determinísticamente entre los prompts
+ * que calzan con ese mood bucket (low/mid/high).
+ *
+ * `seed` permite el "Otro" del usuario sin que cambie en el día.
+ */
+export function moodBucket(mood: number | null | undefined): "low" | "mid" | "high" | null {
+  if (mood == null) return null;
+  if (mood <= 2) return "low";
+  if (mood >= 4) return "high";
+  return "mid";
+}
+
+export function getMoodAwareJournalPrompt(
+  mood: number | null | undefined,
+  seed = 0
+): JournalPrompt {
+  const bucket = moodBucket(mood);
+  if (!bucket) return getDailyJournalPrompt(seed);
+  const fitting = ALL_PROMPTS.filter(
+    (p) => p.moodFit === bucket || p.moodFit === "any" || !p.moodFit
+  );
+  // Bias hacia los específicos del mood (que tengan moodFit === bucket)
+  const specific = fitting.filter((p) => p.moodFit === bucket);
+  const pool = specific.length >= 3 ? specific : fitting;
+  const idx = (dayOfYear() + seed) % pool.length;
+  return pool[(idx + pool.length) % pool.length];
 }
