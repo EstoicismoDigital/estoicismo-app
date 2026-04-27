@@ -132,24 +132,60 @@ export function NotasClient() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <section className="bg-bg-deep text-white">
+      <section className="bg-bg-deep text-white print:hidden">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-7">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
-            Diario
-          </p>
-          <h1 className="font-display italic text-2xl sm:text-3xl">
-            Tus pensamientos en un solo lugar.
-          </h1>
-          <p className="font-body text-white/60 text-sm mt-2 max-w-prose">
-            Un diario para escribir lo que cargas. Etiquétalo por área de tu
-            vida — fitness, finanzas, mentalidad — o déjalo libre.
-          </p>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+                Diario
+              </p>
+              <h1 className="font-display italic text-2xl sm:text-3xl">
+                Tus pensamientos en un solo lugar.
+              </h1>
+              <p className="font-body text-white/60 text-sm mt-2 max-w-prose">
+                Un diario para escribir lo que cargas. Etiquétalo por área de
+                tu vida — fitness, finanzas, mentalidad — o déjalo libre.
+              </p>
+            </div>
+            {hasAny && (
+              <button
+                type="button"
+                onClick={() => window.print()}
+                title="Imprimir / Guardar PDF"
+                aria-label="Exportar diario a PDF"
+                className="h-9 px-3 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest transition-colors"
+              >
+                🖨 PDF
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
+      {/* Print-only header */}
+      <div className="hidden print:block max-w-3xl mx-auto px-4 sm:px-6 py-4 border-b border-line">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+          Diario · Estoicismo Digital
+        </p>
+        <p className="font-display italic text-xl text-ink">
+          Mis pensamientos
+        </p>
+        <p className="font-mono text-[10px] text-muted mt-1">
+          Exportado{" "}
+          {new Date().toLocaleDateString("es-ES", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+          {" · "}
+          {journalEntries.length}{" "}
+          {journalEntries.length === 1 ? "entrada" : "entradas"}
+        </p>
+      </div>
+
       <section className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
         {/* Búsqueda + filtros */}
-        <div className="space-y-3">
+        <div className="space-y-3 print:hidden">
           {hasAny && <SearchBar query={query} onChange={setQuery} />}
           <AreaFilter value={areaFilter} onChange={setAreaFilter} />
         </div>
@@ -161,7 +197,7 @@ export function NotasClient() {
             setEditing(null);
             setModalOpen(true);
           }}
-          className="w-full py-3 rounded-card bg-accent text-bg font-mono text-[11px] uppercase tracking-widest hover:opacity-90 inline-flex items-center justify-center gap-1.5"
+          className="w-full py-3 rounded-card bg-accent text-bg font-mono text-[11px] uppercase tracking-widest hover:opacity-90 inline-flex items-center justify-center gap-1.5 print:hidden"
         >
           <Plus size={14} /> Nueva entrada
         </button>

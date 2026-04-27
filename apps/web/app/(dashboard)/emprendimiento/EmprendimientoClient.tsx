@@ -45,8 +45,10 @@ import { IdeasList } from "../../../components/emprendimiento/IdeasList";
 import { MilestonesSection } from "../../../components/emprendimiento/MilestonesSection";
 import { CustomerLtvCard } from "../../../components/emprendimiento/CustomerLtvCard";
 import { OkrsCard } from "../../../components/emprendimiento/OkrsCard";
+import { CompetitorsCard } from "../../../components/emprendimiento/CompetitorsCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
+import { CurrencyBadge } from "../../../components/finanzas/CurrencyBadge";
 
 // El BrainstormWizard sólo se monta cuando el user está en estado
 // "exploring" — lazy ahorra ~6KB en estado "active". El SaleQuickModal
@@ -79,9 +81,12 @@ export function EmprendimientoClient() {
     <div data-module="emprendimiento" className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
-            Emprendimiento
-          </p>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
+              Emprendimiento
+            </p>
+            <CurrencyBadge />
+          </div>
           <h1 className="font-display italic text-2xl sm:text-3xl leading-tight">
             {status === "exploring"
               ? "Antes de la marca, está la pregunta."
@@ -377,6 +382,9 @@ function ActiveSection(props: { profileName: string | null }) {
 
       {/* Customer LTV */}
       <CustomerLtvCard />
+
+      {/* Competidores */}
+      <CompetitorsCard />
 
       {/* Productos */}
       <div className="space-y-2">

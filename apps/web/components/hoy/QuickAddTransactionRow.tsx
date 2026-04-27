@@ -7,6 +7,7 @@ import {
   useCreateTransaction,
   useFinanceCategories,
 } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { getTodayStr } from "../../lib/dateUtils";
 import type { FinanceKind } from "@estoicismo/supabase";
 
@@ -57,6 +58,7 @@ export function QuickAddTransactionRow({
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const create = useCreateTransaction();
+  const currency = useDefaultCurrency();
 
   const { data: cats = [] } = useFinanceCategories();
   const filteredCats = useMemo(
@@ -97,6 +99,7 @@ export function QuickAddTransactionRow({
         kind,
         category_id: effectiveCategoryId,
         occurred_on: getTodayStr(),
+        currency,
       });
       // Recordar la última categoría usada (por kind) — la próxima
       // vez aparece preseleccionada.

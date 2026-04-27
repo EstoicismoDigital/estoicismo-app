@@ -12,12 +12,13 @@ export default async function AjustesPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("plan, timezone, username")
+    .select("plan, timezone, username, avatar_url")
     .eq("id", user.id)
     .single<{
       plan: "free" | "premium";
       timezone: string;
       username: string | null;
+      avatar_url: string | null;
     }>();
 
   return (
@@ -26,6 +27,7 @@ export default async function AjustesPage() {
       plan={profile?.plan ?? "free"}
       timezone={profile?.timezone ?? "UTC"}
       username={profile?.username ?? null}
+      avatarUrl={profile?.avatar_url ?? null}
     />
   );
 }

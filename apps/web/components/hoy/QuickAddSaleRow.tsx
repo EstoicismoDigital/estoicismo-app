@@ -12,6 +12,7 @@ import {
   useCreateTransaction,
   useFinanceCategories,
 } from "../../hooks/useFinance";
+import { useDefaultCurrency } from "../../hooks/useDefaultCurrency";
 import { getTodayStr } from "../../lib/dateUtils";
 
 const AUTO_LOG_KEY = "negocio:sale-auto-log-finance";
@@ -52,6 +53,7 @@ export function QuickAddSaleRow() {
   const { data: products = [] } = useProducts();
   const { data: clients = [] } = useClients();
   const { data: categories = [] } = useFinanceCategories();
+  const currency = useDefaultCurrency();
   const [amount, setAmount] = useState("");
   const [productId, setProductId] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export function QuickAddSaleRow() {
         amount: amt,
         product_id: productId,
         client_id: clientId,
+        currency,
       });
 
       // 2. Si auto-log activo, crear finance_transaction
@@ -94,6 +97,7 @@ export function QuickAddSaleRow() {
           kind: "income",
           category_id: salesCategoryId,
           occurred_on: getTodayStr(),
+          currency,
           note: clients.find((c) => c.id === clientId)?.name
             ? `Venta a ${clients.find((c) => c.id === clientId)?.name}`
             : "Venta",

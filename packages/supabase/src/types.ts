@@ -11,6 +11,9 @@ export type Profile = {
   stripe_customer_id: string | null;
   /** Estrategia preferida para pagar deudas. */
   payoff_strategy: "avalanche" | "snowball" | "custom";
+  /** Moneda preferida. Default 'MXN'. Se usa al crear cuentas,
+   *  transacciones, ventas, inversiones, productos. */
+  default_currency: string;
   created_at: string;
   updated_at: string;
 };
@@ -320,6 +323,11 @@ export type Database = {
         Row: import("./business").BusinessOkr;
         Insert: Omit<import("./business").BusinessOkr, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./business").BusinessOkr>;
+      };
+      business_competitors: {
+        Row: import("./business").BusinessCompetitor;
+        Insert: Omit<import("./business").BusinessCompetitor, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./business").BusinessCompetitor>;
       };
       pegasso_conversations: {
         Row: PegassoConversation;

@@ -6,6 +6,8 @@ import { getSupabaseBrowserClient } from "../lib/supabase-client";
 export type UpdateProfileInput = {
   username?: string | null;
   timezone?: string;
+  default_currency?: string;
+  avatar_url?: string | null;
 };
 
 export function useUpdateProfile() {

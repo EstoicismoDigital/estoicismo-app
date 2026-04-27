@@ -23,7 +23,9 @@ import {
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { FullBackupButton } from "../../../components/habits/FullBackupButton";
 import { CsvImportButton } from "../../../components/finanzas/CsvImportButton";
+import { IcalExportButton } from "../../../components/habits/IcalExportButton";
 import { FontSizeSelector } from "../../../components/ajustes/FontSizeSelector";
+import { CurrencySelector } from "../../../components/ajustes/CurrencySelector";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { PaletteSelector } from "../../../components/habits/PaletteSelector";
 import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
@@ -34,11 +36,13 @@ export function AjustesClient({
   plan,
   timezone,
   username,
+  avatarUrl,
 }: {
   email: string;
   plan: "free" | "premium";
   timezone: string;
   username: string | null;
+  avatarUrl: string | null;
 }) {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
@@ -48,6 +52,8 @@ export function AjustesClient({
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(username ?? "");
   const [tz, setTz] = useState(timezone);
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [avatarDraft, setAvatarDraft] = useState(avatarUrl ?? "");
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -84,6 +90,23 @@ export function AjustesClient({
     updateProfile.mutate({ timezone: value });
   }
 
+  async function handleSaveAvatar() {
+    const trimmed = avatarDraft.trim();
+    try {
+      await updateProfile.mutateAsync({
+        avatar_url: trimmed || null,
+      });
+      setEditingAvatar(false);
+    } catch {
+      /* toast handled by hook */
+    }
+  }
+
+  function handleCancelAvatar() {
+    setAvatarDraft(avatarUrl ?? "");
+    setEditingAvatar(false);
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
@@ -103,8 +126,79 @@ export function AjustesClient({
           </p>
 
           <div className="flex flex-col rounded-card overflow-hidden border border-line bg-bg">
-            {/* Display name */}
+            {/* Avatar URL */}
             <div className="flex items-center gap-3 px-4 py-4">
+              <div className="flex-shrink-0 h-12 w-12 rounded-full overflow-hidden bg-bg-alt border border-line flex items-center justify-center">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <User size={20} className="text-muted" aria-hidden />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5">
+                  Foto · URL pública
+                </p>
+                {editingAvatar ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveAvatar();
+                    }}
+                    className="flex items-center gap-2 mt-1"
+                  >
+                    <input
+                      type="url"
+                      autoFocus
+                      value={avatarDraft}
+                      onChange={(e) => setAvatarDraft(e.target.value)}
+                      placeholder="https://…/foto.jpg"
+                      maxLength={500}
+                      className="flex-1 h-9 px-3 rounded-lg border border-line bg-bg-alt font-body text-xs text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    <button
+                      type="submit"
+                      disabled={updateProfile.isPending}
+                      aria-label="Guardar avatar"
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-accent text-bg hover:opacity-90 disabled:opacity-40 transition-opacity"
+                    >
+                      <Check size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelAvatar}
+                      aria-label="Cancelar"
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-line text-muted hover:bg-bg-alt"
+                    >
+                      <X size={14} />
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingAvatar(true)}
+                    className="font-body text-xs text-ink text-left hover:underline truncate block max-w-full"
+                  >
+                    {avatarUrl ?? (
+                      <span className="text-muted italic">
+                        Pega URL de imagen
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Display name */}
+            <div className="flex items-center gap-3 px-4 py-4 border-t border-line">
               <User size={18} className="text-muted flex-shrink-0" aria-hidden />
               <div className="flex-1 min-w-0">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-0.5">
@@ -278,6 +372,14 @@ export function AjustesClient({
           </div>
         </div>
 
+        {/* Finanzas y negocio */}
+        <div className="flex flex-col gap-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+            Finanzas y negocio
+          </p>
+          <CurrencySelector />
+        </div>
+
         {/* Notifications */}
         <div className="flex flex-col gap-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
@@ -354,6 +456,19 @@ export function AjustesClient({
               </p>
             </div>
             <CsvImportButton />
+          </div>
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">
+                Exportar hábitos a calendario
+              </h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                Genera un archivo .ics con tus hábitos como eventos
+                recurrentes. Importa en Google Calendar o Apple Calendar
+                — los recordatorios suenan ahí también.
+              </p>
+            </div>
+            <IcalExportButton />
           </div>
         </div>
 

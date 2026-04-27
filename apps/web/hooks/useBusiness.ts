@@ -474,3 +474,72 @@ export function useDeleteOkr() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "okrs"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// COMPETITORS (#98)
+// ─────────────────────────────────────────────────────────────
+
+export function useCompetitors(): UseQueryResult<
+  import("@estoicismo/supabase").BusinessCompetitor[]
+> {
+  return useQuery({
+    queryKey: ["business", "competitors"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchCompetitors } = await import("@estoicismo/supabase");
+      return fetchCompetitors(sb, await getUserId());
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+export function useCreateCompetitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateCompetitorInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createCompetitor } = await import("@estoicismo/supabase");
+      return createCompetitor(sb, await getUserId(), input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "competitors"] }),
+    onError: (err) =>
+      toast.error("No se pudo guardar.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateCompetitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateCompetitorInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateCompetitor } = await import("@estoicismo/supabase");
+      return updateCompetitor(sb, id, input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "competitors"] }),
+  });
+}
+
+export function useDeleteCompetitor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteCompetitor } = await import("@estoicismo/supabase");
+      await deleteCompetitor(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "competitors"] }),
+  });
+}

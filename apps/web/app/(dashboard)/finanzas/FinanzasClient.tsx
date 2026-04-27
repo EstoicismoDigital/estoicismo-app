@@ -43,6 +43,8 @@ import { EmergencyFundCard } from "../../../components/finanzas/EmergencyFundCar
 import { FireCalculatorCard } from "../../../components/finanzas/FireCalculatorCard";
 import { InvestmentsCard } from "../../../components/finanzas/InvestmentsCard";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
+import { CurrencyBadge } from "../../../components/finanzas/CurrencyBadge";
+import { TaxBucketCard } from "../../../components/finanzas/TaxBucketCard";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
@@ -124,9 +126,12 @@ export function FinanzasClient() {
       {/* Hero */}
       <section className="bg-bg-deep text-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
-            Finanzas · {monthLabel}
-          </p>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
+              Finanzas · {monthLabel}
+            </p>
+            <CurrencyBadge />
+          </div>
           <h1 className="font-display italic text-3xl sm:text-4xl leading-tight">
             Tu dinero, con cabeza fría.
           </h1>
@@ -171,6 +176,9 @@ export function FinanzasClient() {
 
         {/* FIRE calculator — patrimonio vs 25× gasto anual */}
         <FireCalculatorCard />
+
+        {/* Tax bucket — total deducible YTD */}
+        <TaxBucketCard />
 
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">

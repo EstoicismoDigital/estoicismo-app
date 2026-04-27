@@ -43,6 +43,8 @@ export type FinanceTransaction = {
   occurred_on: string;
   note: string | null;
   source: FinanceSource;
+  /** Marca para deducción fiscal — el user lo agrupa en /finanzas/impuestos. */
+  tax_deductible: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -267,6 +269,7 @@ export type CreateTransactionInput = {
   note?: string | null;
   currency?: string;
   source?: FinanceSource;
+  tax_deductible?: boolean;
 };
 
 export type UpdateTransactionInput = Partial<CreateTransactionInput>;
@@ -414,6 +417,7 @@ export async function createTransaction(
       note: input.note ?? null,
       currency: input.currency ?? "MXN",
       source: input.source ?? "manual",
+      tax_deductible: input.tax_deductible ?? false,
     } as never)
     .select()
     .single();

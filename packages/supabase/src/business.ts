@@ -739,3 +739,90 @@ export function currentQuarter(date: Date = new Date()): string {
   const q = Math.floor(date.getMonth() / 3) + 1;
   return `${date.getFullYear()}-Q${q}`;
 }
+
+// ─────────────────────────────────────────────────────────────
+// COMPETITORS — competidores a vigilar (#98)
+// ─────────────────────────────────────────────────────────────
+
+export type BusinessCompetitor = {
+  id: string;
+  user_id: string;
+  name: string;
+  website: string | null;
+  strengths: string | null;
+  weaknesses: string | null;
+  notes: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateCompetitorInput = {
+  name: string;
+  website?: string | null;
+  strengths?: string | null;
+  weaknesses?: string | null;
+  notes?: string | null;
+  position?: number;
+};
+
+export type UpdateCompetitorInput = Partial<CreateCompetitorInput>;
+
+export async function fetchCompetitors(
+  sb: SB,
+  userId: string
+): Promise<BusinessCompetitor[]> {
+  const { data, error } = await sb
+    .from("business_competitors")
+    .select("*")
+    .eq("user_id", userId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessCompetitor[];
+}
+
+export async function createCompetitor(
+  sb: SB,
+  userId: string,
+  input: CreateCompetitorInput
+): Promise<BusinessCompetitor> {
+  const { data, error } = await sb
+    .from("business_competitors")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      website: input.website ?? null,
+      strengths: input.strengths ?? null,
+      weaknesses: input.weaknesses ?? null,
+      notes: input.notes ?? null,
+      position: input.position ?? 0,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessCompetitor;
+}
+
+export async function updateCompetitor(
+  sb: SB,
+  id: string,
+  input: UpdateCompetitorInput
+): Promise<BusinessCompetitor> {
+  const { data, error } = await sb
+    .from("business_competitors")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessCompetitor;
+}
+
+export async function deleteCompetitor(sb: SB, id: string): Promise<void> {
+  const { error } = await sb
+    .from("business_competitors")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}
