@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createSupabaseServer } from "../../../../lib/supabase-server";
 import {
-  PEGASSO_SYSTEM_PROMPT,
   PEGASSO_MODELS,
   PEGASSO_DEFAULT_MODEL,
   type PegassoModelKey,
 } from "../../../../lib/pegasso/system-prompt";
+import {
+  buildPersonaPrompt,
+  PEGASSO_DEFAULT_PERSONA,
+  type PegassoPersonaId,
+} from "../../../../lib/pegasso/personas";
 import { fetchMessages, createMessage } from "@estoicismo/supabase";
 
 /**
@@ -37,7 +41,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { conversation_id?: string; model?: PegassoModelKey };
+  let body: {
+    conversation_id?: string;
+    model?: PegassoModelKey;
+    persona?: PegassoPersonaId;
+  };
   try {
     body = await req.json();
   } catch {
@@ -54,6 +62,8 @@ export async function POST(req: NextRequest) {
 
   const modelKey: PegassoModelKey = body.model ?? PEGASSO_DEFAULT_MODEL;
   const modelId = PEGASSO_MODELS[modelKey] ?? PEGASSO_MODELS[PEGASSO_DEFAULT_MODEL];
+  const persona: PegassoPersonaId = body.persona ?? PEGASSO_DEFAULT_PERSONA;
+  const systemPrompt = buildPersonaPrompt(persona);
 
   // Auth: tomamos el user id del session de Supabase. Si falla, 401.
   const sb = await createSupabaseServer();
@@ -119,7 +129,7 @@ export async function POST(req: NextRequest) {
         const messageStream = client.messages.stream({
           model: modelId,
           max_tokens: 1024,
-          system: PEGASSO_SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: anthropicMessages,
         });
 

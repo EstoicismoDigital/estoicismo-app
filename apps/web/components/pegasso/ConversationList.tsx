@@ -17,6 +17,8 @@ import {
 import { clsx } from "clsx";
 import type { PegassoConversation } from "@estoicismo/supabase";
 import { useSearchConversations } from "../../hooks/usePegasso";
+import { PersonaSelector } from "./PersonaSelector";
+import type { PegassoPersonaId } from "../../lib/pegasso/personas";
 
 export function ConversationList(props: {
   conversations: PegassoConversation[];
@@ -27,6 +29,8 @@ export function ConversationList(props: {
   onArchive: (id: string) => void;
   onWeeklyReview?: () => void;
   weeklyReviewLoading?: boolean;
+  persona?: PegassoPersonaId;
+  onPersonaChange?: (id: PegassoPersonaId) => void;
 }) {
   const {
     conversations,
@@ -37,6 +41,8 @@ export function ConversationList(props: {
     onArchive,
     onWeeklyReview,
     weeklyReviewLoading,
+    persona,
+    onPersonaChange,
   } = props;
 
   const [query, setQuery] = useState("");
@@ -87,6 +93,16 @@ export function ConversationList(props: {
           )}
         </div>
       </div>
+
+      {/* Persona selector — al top, fácil de cambiar */}
+      {persona && onPersonaChange && !isSearching && (
+        <div className="px-3 py-2 border-b border-line">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-muted/70 mb-1 px-2.5">
+            Modo
+          </p>
+          <PersonaSelector current={persona} onChange={onPersonaChange} />
+        </div>
+      )}
 
       {/* Quick actions — solo cuando no buscas */}
       {!isSearching && (

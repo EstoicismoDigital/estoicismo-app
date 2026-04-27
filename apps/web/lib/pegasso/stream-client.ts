@@ -21,7 +21,7 @@ export type StreamHandlers = {
 export async function streamPegassoChat(
   conversationId: string,
   handlers: StreamHandlers,
-  opts: { model?: string; signal?: AbortSignal } = {}
+  opts: { model?: string; persona?: string; signal?: AbortSignal } = {}
 ): Promise<void> {
   const res = await fetch("/api/pegasso/chat", {
     method: "POST",
@@ -29,6 +29,7 @@ export async function streamPegassoChat(
     body: JSON.stringify({
       conversation_id: conversationId,
       model: opts.model,
+      persona: opts.persona,
     }),
     signal: opts.signal,
   });

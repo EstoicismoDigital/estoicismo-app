@@ -14,6 +14,7 @@ import {
 import { ConversationList } from "../../../components/pegasso/ConversationList";
 import { MessageBubble } from "../../../components/pegasso/MessageBubble";
 import { streamPegassoChat } from "../../../lib/pegasso/stream-client";
+import { usePegassoPersona } from "../../../hooks/usePegassoPersona";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 import {
   gatherWeeklySnapshot,
@@ -38,6 +39,7 @@ export function PegassoClient() {
   const [streamingText, setStreamingText] = useState("");
   const [streamingError, setStreamingError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const { persona, setPersona } = usePegassoPersona();
 
   const { data: conversations = [] } = useConversations();
   const { data: messages = [], refetch: refetchMessages } = useMessages(activeId);
@@ -154,7 +156,7 @@ export function PegassoClient() {
           await refetchMessages();
         },
       },
-      { signal: abortRef.current.signal }
+      { signal: abortRef.current.signal, persona }
     );
 
     // Si es el primer mensaje del user, intentamos auto-titular la
@@ -190,6 +192,8 @@ export function PegassoClient() {
         }}
         onWeeklyReview={handleWeeklyReview}
         weeklyReviewLoading={weeklyReviewLoading}
+        persona={persona}
+        onPersonaChange={setPersona}
       />
 
       <main className="flex-1 flex flex-col h-screen min-h-screen">
