@@ -44,6 +44,7 @@ import {
 import { IdeasList } from "../../../components/emprendimiento/IdeasList";
 import { MilestonesSection } from "../../../components/emprendimiento/MilestonesSection";
 import { CustomerLtvCard } from "../../../components/emprendimiento/CustomerLtvCard";
+import { OkrsCard } from "../../../components/emprendimiento/OkrsCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 
@@ -370,6 +371,9 @@ function ActiveSection(props: { profileName: string | null }) {
 
       {/* Hitos del negocio */}
       <MilestonesSection />
+
+      {/* OKRs trimestrales */}
+      <OkrsCard />
 
       {/* Customer LTV */}
       <CustomerLtvCard />

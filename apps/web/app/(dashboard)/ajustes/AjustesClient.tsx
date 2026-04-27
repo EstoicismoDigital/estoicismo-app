@@ -22,6 +22,7 @@ import {
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { FullBackupButton } from "../../../components/habits/FullBackupButton";
+import { FontSizeSelector } from "../../../components/ajustes/FontSizeSelector";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { PaletteSelector } from "../../../components/habits/PaletteSelector";
 import { NotificationsSettingsCard } from "../../../components/habits/NotificationsSettingsCard";
@@ -260,6 +261,8 @@ export function AjustesClient({
             </div>
             <ThemeToggle />
           </div>
+
+          <FontSizeSelector />
 
           <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-4">
             <div className="flex-1 min-w-0">

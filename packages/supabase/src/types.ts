@@ -301,6 +301,11 @@ export type Database = {
         Insert: Omit<import("./business").BusinessMilestone, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./business").BusinessMilestone>;
       };
+      business_okrs: {
+        Row: import("./business").BusinessOkr;
+        Insert: Omit<import("./business").BusinessOkr, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./business").BusinessOkr>;
+      };
       pegasso_conversations: {
         Row: PegassoConversation;
         Insert: Omit<PegassoConversation, "id" | "created_at" | "updated_at" | "last_message_at"> & {

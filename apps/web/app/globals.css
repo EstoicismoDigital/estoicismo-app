@@ -197,6 +197,13 @@ button {
   font-weight: 500;
 }
 
+/* Font size accessibility — useFontSize aplica una clase al <html>.
+   Default es 16px. Tailwind rem-based units escalan auto con la base. */
+html.font-small { font-size: 14px; }
+html.font-normal { font-size: 16px; }
+html.font-large { font-size: 18px; }
+html.font-xl { font-size: 20px; }
+
 /* iOS zoom-on-focus prevention.
    Safari móvil hace auto-zoom cuando un input tiene font-size < 16px.
    Forzamos mínimo 16px en iOS específicamente — el detect es por el

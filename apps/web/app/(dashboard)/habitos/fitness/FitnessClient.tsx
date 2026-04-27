@@ -24,6 +24,7 @@ import { MetricsTrendCard } from "../../../../components/fitness/MetricsTrendCar
 import { QuickLogCard } from "../../../../components/fitness/QuickLogCard";
 import { RepeatWorkoutCard } from "../../../../components/fitness/RepeatWorkoutCard";
 import { ProgressiveOverloadCard } from "../../../../components/fitness/ProgressiveOverloadCard";
+import { RestRecommendationCard } from "../../../../components/fitness/RestRecommendationCard";
 import { PersonalizedPlanCard } from "../../../../components/fitness/PersonalizedPlanCard";
 import { PersonalRecordsCard } from "../../../../components/fitness/PersonalRecordsCard";
 import { PlateCalculatorCard } from "../../../../components/fitness/PlateCalculatorCard";
@@ -177,6 +178,9 @@ export function FitnessClient() {
       </section>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Recomendación de descanso/entrenar */}
+        <RestRecommendationCard />
+
         {/* Quick log — cómo registrar peso de UNA serie sin abrir modal */}
         <QuickLogCard
           exercises={exercises}

@@ -642,3 +642,100 @@ export async function deleteMilestone(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("business_milestones").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// OKRs TRIMESTRALES — goal-setting lite
+// ─────────────────────────────────────────────────────────────
+
+export type BusinessOkrStatus = "active" | "done" | "dropped";
+
+export type BusinessOkr = {
+  id: string;
+  user_id: string;
+  /** Formato: "2026-Q1" */
+  quarter: string;
+  title: string;
+  description: string | null;
+  /** 0-100 */
+  progress: number;
+  status: BusinessOkrStatus;
+  position: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateOkrInput = {
+  quarter: string;
+  title: string;
+  description?: string | null;
+  progress?: number;
+  position?: number;
+};
+
+export type UpdateOkrInput = Partial<CreateOkrInput> & {
+  status?: BusinessOkrStatus;
+};
+
+export async function fetchOkrs(
+  sb: SB,
+  userId: string,
+  quarter?: string
+): Promise<BusinessOkr[]> {
+  let q = sb
+    .from("business_okrs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (quarter) q = q.eq("quarter", quarter);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessOkr[];
+}
+
+export async function createOkr(
+  sb: SB,
+  userId: string,
+  input: CreateOkrInput
+): Promise<BusinessOkr> {
+  const { data, error } = await sb
+    .from("business_okrs")
+    .insert({
+      user_id: userId,
+      quarter: input.quarter,
+      title: input.title,
+      description: input.description ?? null,
+      progress: input.progress ?? 0,
+      position: input.position ?? 0,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessOkr;
+}
+
+export async function updateOkr(
+  sb: SB,
+  id: string,
+  input: UpdateOkrInput
+): Promise<BusinessOkr> {
+  const { data, error } = await sb
+    .from("business_okrs")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessOkr;
+}
+
+export async function deleteOkr(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("business_okrs").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/** Helper: trimestre actual en formato "YYYY-QN". */
+export function currentQuarter(date: Date = new Date()): string {
+  const q = Math.floor(date.getMonth() / 3) + 1;
+  return `${date.getFullYear()}-Q${q}`;
+}

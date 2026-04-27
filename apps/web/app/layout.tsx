@@ -78,7 +78,8 @@ export const viewport: Viewport = {
 // lavanda/coral) son inválidos ahora → caen a 'negro'. Los usuarios que
 // tenían 'rosa' guardada siguen en rosa.
 const PALETTE_IDS = ["negro", "rosa"] as const;
-const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}var h=document.documentElement;if(d){h.classList.add('dark');}var valid=${JSON.stringify(PALETTE_IDS)};var p=localStorage.getItem('palette');if(valid.indexOf(p)===-1){p='negro';}h.classList.add('palette-'+p);}catch(e){}})();`;
+const FONT_SIZE_IDS = ["small", "normal", "large", "xl"] as const;
+const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}var h=document.documentElement;if(d){h.classList.add('dark');}var valid=${JSON.stringify(PALETTE_IDS)};var p=localStorage.getItem('palette');if(valid.indexOf(p)===-1){p='negro';}h.classList.add('palette-'+p);var fs=localStorage.getItem('fontSize');var fsv=${JSON.stringify(FONT_SIZE_IDS)};if(fsv.indexOf(fs)===-1){fs='normal';}h.classList.add('font-'+fs);}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

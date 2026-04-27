@@ -408,3 +408,69 @@ export function useDeleteMilestone() {
       qc.invalidateQueries({ queryKey: ["business", "milestones"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// OKRs trimestrales
+// ─────────────────────────────────────────────────────────────
+
+export function useOkrs(quarter?: string): UseQueryResult<
+  import("@estoicismo/supabase").BusinessOkr[]
+> {
+  return useQuery({
+    queryKey: ["business", "okrs", quarter ?? "all"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchOkrs } = await import("@estoicismo/supabase");
+      return fetchOkrs(sb, await getUserId(), quarter);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useCreateOkr() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateOkrInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createOkr } = await import("@estoicismo/supabase");
+      return createOkr(sb, await getUserId(), input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "okrs"] }),
+    onError: (err) =>
+      toast.error("No se pudo crear el OKR.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateOkr() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateOkrInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateOkr } = await import("@estoicismo/supabase");
+      return updateOkr(sb, id, input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "okrs"] }),
+  });
+}
+
+export function useDeleteOkr() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteOkr } = await import("@estoicismo/supabase");
+      await deleteOkr(sb, id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["business", "okrs"] }),
+  });
+}
