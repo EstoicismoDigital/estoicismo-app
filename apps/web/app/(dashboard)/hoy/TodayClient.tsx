@@ -139,7 +139,7 @@ export function TodayClient() {
               : "Tu día empieza aquí."}
           </h1>
 
-          {statusLoading || !status ? (
+          {!mounted || statusLoading || !status ? (
             <div className="h-24 flex items-center justify-center">
               <Loader2 size={18} className="animate-spin text-white/60" />
             </div>
@@ -154,10 +154,12 @@ export function TodayClient() {
 
           {/* Subtítulo dinámico según progreso + hora */}
           <p className="font-body text-sm text-white/70 mt-5 leading-relaxed max-w-prose">
-            {ritualNudge(
-              status?.completedCount ?? 0,
-              status?.availableCount ?? 0
-            )}
+            {mounted
+              ? ritualNudge(
+                  status?.completedCount ?? 0,
+                  status?.availableCount ?? 0
+                )
+              : ""}
           </p>
         </div>
       </section>
