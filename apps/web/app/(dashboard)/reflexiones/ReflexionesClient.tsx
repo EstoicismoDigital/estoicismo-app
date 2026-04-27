@@ -26,6 +26,10 @@ import { getTodayStr, computeStreak } from "../../../lib/dateUtils";
 import { HILL_SIX_STEPS } from "../../../lib/mindset";
 import { MINDSET_QUOTES } from "../../../lib/quotes";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
+import { StoicExerciseCard } from "../../../components/mindset/StoicExerciseCard";
+import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
+import { VisionBoardSection } from "../../../components/mindset/VisionBoardSection";
+import { FutureLetterSection } from "../../../components/mindset/FutureLetterSection";
 
 /**
  * Mentalidad · Propósito.
@@ -173,14 +177,34 @@ export function ReflexionesClient() {
         </div>
       </section>
 
+      {/* Stoic exercise of the day */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+        <StoicExerciseCard />
+      </section>
+
+      {/* Mood tracker — registro emocional del día */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+        <MoodTrackerCard />
+      </section>
+
       {/* Check-in de hoy */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-10">
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
         <DailyCheckIn
           date={today}
           initial={todayLog ?? null}
           saving={upsertLog.isPending}
           onSave={(draft) => upsertLog.mutateAsync(draft)}
         />
+      </section>
+
+      {/* Vision board */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+        <VisionBoardSection />
+      </section>
+
+      {/* Future-self letters */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-10">
+        <FutureLetterSection />
       </section>
 
       {/* Atajos al resto del módulo */}

@@ -179,6 +179,21 @@ export type Database = {
         Insert: Omit<MindsetFrequencyFavorite, "id" | "created_at">;
         Update: Partial<MindsetFrequencyFavorite>;
       };
+      mindset_vision_items: {
+        Row: import("./mindset").MindsetVisionItem;
+        Insert: Omit<import("./mindset").MindsetVisionItem, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./mindset").MindsetVisionItem>;
+      };
+      mindset_mood_logs: {
+        Row: import("./mindset").MindsetMoodLog;
+        Insert: Omit<import("./mindset").MindsetMoodLog, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./mindset").MindsetMoodLog>;
+      };
+      mindset_future_letters: {
+        Row: import("./mindset").MindsetFutureLetter;
+        Insert: Omit<import("./mindset").MindsetFutureLetter, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./mindset").MindsetFutureLetter>;
+      };
       fitness_user_profile: {
         Row: FitnessUserProfile;
         Insert: Omit<FitnessUserProfile, "created_at" | "updated_at">;
