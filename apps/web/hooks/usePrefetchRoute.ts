@@ -6,10 +6,17 @@ import {
   fetchHabitLogs,
   fetchFinanceCategories,
   fetchTransactions,
+  fetchAccounts,
+  fetchCreditCards,
+  fetchRecurring,
+  fetchSubscriptions,
+  fetchDebts,
   fetchMPD,
   fetchMPDLogForDate,
   fetchMPDLogs,
 } from "@estoicismo/supabase";
+import { fetchGoals as fetchSavingsGoals } from "@estoicismo/supabase";
+import { fetchBudgets } from "@estoicismo/supabase";
 import { getSupabaseBrowserClient } from "../lib/supabase-client";
 import { getCurrentWeekDays, getTodayStr } from "../lib/dateUtils";
 import { monthBounds } from "../lib/finance";
@@ -50,6 +57,19 @@ export type PrefetchTarget =
   | "emprendimiento"
   | "pegasso"
   | "ajustes";
+
+/**
+ * Sub-rutas con datos específicos que se pueden prefetchear cuando
+ * el user pasa el ratón sobre una sub-nav tab. Las query keys deben
+ * coincidir con las usadas por los hooks de cada página.
+ */
+export type SubPrefetchTarget =
+  | "fin-cuentas"
+  | "fin-tarjetas"
+  | "fin-recurrentes"
+  | "fin-ahorro"
+  | "fin-presupuestos"
+  | "fin-deudas";
 
 export function usePrefetchRoute() {
   const qc = useQueryClient();
@@ -148,4 +168,120 @@ export function usePrefetchRoute() {
     },
     [qc]
   );
+}
+
+/**
+ * Prefetch para sub-rutas específicas — se llama on-hover de cada
+ * tab del sub-nav. Trae los datos antes del click para que cuando
+ * el user efectivamente navegue, el render sea instantáneo.
+ *
+ * staleTime corto en las queries de origen → ideal de prefetch que
+ * dedupe automáticamente. No es caro disparar en cada hover.
+ */
+export function usePrefetchSubRoute() {
+  const qc = useQueryClient();
+
+  return useCallback(
+    (target: SubPrefetchTarget) => {
+      switch (target) {
+        case "fin-cuentas": {
+          qc.prefetchQuery({
+            queryKey: ["finance", "accounts", false],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchAccounts(sb, await getUserId(), {
+                include_archived: false,
+              });
+            },
+          });
+          break;
+        }
+        case "fin-tarjetas": {
+          qc.prefetchQuery({
+            queryKey: ["finance", "cards"],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchCreditCards(sb, await getUserId());
+            },
+          });
+          break;
+        }
+        case "fin-recurrentes": {
+          qc.prefetchQuery({
+            queryKey: ["finance", "recurring", true],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchRecurring(sb, await getUserId(), {
+                only_active: true,
+              });
+            },
+          });
+          qc.prefetchQuery({
+            queryKey: ["finance", "subscriptions", "all"],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchSubscriptions(sb, await getUserId(), {});
+            },
+          });
+          break;
+        }
+        case "fin-ahorro": {
+          qc.prefetchQuery({
+            queryKey: ["savings", "goals", false],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchSavingsGoals(sb, await getUserId(), {
+                include_completed: false,
+              });
+            },
+          });
+          break;
+        }
+        case "fin-presupuestos": {
+          qc.prefetchQuery({
+            queryKey: ["budgets", true],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchBudgets(sb, await getUserId(), {
+                only_active: true,
+              });
+            },
+          });
+          // Transactions del mes ya las debería tener prefetched el
+          // hover de "finanzas", pero por si acaso.
+          const { from, to } = monthBounds();
+          qc.prefetchQuery({
+            queryKey: ["finance", "tx", from, to],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchTransactions(sb, await getUserId(), { from, to });
+            },
+          });
+          break;
+        }
+        case "fin-deudas": {
+          qc.prefetchQuery({
+            queryKey: ["finance", "debts"],
+            queryFn: async () => {
+              const sb = getSupabaseBrowserClient();
+              return fetchDebts(sb, await getUserId(), {});
+            },
+          });
+          break;
+        }
+      }
+    },
+    [qc]
+  );
+}
+
+/** Mapping helper — cada SubnavItem.href tiene su SubPrefetchTarget. */
+export function subPrefetchForHref(href: string): SubPrefetchTarget | null {
+  if (href === "/finanzas/cuentas") return "fin-cuentas";
+  if (href === "/finanzas/tarjetas") return "fin-tarjetas";
+  if (href === "/finanzas/recurrentes") return "fin-recurrentes";
+  if (href === "/finanzas/ahorro") return "fin-ahorro";
+  if (href === "/finanzas/presupuestos") return "fin-presupuestos";
+  if (href === "/finanzas/deudas") return "fin-deudas";
+  return null;
 }

@@ -7,7 +7,11 @@ import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
 import { clearPersistedCache } from "../providers/QueryProvider";
-import { usePrefetchRoute } from "../../hooks/usePrefetchRoute";
+import {
+  usePrefetchRoute,
+  usePrefetchSubRoute,
+  subPrefetchForHref,
+} from "../../hooks/usePrefetchRoute";
 import { BottomNav } from "./BottomNav";
 import { OfflineIndicator } from "./OfflineIndicator";
 import { Logo } from "../brand/Logo";
@@ -300,6 +304,7 @@ function DesktopMasthead({
   // <Link>, el click se siente instantáneo: el HTML/JS y los datos
   // llegan en paralelo antes del click.
   const prefetch = usePrefetchRoute();
+  const prefetchSub = usePrefetchSubRoute();
 
   return (
     <header
@@ -372,7 +377,7 @@ function DesktopMasthead({
         </nav>
       </div>
 
-      {/* Row 3 — contextual sub-nav */}
+      {/* Row 3 — contextual sub-nav (tab style, minimalist) */}
       {(showHoySub ||
         showHabitsSub ||
         showFinanzasSub ||
@@ -389,7 +394,7 @@ function DesktopMasthead({
                       ? "Secciones de Finanzas"
                       : "Secciones de Mentalidad"
               }
-              className="flex items-center gap-1 overflow-x-auto py-2 -mx-1 px-1"
+              className="flex items-center gap-5 overflow-x-auto -mx-1 px-1"
             >
               {(showHoySub
                 ? HOY_SUBNAV
@@ -400,24 +405,33 @@ function DesktopMasthead({
                     : MENTALIDAD_SUBNAV
               ).map((item) => {
                 const active = isActiveHref(pathname, item.href);
+                const subKey = subPrefetchForHref(item.href);
+                const onPrefetch = subKey
+                  ? () => prefetchSub(subKey)
+                  : undefined;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch
                     aria-current={active ? "page" : undefined}
+                    onMouseEnter={onPrefetch}
+                    onFocus={onPrefetch}
+                    onTouchStart={onPrefetch}
                     className={clsx(
-                      "inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                      "relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 font-body text-[13px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm",
                       active
-                        ? "bg-accent/10 text-accent"
-                        : "text-muted hover:text-ink hover:bg-bg-alt"
+                        ? "text-ink font-medium"
+                        : "text-muted hover:text-ink"
                     )}
                   >
-                    {item.emoji && (
-                      <span aria-hidden className="text-[12px]">
-                        {item.emoji}
-                      </span>
-                    )}
                     {item.label}
+                    {active && (
+                      <span
+                        aria-hidden
+                        className="absolute left-0 right-0 -bottom-px h-[2px] bg-accent rounded-full"
+                      />
+                    )}
                   </Link>
                 );
               })}
@@ -441,6 +455,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showFinanzasSub = activeModule === "finanzas" && !onAjustes;
   const showMentalidadSub = activeModule === "reflexiones" && !onAjustes;
   const palette = useCommandPaletteShortcut();
+  const prefetchSub = usePrefetchSubRoute();
 
   return (
     <div data-module={dataModule} className="min-h-screen bg-bg">
@@ -496,7 +511,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     ? "Secciones de Finanzas"
                     : "Secciones de Mentalidad"
             }
-            className="flex items-center gap-1 overflow-x-auto py-1.5 px-3 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex items-center gap-4 overflow-x-auto px-4 border-t border-line/60 bg-bg-alt/90 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {(showHoySub
               ? HOY_SUBNAV
@@ -507,24 +522,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   : MENTALIDAD_SUBNAV
             ).map((item) => {
               const active = isActiveHref(pathname, item.href);
+              const subKey = subPrefetchForHref(item.href);
+              const onPrefetch = subKey
+                ? () => prefetchSub(subKey)
+                : undefined;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
+                  onTouchStart={onPrefetch}
+                  onMouseEnter={onPrefetch}
                   aria-current={active ? "page" : undefined}
                   className={clsx(
-                    "inline-flex items-center gap-1 whitespace-nowrap px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-[0.18em] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                    "relative inline-flex items-center gap-1 whitespace-nowrap py-2.5 font-body text-[13px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm",
                     active
-                      ? "bg-accent/10 text-accent"
+                      ? "text-ink font-medium"
                       : "text-muted hover:text-ink"
                   )}
                 >
-                  {item.emoji && (
-                    <span aria-hidden className="text-[11px]">
-                      {item.emoji}
-                    </span>
-                  )}
                   {item.label}
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute left-0 right-0 -bottom-px h-[2px] bg-accent rounded-full"
+                    />
+                  )}
                 </Link>
               );
             })}
