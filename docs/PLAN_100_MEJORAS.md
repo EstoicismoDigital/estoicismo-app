@@ -327,3 +327,73 @@ inline, en 10-15 minutos.
 El usuario abre la app, ve el ring, scrollea, llena, cierra. Si no
 aplica una sección hoy (día de descanso, fin de semana sin negocio),
 toca "saltar" y no rompe la racha.
+
+---
+
+## Resultado · sesión 3 (continuación 2026-04-28)
+
+User pidió:
+> "tienes un error en hoy. Y por favor separalo de habitos. Haz que
+> habito tenga su propia sección, y mejora la navegación de las
+> pestañas y continua con el plan"
+
+### Fix crítico
+
+- **Bug**: el dropdown de QuickAddTransactionRow mostraba "utensils Comida"
+  / "briefcase Salario" porque HTML `<option>` no renderiza JSX. Las
+  categorías guardan nombres de íconos lucide en `icon` que se mostraron
+  como texto. Quité el prefix; agregué un dot del color de la categoría.
+
+### Reestructuración: Hábitos como módulo propio
+
+Top tabs ahora son **5** (eran 4):
+
+```
+Hoy · Hábitos · Finanzas · Mentalidad · Negocio
+```
+
+- Nueva ModuleKey "hoy" con accent dorado (data-module="hoy" reusa
+  --brand-habits via globals.css).
+- /habitos es top-tab, no sub-page de Hoy.
+- HOY_SUBNAV ligero: solo Hoy + Anuario (lo cumulativo cross-modular).
+- HABITS_SUBNAV completo: Hábitos / Fitness / Lectura / Calendario /
+  Progreso / Revisión / Historial.
+- Mobile BottomNav: Hoy / Hábitos / Finanzas / Mentalidad / Negocio
+  (5 tabs, sin Ajustes — Ajustes se movió al mobile top bar).
+- Cmd+K palette: nav-hoy y nav-habitos como entries distintos.
+
+### Subnav visualmente mejorado
+
+- Cada item del subnav ahora tiene emoji prefijo: ☀️ Hoy, ✓ Hábitos,
+  💪 Fitness, 📖 Lectura, 📈 Resumen, 🏦 Cuentas, 💳 Tarjetas,
+  🔁 Recurrentes, 🐖 Ahorro, 🎯 Presupuestos, ⚖️ Deudas, 🧘 Meditación,
+  🌬 Respira, etc.
+- Reconocimiento visual rápido sin tener que leer todo.
+
+### Features nuevas continuando el plan
+
+**#65 Mood × workout correlation** — `MoodCorrelationCard` en
+/habitos/fitness compara mood promedio en días con workout vs sin.
+Color verde si delta positivo, rojo si negativo. Insight contextual
+("El cuerpo te lo paga", "Revisa intensidad o momento", etc).
+
+**#99 Idea-to-action** — `ActivateIdeaModal` convierte una BusinessIdea
+en perfil de negocio activo + crea 5 tareas iniciales clásicas
+(define producto, identifica cliente, pon precio, MVP en 7 días, cobra).
+Botón cohete en cada IdeaCard. Marca la idea con prefijo ✓ (historial).
+
+**#48 Bill reminder banner** — `UpcomingDueBanner` que aparece sutil
+en /finanzas (5 días) y /hoy plata section (3 días) cuando hay
+recurrencias o suscripciones próximas a vencer. Solo renderiza si
+hay items — discreto.
+
+**Lista de últimos movimientos en /hoy** — la sección Plata ahora
+muestra los 3 movimientos más recientes del día con dot de color +
+nota + monto. El user valida visualmente "sí, registré ese gasto".
+
+### Filosofía continuada
+
+5 módulos verticales, cada uno con identity propia (color, icono,
+subnav). El user sabe dónde está y qué encontrará. Hábitos vive
+junto a Hoy pero como vecino — el ritual del día (Hoy) NO es lo
+mismo que la administración de hábitos (Hábitos).
