@@ -19,6 +19,7 @@ import { formatMoney } from "../../../lib/finance";
 import { getStoicExerciseOfDay } from "../../../lib/mindset/stoic-exercises";
 
 import { RitualProgressRing } from "../../../components/hoy/RitualProgressRing";
+import { StickyProgressBar } from "../../../components/hoy/StickyProgressBar";
 import { AffirmationStripe } from "../../../components/hoy/AffirmationStripe";
 import { HoySection } from "../../../components/hoy/HoySection";
 import { TodayHabitsList } from "../../../components/hoy/TodayHabitsList";
@@ -100,6 +101,17 @@ export function TodayClient() {
 
   return (
     <div className="min-h-screen">
+      {/* Sticky mini progress bar — solo aparece cuando el user ha
+          scrolleado más allá del hero */}
+      {status && status.availableCount > 0 && (
+        <StickyProgressBar
+          completed={status.completedCount}
+          total={status.availableCount}
+          onJump={jumpTo}
+          sections={status.sections}
+        />
+      )}
+
       {/* Hero */}
       <section className="bg-bg-deep text-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
