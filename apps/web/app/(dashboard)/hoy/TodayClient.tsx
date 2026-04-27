@@ -30,6 +30,8 @@ import { QuickAddSaleRow } from "../../../components/hoy/QuickAddSaleRow";
 import { QuickAddReadingRow } from "../../../components/hoy/QuickAddReadingRow";
 import { AlertsBar } from "../../../components/hoy/AlertsBar";
 import { EveningReviewCard } from "../../../components/hoy/EveningReviewCard";
+import { WeeklyInsightsCard } from "../../../components/hoy/WeeklyInsightsCard";
+import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -155,10 +157,16 @@ export function TodayClient() {
         </div>
       </section>
 
+      {/* Tour de bienvenida — modal full-screen para nuevos usuarios */}
+      <OnboardingTour />
+
       {/* Body — secciones */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
+
+        {/* Resumen semanal — comparativo últimos 7 vs 7 anteriores */}
+        <WeeklyInsightsCard />
 
         {/* Revisión nocturna — solo después de las 19h y si no hecha */}
         <EveningReviewCard />

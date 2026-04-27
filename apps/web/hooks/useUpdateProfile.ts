@@ -8,6 +8,7 @@ export type UpdateProfileInput = {
   timezone?: string;
   default_currency?: string;
   avatar_url?: string | null;
+  onboarding_completed?: boolean;
 };
 
 export function useUpdateProfile() {
@@ -34,8 +35,12 @@ export function useUpdateProfile() {
       const { error } = await profilesTable.update(input).eq("id", user.id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["profile"] });
+      // Skip toast cuando solo se está marcando onboarding completado
+      // (acción silenciosa al cerrar el tour, no un cambio explícito).
+      const keys = Object.keys(vars);
+      if (keys.length === 1 && keys[0] === "onboarding_completed") return;
       toast.success("Cambios guardados");
     },
     onError: (err: unknown) => {
