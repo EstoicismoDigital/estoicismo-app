@@ -47,6 +47,7 @@ import { CustomerLtvCard } from "../../../components/emprendimiento/CustomerLtvC
 import { OkrsCard } from "../../../components/emprendimiento/OkrsCard";
 import { CompetitorsCard } from "../../../components/emprendimiento/CompetitorsCard";
 import { TimeTrackerCard } from "../../../components/emprendimiento/TimeTrackerCard";
+import { ClientPipelineCard } from "../../../components/emprendimiento/ClientPipelineCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { CurrencyBadge } from "../../../components/finanzas/CurrencyBadge";
@@ -389,6 +390,9 @@ function ActiveSection(props: { profileName: string | null }) {
 
       {/* Time tracker */}
       <TimeTrackerCard />
+
+      {/* Pipeline de clientes */}
+      <ClientPipelineCard clients={clients} />
 
       {/* Productos */}
       <div className="space-y-2">

@@ -41,6 +41,13 @@ export type BusinessProduct = {
   updated_at: string;
 };
 
+export type ClientStatus =
+  | "lead"
+  | "contactado"
+  | "cliente"
+  | "recurrente"
+  | "perdido";
+
 export type BusinessClient = {
   id: string;
   user_id: string;
@@ -50,9 +57,26 @@ export type BusinessClient = {
   tag: string | null;
   notes: string | null;
   is_archived: boolean;
+  status: ClientStatus;
   created_at: string;
   updated_at: string;
 };
+
+export const CLIENT_STATUS_LABELS: Record<ClientStatus, string> = {
+  lead: "Lead",
+  contactado: "Contactado",
+  cliente: "Cliente",
+  recurrente: "Recurrente",
+  perdido: "Perdido",
+};
+
+export const CLIENT_STATUS_ORDER: ClientStatus[] = [
+  "lead",
+  "contactado",
+  "cliente",
+  "recurrente",
+  "perdido",
+];
 
 export type BusinessTask = {
   id: string;
@@ -146,6 +170,7 @@ export type CreateClientInput = {
   phone?: string | null;
   tag?: string | null;
   notes?: string | null;
+  status?: ClientStatus;
 };
 
 export type CreateTaskInput = {
@@ -325,6 +350,7 @@ export async function createClient(
       phone: input.phone ?? null,
       tag: input.tag ?? null,
       notes: input.notes ?? null,
+      status: input.status ?? "cliente",
     } as never)
     .select()
     .single();
