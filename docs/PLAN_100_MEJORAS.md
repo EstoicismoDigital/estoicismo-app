@@ -531,3 +531,50 @@ Features cerradas del plan-100:
 Pendientes: items que requieren Storage upload (#16, #43, #61, #94),
 APIs externas (#18-#20, #29, #47), AI extra (#69, #82-#85), o
 schema cambios fuertes (#32, #33, #95).
+
+---
+
+## Resultado · sesión 6 (2026-04-28 noche)
+
+User: "sigue".
+
+### Features
+
+**#54 Investment portfolio manual**
+- Migration `finance_investments` con 6 tipos (stock/etf/crypto/
+  real_estate/fund/other), symbol, quantity, avg_buy_price,
+  current_value, include_in_net_worth, last_priced_at.
+- `InvestmentsCard` en /finanzas: tap-to-edit del valor current,
+  ganancia/pérdida calculada vs cost basis cuando hay quantity +
+  avg_buy_price, badge "última actualización".
+- `computeNetWorth` ahora recibe investments[] y los suma a assets.
+  El Net Worth refleja el portafolio completo.
+
+**#70 Reading challenges**
+- Migration `reading_challenges` con year, category, label, target,
+  emoji.
+- `ReadingChallengesCard` en /habitos/lectura: 6 presets (estoicismo,
+  ficcion, negocios, biografia, filosofia, tecnico) + custom.
+- Progreso calculado client-side filtrando books por category +
+  finished_at en el año (substring match case-insensitive).
+
+**#88 Conversation export**
+- Botón printer en header de /pegasso (solo aparece si hay mensajes).
+- window.print() + CSS rules: sidebar oculto, input oculto, message
+  actions ocultas, header oculto.
+- Print-only div arriba con título de la conversación + fecha export
+  + count de mensajes.
+
+### Migraciones aplicadas (sesión 6)
+- 20260428200000_investments.sql
+- 20260428300000_reading_challenges.sql
+
+### Items adicionales del plan-100 cerrados
+
+- #54 Investment portfolio manual
+- #70 Reading challenges
+- #88 Conversation export
+
+Total acumulado de items cerrados ahora suma: 53 ítems del plan-100
+distribuidos a través de 6 sesiones, con 9 migraciones aplicadas y
+build clean en cada paso.
