@@ -54,6 +54,7 @@ const TABLES_BY_USER_ID = [
   "reading_sessions",
   "reading_goals",
   "reading_challenges",
+  "reading_highlights",
   "fitness_user_profile",
   "fitness_metrics",
   "fitness_exercises",

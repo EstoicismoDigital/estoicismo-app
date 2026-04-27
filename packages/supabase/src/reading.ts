@@ -406,3 +406,99 @@ export async function deleteReadingChallenge(
   const { error } = await sb.from("reading_challenges").delete().eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING HIGHLIGHTS — citas y notas por libro (#68)
+// ─────────────────────────────────────────────────────────────
+
+export type ReadingHighlight = {
+  id: string;
+  user_id: string;
+  book_id: string;
+  content: string;
+  page: number | null;
+  note: string | null;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateHighlightInput = {
+  book_id: string;
+  content: string;
+  page?: number | null;
+  note?: string | null;
+  is_favorite?: boolean;
+};
+
+export type UpdateHighlightInput = Partial<CreateHighlightInput>;
+
+export async function fetchHighlightsByBook(
+  sb: SB,
+  bookId: string
+): Promise<ReadingHighlight[]> {
+  const { data, error } = await sb
+    .from("reading_highlights")
+    .select("*")
+    .eq("book_id", bookId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as ReadingHighlight[];
+}
+
+export async function fetchFavoriteHighlights(
+  sb: SB,
+  userId: string,
+  limit = 50
+): Promise<ReadingHighlight[]> {
+  const { data, error } = await sb
+    .from("reading_highlights")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_favorite", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as ReadingHighlight[];
+}
+
+export async function createHighlight(
+  sb: SB,
+  userId: string,
+  input: CreateHighlightInput
+): Promise<ReadingHighlight> {
+  const { data, error } = await sb
+    .from("reading_highlights")
+    .insert({
+      user_id: userId,
+      book_id: input.book_id,
+      content: input.content,
+      page: input.page ?? null,
+      note: input.note ?? null,
+      is_favorite: input.is_favorite ?? false,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as ReadingHighlight;
+}
+
+export async function updateHighlight(
+  sb: SB,
+  id: string,
+  input: UpdateHighlightInput
+): Promise<ReadingHighlight> {
+  const { data, error } = await sb
+    .from("reading_highlights")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as ReadingHighlight;
+}
+
+export async function deleteHighlight(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("reading_highlights").delete().eq("id", id);
+  if (error) throw error;
+}

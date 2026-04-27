@@ -261,6 +261,11 @@ export type Database = {
         Insert: Omit<import("./reading").ReadingChallenge, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./reading").ReadingChallenge>;
       };
+      reading_highlights: {
+        Row: import("./reading").ReadingHighlight;
+        Insert: Omit<import("./reading").ReadingHighlight, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./reading").ReadingHighlight>;
+      };
       savings_goals: {
         Row: SavingsGoal;
         Insert: Omit<SavingsGoal, "id" | "created_at" | "updated_at">;

@@ -300,3 +300,88 @@ export function useDeleteReadingChallenge() {
       qc.invalidateQueries({ queryKey: ["reading", "challenges"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// READING HIGHLIGHTS — citas y notas por libro (#68)
+// ─────────────────────────────────────────────────────────────
+
+export function useHighlightsByBook(bookId: string | null): UseQueryResult<
+  import("@estoicismo/supabase").ReadingHighlight[]
+> {
+  return useQuery({
+    queryKey: ["reading", "highlights", "book", bookId],
+    queryFn: async () => {
+      if (!bookId) return [];
+      const sb = getSupabaseBrowserClient();
+      const { fetchHighlightsByBook } = await import("@estoicismo/supabase");
+      return fetchHighlightsByBook(sb, bookId);
+    },
+    enabled: !!bookId,
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useFavoriteHighlights(): UseQueryResult<
+  import("@estoicismo/supabase").ReadingHighlight[]
+> {
+  return useQuery({
+    queryKey: ["reading", "highlights", "favorites"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchFavoriteHighlights } = await import("@estoicismo/supabase");
+      return fetchFavoriteHighlights(sb, await getUserId());
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCreateHighlight() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").CreateHighlightInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { createHighlight } = await import("@estoicismo/supabase");
+      return createHighlight(sb, await getUserId(), input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "highlights"] }),
+    onError: (err) =>
+      toast.error("No se pudo guardar la cita.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateHighlight() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateHighlightInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateHighlight } = await import("@estoicismo/supabase");
+      return updateHighlight(sb, id, input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "highlights"] }),
+  });
+}
+
+export function useDeleteHighlight() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteHighlight } = await import("@estoicismo/supabase");
+      await deleteHighlight(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["reading", "highlights"] }),
+  });
+}

@@ -156,6 +156,16 @@ export function CommandPalette({
         href: "/habitos/lectura",
       },
       {
+        id: "nav-pomodoro",
+        title: "Pomodoro",
+        description: "25 min foco · 5 min descanso",
+        group: "Hábitos",
+        kind: "nav",
+        icon: Calendar,
+        href: "/pomodoro",
+        keywords: ["focus", "trabajo", "deep"],
+      },
+      {
         id: "nav-tarjetas",
         title: "Tarjetas",
         group: "Finanzas",

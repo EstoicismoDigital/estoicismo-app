@@ -22,6 +22,7 @@ import {
 } from "../../../hooks/useUpdateProfile";
 import { ExportDataButton } from "../../../components/habits/ExportDataButton";
 import { FullBackupButton } from "../../../components/habits/FullBackupButton";
+import { CsvImportButton } from "../../../components/finanzas/CsvImportButton";
 import { FontSizeSelector } from "../../../components/ajustes/FontSizeSelector";
 import { ThemeToggle } from "../../../components/habits/ThemeToggle";
 import { PaletteSelector } from "../../../components/habits/PaletteSelector";
@@ -340,6 +341,19 @@ export function AjustesClient({
               </p>
             </div>
             <FullBackupButton />
+          </div>
+          <div className="rounded-card border border-line bg-bg p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-body text-sm font-medium text-ink">
+                Importar CSV de banco
+              </h3>
+              <p className="font-body text-xs text-muted mt-1 leading-relaxed max-w-md">
+                Sube el export de tu banco. Detecta delimitador, mapea
+                columnas automáticamente, preview antes de importar.
+                Usa la categoría que matchea o cae al primer ingreso/gasto.
+              </p>
+            </div>
+            <CsvImportButton />
           </div>
         </div>
 

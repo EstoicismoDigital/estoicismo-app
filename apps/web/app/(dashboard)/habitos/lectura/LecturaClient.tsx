@@ -20,6 +20,7 @@ import {
 } from "../../../../components/lectura/CurrentBookCard";
 import { ReadingGoalCard } from "../../../../components/lectura/ReadingGoalCard";
 import { ReadingChallengesCard } from "../../../../components/lectura/ReadingChallengesCard";
+import { HighlightsSection } from "../../../../components/lectura/HighlightsSection";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import { computeReadingStats, formatDuration } from "../../../../lib/reading/stats";
 import type { ReadingBook, ReadingSession } from "@estoicismo/supabase";
@@ -120,6 +121,14 @@ export function LecturaClient() {
             setBookModalOpen(true);
           }}
         />
+
+        {/* Citas/highlights del libro actual */}
+        {currentBook && (
+          <HighlightsSection
+            bookId={currentBook.id}
+            bookTitle={currentBook.title}
+          />
+        )}
 
         {/* Cronómetro */}
         <ReadingTimer onComplete={handleTimerComplete} />
