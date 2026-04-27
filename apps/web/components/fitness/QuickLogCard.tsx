@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Dumbbell, Plus, Loader2, Check, Timer } from "lucide-react";
+import { Dumbbell, Plus, Loader2, Check } from "lucide-react";
 import { clsx } from "clsx";
 import type { FitnessExercise, FitnessWorkoutSet } from "@estoicismo/supabase";
 import {
@@ -10,7 +10,6 @@ import {
   useAllUserSets,
 } from "../../hooks/useFitness";
 import { estimate1RM } from "../../lib/fitness/levels";
-import { RestTimer } from "./RestTimer";
 import { PRCelebration } from "./PRCelebration";
 
 /**
@@ -54,7 +53,6 @@ export function QuickLogCard(props: {
   const [weight, setWeight] = useState<string>("");
   const [reps, setReps] = useState<string>("");
   const [justSaved, setJustSaved] = useState(false);
-  const [restTimerOpen, setRestTimerOpen] = useState(false);
   const [prData, setPrData] = useState<{
     exerciseName: string;
     newRecord: number;
@@ -127,11 +125,6 @@ export function QuickLogCard(props: {
         });
       }
 
-      // 6. Auto-abrir rest timer (sólo si no fue PR — el PR overlay
-      //    cubre toda la pantalla y interrumpe).
-      if (!isNewPR) {
-        setRestTimerOpen(true);
-      }
     } catch {
       /* hooks toastean */
     }
@@ -233,20 +226,13 @@ export function QuickLogCard(props: {
         Cada serie cuenta. Para una sesión completa, abre &quot;Nueva sesión&quot; abajo.
       </p>
 
-      {restTimerOpen && (
-        <RestTimer onClose={() => setRestTimerOpen(false)} />
-      )}
       <PRCelebration
         open={prData !== null}
         exerciseName={prData?.exerciseName ?? ""}
         newRecord={prData?.newRecord ?? 0}
         unit={prData?.unit ?? "kg"}
         previousRecord={prData?.previousRecord}
-        onClose={() => {
-          setPrData(null);
-          // Después del PR, abrir el rest timer.
-          setRestTimerOpen(true);
-        }}
+        onClose={() => setPrData(null)}
       />
     </section>
   );
