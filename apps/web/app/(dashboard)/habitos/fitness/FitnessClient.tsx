@@ -22,6 +22,8 @@ import { LevelOverviewCard } from "../../../../components/fitness/LevelOverviewC
 import { LiftLevelsGrid } from "../../../../components/fitness/LiftLevelsGrid";
 import { MetricsTrendCard } from "../../../../components/fitness/MetricsTrendCard";
 import { QuickLogCard } from "../../../../components/fitness/QuickLogCard";
+import { RepeatWorkoutCard } from "../../../../components/fitness/RepeatWorkoutCard";
+import { ProgressiveOverloadCard } from "../../../../components/fitness/ProgressiveOverloadCard";
 import { PersonalizedPlanCard } from "../../../../components/fitness/PersonalizedPlanCard";
 import { PersonalRecordsCard } from "../../../../components/fitness/PersonalRecordsCard";
 import { PlateCalculatorCard } from "../../../../components/fitness/PlateCalculatorCard";
@@ -180,6 +182,12 @@ export function FitnessClient() {
           exercises={exercises}
           preferredExerciseSlugs={profile?.preferred_exercises ?? []}
         />
+
+        {/* Repetir sesión anterior — templates inferidos del historial */}
+        <RepeatWorkoutCard exercises={exercises} />
+
+        {/* Sobrecarga progresiva — sugerencias de subir/mantener/deload */}
+        <ProgressiveOverloadCard />
 
         {/* Plan personalizado — sólo si tiene perfil mínimo (peso + altura) */}
         {profile && profile.bodyweight_kg && profile.height_cm && (
