@@ -578,3 +578,39 @@ User: "sigue".
 Total acumulado de items cerrados ahora suma: 53 ítems del plan-100
 distribuidos a través de 6 sesiones, con 9 migraciones aplicadas y
 build clean en cada paso.
+
+---
+
+## Resultado · sesión 7 (2026-04-28 madrugada)
+
+User: "sigue".
+
+### Features
+
+**#37 Pomodoro Timer**
+- `/pomodoro` standalone — 25/5/15 con ciclos configurables.
+- Date.now() based para resistir background throttling.
+- Beep + vibrate al completar fase. Auto-bump count diario en
+  localStorage. Settings modal inline. Dot-grid visualización.
+
+**#68 Book Highlights**
+- Migration `reading_highlights` (content, page, note, is_favorite).
+- HighlightsSection embedded en /habitos/lectura del libro actual.
+  Form inline: textarea + page + note. Toggle favorite (star).
+- Backup incluye highlights.
+
+**#17 CSV Import**
+- `lib/finance/csv-import.ts` parser puro: detectDelimiter,
+  parseCsv (quotes/multilinea), guessMapping (es+en),
+  parseDate (ISO/DD-MM/MM-DD), parseAmount (latino/anglo/parens neg).
+- CsvImportModal 3 pasos en /ajustes: upload → map → importing.
+- Match category por keyword o nombre exacto, fallback primera del
+  kind. Mark con source="import".
+
+### Migraciones aplicadas (sesión 7)
+- 20260428400000_book_highlights.sql
+
+### Total acumulado
+
+**56 ítems del plan-100 cerrados** · 10 migraciones · 7 sesiones ·
+build clean en cada paso.
