@@ -40,6 +40,7 @@ import { SavingsRateCard } from "../../../components/finanzas/SavingsRateCard";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { CashFlowProjectionCard } from "../../../components/finanzas/CashFlowProjectionCard";
 import { EmergencyFundCard } from "../../../components/finanzas/EmergencyFundCard";
+import { FireCalculatorCard } from "../../../components/finanzas/FireCalculatorCard";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
@@ -163,6 +164,9 @@ export function FinanzasClient() {
 
         {/* Fondo de emergencia (líquido vs gasto promedio mensual) */}
         <EmergencyFundCard />
+
+        {/* FIRE calculator — patrimonio vs 25× gasto anual */}
+        <FireCalculatorCard />
 
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">

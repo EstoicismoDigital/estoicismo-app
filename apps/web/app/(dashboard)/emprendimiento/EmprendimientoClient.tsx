@@ -43,6 +43,7 @@ import {
 } from "../../../hooks/useFinance";
 import { IdeasList } from "../../../components/emprendimiento/IdeasList";
 import { MilestonesSection } from "../../../components/emprendimiento/MilestonesSection";
+import { CustomerLtvCard } from "../../../components/emprendimiento/CustomerLtvCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 
@@ -369,6 +370,9 @@ function ActiveSection(props: { profileName: string | null }) {
 
       {/* Hitos del negocio */}
       <MilestonesSection />
+
+      {/* Customer LTV */}
+      <CustomerLtvCard />
 
       {/* Productos */}
       <div className="space-y-2">
