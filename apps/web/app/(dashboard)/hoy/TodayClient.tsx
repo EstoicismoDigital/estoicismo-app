@@ -117,11 +117,12 @@ export function TodayClient() {
             />
           )}
 
-          {/* Subtítulo orientativo */}
+          {/* Subtítulo dinámico según progreso + hora */}
           <p className="font-body text-sm text-white/70 mt-5 leading-relaxed max-w-prose">
-            Una pantalla, un ritual. Llena en orden — afirmación,
-            mood, gratitud, hábitos, plata, negocio, cuerpo, lectura,
-            reflexión. En 15 minutos cierras tu mañana.
+            {ritualNudge(
+              status?.completedCount ?? 0,
+              status?.availableCount ?? 0
+            )}
           </p>
         </div>
       </section>
@@ -420,4 +421,31 @@ function prettyDate(): string {
     day: "numeric",
     month: "long",
   });
+}
+
+/**
+ * Texto motivacional dinámico bajo el ring de progreso. Cambia según
+ * cuánto llevas + qué hora es. Corto, sin moralina.
+ */
+function ritualNudge(done: number, available: number): string {
+  const h = new Date().getHours();
+  const isMorning = h < 12;
+  const isEvening = h >= 19;
+  if (available === 0) {
+    return "Configura tu MPD para empezar — todo lo demás se acomoda.";
+  }
+  if (done === 0) {
+    if (isMorning) return "Empieza con cualquier sección. Da igual cuál.";
+    if (isEvening)
+      return "Aún hay tiempo. Una sección hoy es mejor que cero.";
+    return "Tu yo de la noche te lo agradecerá. Empieza por algo pequeño.";
+  }
+  if (done < 4) {
+    return `Vas en ${done}. Cada uno construye el siguiente.`;
+  }
+  if (done >= available) {
+    return "Día completo. Sin necesitar que nadie lo aplaudiera.";
+  }
+  // Ritual met but not all done
+  return "Ritual cubierto. Lo que sigue es propina.";
 }

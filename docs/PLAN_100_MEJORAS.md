@@ -231,3 +231,99 @@ Total estimado: ~14h. Pragmático: si me falta tiempo, los últimos 3 quedan par
 4. `20260427700000_pegasso_pins_review.sql`
 5. `20260427800000_reading_goals_business_milestones.sql`
 6. `20260427900000_gratitude.sql`
+
+---
+
+## Resultado · sesión 2 (madrugada 2026-04-27 → 2026-04-28)
+
+User pidió:
+> "que sepas que vas a encontrar en cada cosa, un plan de que tienes que
+> hacer todos los días a primera hora. que no pases tanto tiempo en la
+> aplicación (más de 1 hora al día) … que se haga un habito llenar los
+> ingresos, negocio, meditar y los habitos correspondientes, llenar la
+> parte fitness etc."
+
+### Centerpiece: `/hoy` — el ritual matutino
+
+**Problema resuelto**: El usuario tenía que ir a 6 pantallas distintas
+para llenar lo del día. Cada una con su propia interfaz. Tedioso.
+
+**Solución**: Una sola pantalla en vertical. Llena en orden, todo
+inline, en 10-15 minutos.
+
+**9 secciones del ritual** (cada una con `done` autoderivado):
+1. **Tu por qué** — afirmación/MPD con check "leído"
+2. **¿Cómo amaneces?** — mood emoji (1 tap)
+3. **Tres gracias** — 3 inputs, auto-save
+4. **Hábitos de hoy** — checklist de los hábitos que aplican
+5. **Plata** — 2 quick-rows (gasto + ingreso) con resumen del día
+6. **Negocio** — quick-venta inline (si negocio activo)
+7. **Cuerpo** — link rápido a fitness (si tiene perfil)
+8. **Lectura** — minutos + páginas del libro actual
+9. **Reflexión** — ejercicio estoico + journal prompt mood-aware
+
+**Hero de /hoy**:
+- Greeting por hora ("Buenos días, [nombre]")
+- Ring de progreso con emojis tappables (saltan a la sección)
+- Racha del ritual (días con ≥4 secciones completas)
+- Nudge dinámico según hora + progreso
+
+**Inline mini-loggers nuevos**:
+- `QuickAddTransactionRow` — toggle income/expense, monto, categoría,
+  Enter. Recuerda última categoría usada por kind.
+- `QuickAddSaleRow` — venta con producto + cliente opcionales.
+- `QuickAddReadingRow` — minutos + páginas, prefilled del libro actual.
+
+**Lógica del ritual**:
+- `lib/hoy/ritual.ts` define 9 secciones con flags available + done.
+  Ritual "completo" cuando ≥4 de las disponibles están hechas.
+- `useTodayRitual` lanza 16 selects en paralelo con auth single-shot.
+- `useRitualStreak` scan de 60 días para construir la racha.
+- `useTodaySkips` permite "saltar hoy" una sección sin perder racha
+  (persistido en localStorage por día).
+
+### Navegación reestructurada
+
+- `/` ahora es `/hoy` (TodayClient). El dashboard de hábitos vivió en
+  `/habitos`.
+- BottomNav: "Hábitos" → "Hoy" con ícono Sun.
+- Masthead: módulo "habits" etiquetado "Hoy", matches incluye
+  `/habitos`, `/anuario`, etc.
+- HABITS_SUBNAV ahora tiene: Hoy / Hábitos / Fitness / Lectura /
+  Calendario / Progreso / Anuario / Notas.
+- Mobile habits subnav ahora se muestra (antes solo finanzas/mentalidad).
+
+### "¿Qué encuentras aquí?" en cada módulo
+
+- Nuevo componente `ModuleHeroNav` — chips translúcidos en el hero
+  oscuro mostrando las sub-secciones disponibles.
+- Mounted en /finanzas, /reflexiones, /emprendimiento.
+- DailyHeader (hero de /habitos) ahora dice "Hábitos · [fecha]" en
+  vez de solo fecha.
+
+### Cmd+K visible
+
+- Botón "Buscar… ⌘K" en masthead desktop (lg+) para descubrimiento.
+- Cmd+K palette ahora incluye nav-hoy en grupo Pilares.
+
+### Embed mode
+
+- `MoodTrackerCard`, `GratitudeCard`, `AffirmationStripe` aceptan
+  prop `embed` que oculta su título/banner interno cuando viven en
+  HoySection. Cero duplicación visual.
+
+### Empty states más editoriales
+
+- VisionBoardSection: "Lo que la mente ve, el cuerpo persigue."
+- /hoy nudges contextuales según hora + progreso ("Empieza con
+  cualquier sección. Da igual cuál.", "Día completo. Sin necesitar
+  que nadie lo aplaudiera.", etc).
+
+### Filosofía del rediseño
+
+> Una pantalla por día. Llenas tu mañana en 10-15 min, todo lineal,
+> cero modal. La consistencia construye el hábito.
+
+El usuario abre la app, ve el ring, scrollea, llena, cierra. Si no
+aplica una sección hoy (día de descanso, fin de semana sin negocio),
+toca "saltar" y no rompe la racha.
