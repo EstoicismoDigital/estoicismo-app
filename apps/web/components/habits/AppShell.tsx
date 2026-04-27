@@ -82,8 +82,10 @@ const HABITS_SUBNAV: { href: string; label: string }[] = [
  *  as habits — typography forward, one accent color. */
 const FINANZAS_SUBNAV: { href: string; label: string }[] = [
   { href: "/finanzas", label: "Resumen" },
+  { href: "/finanzas/cuentas", label: "Cuentas" },
   { href: "/finanzas/calendario", label: "Calendario" },
   { href: "/finanzas/tarjetas", label: "Tarjetas" },
+  { href: "/finanzas/recurrentes", label: "Recurrentes" },
   { href: "/finanzas/ahorro", label: "Ahorro" },
   { href: "/finanzas/presupuestos", label: "Presupuestos" },
   { href: "/finanzas/deudas", label: "Deudas" },

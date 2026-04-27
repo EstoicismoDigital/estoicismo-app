@@ -35,6 +35,7 @@ import { FinanceAdvice } from "../../../components/finanzas/FinanceAdvice";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAlertBanner";
+import { NetWorthCard } from "../../../components/finanzas/NetWorthCard";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
@@ -131,6 +132,9 @@ export function FinanzasClient() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Alerta de presupuestos — solo aparece si hay categorías cerca/excedidas */}
         <BudgetsAlertBanner />
+
+        {/* Net worth — sólo aparece si hay cuentas/deudas/cards/savings con saldo */}
+        <NetWorthCard />
 
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">

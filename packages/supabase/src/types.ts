@@ -59,6 +59,9 @@ import type {
   FinanceDebt,
   FinanceDebtPayment,
   FinanceQuote,
+  FinanceAccount,
+  FinanceRecurring,
+  FinanceSubscription,
 } from "./finance";
 
 // Tipos de Mentalidad — mismo patrón que finanzas.
@@ -135,6 +138,21 @@ export type Database = {
         Row: FinanceQuote;
         Insert: Omit<FinanceQuote, "id">;
         Update: Partial<FinanceQuote>;
+      };
+      finance_accounts: {
+        Row: FinanceAccount;
+        Insert: Omit<FinanceAccount, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceAccount>;
+      };
+      finance_recurring: {
+        Row: FinanceRecurring;
+        Insert: Omit<FinanceRecurring, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceRecurring>;
+      };
+      finance_subscriptions: {
+        Row: FinanceSubscription;
+        Insert: Omit<FinanceSubscription, "id" | "created_at" | "updated_at">;
+        Update: Partial<FinanceSubscription>;
       };
       mindset_mpd: {
         Row: MindsetMPD;

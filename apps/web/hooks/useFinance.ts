@@ -373,3 +373,195 @@ export function useFinanceQuotes(
     staleTime: 1000 * 60 * 60, // 1h — son datos casi estáticos
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// ACCOUNTS
+// ─────────────────────────────────────────────────────────────
+
+export function useAccounts(opts: { include_archived?: boolean } = {}): UseQueryResult<
+  import("@estoicismo/supabase").FinanceAccount[]
+> {
+  return useQuery({
+    queryKey: ["finance", "accounts", opts.include_archived ?? false],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchAccounts } = await import("@estoicismo/supabase");
+      return fetchAccounts(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCreateAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: import("@estoicismo/supabase").CreateAccountInput) => {
+      const sb = getSupabaseBrowserClient();
+      const { createAccount } = await import("@estoicismo/supabase");
+      return createAccount(sb, await getUserId(), input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "accounts"] }),
+    onError: (err) =>
+      toast.error("No se pudo crear la cuenta.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateAccountInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateAccount } = await import("@estoicismo/supabase");
+      return updateAccount(sb, id, input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "accounts"] }),
+  });
+}
+
+export function useDeleteAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteAccount } = await import("@estoicismo/supabase");
+      await deleteAccount(sb, id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "accounts"] }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// RECURRING
+// ─────────────────────────────────────────────────────────────
+
+export function useRecurring(opts: { only_active?: boolean } = {}): UseQueryResult<
+  import("@estoicismo/supabase").FinanceRecurring[]
+> {
+  return useQuery({
+    queryKey: ["finance", "recurring", opts.only_active ?? true],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchRecurring } = await import("@estoicismo/supabase");
+      return fetchRecurring(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useCreateRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: import("@estoicismo/supabase").CreateRecurringInput) => {
+      const sb = getSupabaseBrowserClient();
+      const { createRecurring } = await import("@estoicismo/supabase");
+      return createRecurring(sb, await getUserId(), input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "recurring"] }),
+    onError: (err) =>
+      toast.error("No se pudo crear la recurrencia.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateRecurringInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateRecurring } = await import("@estoicismo/supabase");
+      return updateRecurring(sb, id, input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "recurring"] }),
+  });
+}
+
+export function useDeleteRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteRecurring } = await import("@estoicismo/supabase");
+      await deleteRecurring(sb, id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "recurring"] }),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// SUBSCRIPTIONS
+// ─────────────────────────────────────────────────────────────
+
+export function useSubscriptions(opts: {
+  status?: import("@estoicismo/supabase").SubscriptionStatus[];
+} = {}): UseQueryResult<import("@estoicismo/supabase").FinanceSubscription[]> {
+  return useQuery({
+    queryKey: ["finance", "subscriptions", opts.status?.join(",") ?? "all"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchSubscriptions } = await import("@estoicismo/supabase");
+      return fetchSubscriptions(sb, await getUserId(), opts);
+    },
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useCreateSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: import("@estoicismo/supabase").CreateSubscriptionInput) => {
+      const sb = getSupabaseBrowserClient();
+      const { createSubscription } = await import("@estoicismo/supabase");
+      return createSubscription(sb, await getUserId(), input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "subscriptions"] }),
+    onError: (err) =>
+      toast.error("No se pudo guardar la suscripción.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useUpdateSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateSubscriptionInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateSubscription } = await import("@estoicismo/supabase");
+      return updateSubscription(sb, id, input);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "subscriptions"] }),
+  });
+}
+
+export function useDeleteSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteSubscription } = await import("@estoicismo/supabase");
+      await deleteSubscription(sb, id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["finance", "subscriptions"] }),
+  });
+}

@@ -35,6 +35,10 @@ export type FinanceTransaction = {
   kind: FinanceKind;
   category_id: string | null;
   credit_card_id: string | null;
+  /** Cuenta (efectivo/banco/ahorros) opcional. */
+  account_id: string | null;
+  /** Si la transacción nació de un recurring template. */
+  recurring_id: string | null;
   /** YYYY-MM-DD (fecha local del usuario). */
   occurred_on: string;
   note: string | null;
@@ -42,6 +46,133 @@ export type FinanceTransaction = {
   created_at: string;
   updated_at: string;
 };
+
+// ─────────────────────────────────────────────────────────────
+// ACCOUNTS — cuentas (efectivo, banco, ahorros, etc)
+// ─────────────────────────────────────────────────────────────
+
+export type FinanceAccountKind =
+  | "cash"
+  | "checking"
+  | "savings"
+  | "investment"
+  | "crypto"
+  | "other";
+
+export type FinanceAccount = {
+  id: string;
+  user_id: string;
+  name: string;
+  kind: FinanceAccountKind;
+  current_balance: number;
+  currency: string;
+  color: string;
+  icon: string;
+  include_in_net_worth: boolean;
+  is_archived: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateAccountInput = {
+  name: string;
+  kind?: FinanceAccountKind;
+  current_balance?: number;
+  currency?: string;
+  color?: string;
+  icon?: string;
+  include_in_net_worth?: boolean;
+  notes?: string | null;
+};
+
+export type UpdateAccountInput = Partial<CreateAccountInput> & {
+  is_archived?: boolean;
+};
+
+// ─────────────────────────────────────────────────────────────
+// RECURRING — plantilla de transacción recurrente
+// ─────────────────────────────────────────────────────────────
+
+export type RecurringCadence = "weekly" | "biweekly" | "monthly" | "yearly";
+
+export type FinanceRecurring = {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  currency: string;
+  kind: FinanceKind;
+  category_id: string | null;
+  account_id: string | null;
+  cadence: RecurringCadence;
+  day_of_period: number;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateRecurringInput = {
+  name: string;
+  amount: number;
+  kind: FinanceKind;
+  category_id?: string | null;
+  account_id?: string | null;
+  cadence?: RecurringCadence;
+  day_of_period: number;
+  start_date?: string;
+  end_date?: string | null;
+  currency?: string;
+  notes?: string | null;
+};
+
+export type UpdateRecurringInput = Partial<CreateRecurringInput> & {
+  is_active?: boolean;
+};
+
+// ─────────────────────────────────────────────────────────────
+// SUBSCRIPTIONS — Netflix, Spotify, software, gym, etc.
+// ─────────────────────────────────────────────────────────────
+
+export type SubscriptionCadence = "monthly" | "quarterly" | "yearly";
+export type SubscriptionStatus = "active" | "paused" | "cancelled" | "trial";
+
+export type FinanceSubscription = {
+  id: string;
+  user_id: string;
+  name: string;
+  vendor: string | null;
+  amount: number;
+  currency: string;
+  cadence: SubscriptionCadence;
+  renewal_day: number;
+  category_id: string | null;
+  status: SubscriptionStatus;
+  trial_ends_on: string | null;
+  notes: string | null;
+  service_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateSubscriptionInput = {
+  name: string;
+  vendor?: string | null;
+  amount: number;
+  currency?: string;
+  cadence?: SubscriptionCadence;
+  renewal_day: number;
+  category_id?: string | null;
+  status?: SubscriptionStatus;
+  trial_ends_on?: string | null;
+  notes?: string | null;
+  service_url?: string | null;
+};
+
+export type UpdateSubscriptionInput = Partial<CreateSubscriptionInput>;
 
 export type FinanceCreditCard = {
   id: string;
@@ -130,6 +261,8 @@ export type CreateTransactionInput = {
   kind: FinanceKind;
   category_id: string | null;
   credit_card_id?: string | null;
+  account_id?: string | null;
+  recurring_id?: string | null;
   occurred_on: string; // YYYY-MM-DD
   note?: string | null;
   currency?: string;
@@ -275,6 +408,8 @@ export async function createTransaction(
       kind: input.kind,
       category_id: input.category_id,
       credit_card_id: input.credit_card_id ?? null,
+      account_id: input.account_id ?? null,
+      recurring_id: input.recurring_id ?? null,
       occurred_on: input.occurred_on,
       note: input.note ?? null,
       currency: input.currency ?? "MXN",
@@ -560,4 +695,206 @@ export async function fetchFinanceQuotes(
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as unknown as FinanceQuote[];
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACCOUNTS — queries
+// ─────────────────────────────────────────────────────────────
+
+export async function fetchAccounts(
+  sb: SB,
+  userId: string,
+  opts: { include_archived?: boolean } = {}
+): Promise<FinanceAccount[]> {
+  let q = sb
+    .from("finance_accounts")
+    .select("*")
+    .eq("user_id", userId)
+    .order("is_archived", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (!opts.include_archived) q = q.eq("is_archived", false);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FinanceAccount[];
+}
+
+export async function createAccount(
+  sb: SB,
+  userId: string,
+  input: CreateAccountInput
+): Promise<FinanceAccount> {
+  const { data, error } = await sb
+    .from("finance_accounts")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      kind: input.kind ?? "cash",
+      current_balance: input.current_balance ?? 0,
+      currency: input.currency ?? "MXN",
+      color: input.color ?? "#22774E",
+      icon: input.icon ?? "wallet",
+      include_in_net_worth: input.include_in_net_worth ?? true,
+      notes: input.notes ?? null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceAccount;
+}
+
+export async function updateAccount(
+  sb: SB,
+  id: string,
+  input: UpdateAccountInput
+): Promise<FinanceAccount> {
+  const { data, error } = await sb
+    .from("finance_accounts")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceAccount;
+}
+
+export async function deleteAccount(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("finance_accounts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RECURRING — queries
+// ─────────────────────────────────────────────────────────────
+
+export async function fetchRecurring(
+  sb: SB,
+  userId: string,
+  opts: { only_active?: boolean } = {}
+): Promise<FinanceRecurring[]> {
+  let q = sb
+    .from("finance_recurring")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (opts.only_active !== false) q = q.eq("is_active", true);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FinanceRecurring[];
+}
+
+export async function createRecurring(
+  sb: SB,
+  userId: string,
+  input: CreateRecurringInput
+): Promise<FinanceRecurring> {
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await sb
+    .from("finance_recurring")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      amount: input.amount,
+      kind: input.kind,
+      category_id: input.category_id ?? null,
+      account_id: input.account_id ?? null,
+      cadence: input.cadence ?? "monthly",
+      day_of_period: input.day_of_period,
+      start_date: input.start_date ?? today,
+      end_date: input.end_date ?? null,
+      currency: input.currency ?? "MXN",
+      notes: input.notes ?? null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceRecurring;
+}
+
+export async function updateRecurring(
+  sb: SB,
+  id: string,
+  input: UpdateRecurringInput
+): Promise<FinanceRecurring> {
+  const { data, error } = await sb
+    .from("finance_recurring")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceRecurring;
+}
+
+export async function deleteRecurring(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("finance_recurring").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SUBSCRIPTIONS — queries
+// ─────────────────────────────────────────────────────────────
+
+export async function fetchSubscriptions(
+  sb: SB,
+  userId: string,
+  opts: { status?: SubscriptionStatus[] } = {}
+): Promise<FinanceSubscription[]> {
+  let q = sb
+    .from("finance_subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("renewal_day", { ascending: true });
+  if (opts.status && opts.status.length > 0) {
+    q = q.in("status", opts.status);
+  }
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as FinanceSubscription[];
+}
+
+export async function createSubscription(
+  sb: SB,
+  userId: string,
+  input: CreateSubscriptionInput
+): Promise<FinanceSubscription> {
+  const { data, error } = await sb
+    .from("finance_subscriptions")
+    .insert({
+      user_id: userId,
+      name: input.name,
+      vendor: input.vendor ?? null,
+      amount: input.amount,
+      currency: input.currency ?? "MXN",
+      cadence: input.cadence ?? "monthly",
+      renewal_day: input.renewal_day,
+      category_id: input.category_id ?? null,
+      status: input.status ?? "active",
+      trial_ends_on: input.trial_ends_on ?? null,
+      notes: input.notes ?? null,
+      service_url: input.service_url ?? null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceSubscription;
+}
+
+export async function updateSubscription(
+  sb: SB,
+  id: string,
+  input: UpdateSubscriptionInput
+): Promise<FinanceSubscription> {
+  const { data, error } = await sb
+    .from("finance_subscriptions")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as FinanceSubscription;
+}
+
+export async function deleteSubscription(sb: SB, id: string): Promise<void> {
+  const { error } = await sb.from("finance_subscriptions").delete().eq("id", id);
+  if (error) throw error;
 }
