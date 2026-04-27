@@ -26,38 +26,44 @@ export const HILL_SIX_STEPS: HillStep[] = [
   {
     n: 1,
     title: "Fija la cantidad exacta",
-    prompt: "¿Qué quieres lograr? Sé específico y medible.",
-    hint: "«Dinero suficiente» no basta. Una cifra, un lugar, una posición.",
+    prompt:
+      "Sé absolutamente específico con lo que quieres. Si es dinero, una cifra exacta. Si es una posición, el cargo y la empresa. Si es algo material, marca y modelo. El subconsciente solo trabaja con metas concretas — no entiende «más» ni «mejor».",
+    hint: "«Dinero suficiente» no basta. «$500,000 USD», sí. «Un mejor empleo», no. «Director de Marketing en una empresa de software», sí. Mientras más exacto, más fuerte la orden que envías a tu mente.",
   },
   {
     n: 2,
     title: "Qué darás a cambio",
-    prompt: "¿Qué estás dispuesto a dar por lo que pides?",
-    hint: "Nada sin esfuerzo. Define servicio, tiempo, valor.",
+    prompt:
+      "Decide qué vas a entregar tú al mundo para recibir eso que pides. Hill llamaba a esto «la ley del intercambio justo»: nada llega gratis. Puede ser tu tiempo, conocimiento, servicio, esfuerzo creativo, dedicación. Si no defines qué das, te quedas esperando.",
+    hint: "Si pides $500K, ¿qué servicio, producto o trabajo de ese valor vas a entregar? Esto te aterriza: te obliga a pensar en valor real, no solo en deseo.",
   },
   {
     n: 3,
     title: "Fecha límite",
-    prompt: "¿Cuándo quieres tenerlo?",
-    hint: "Una fecha exacta. El cerebro necesita un horizonte claro.",
+    prompt:
+      "Pon una fecha exacta — día, mes y año — para tener lo que pediste. Sin fecha, el deseo se vuelve fantasía. La fecha le da al cerebro un horizonte que activa la urgencia y empieza a buscar caminos. Sé ambicioso pero realista.",
+    hint: "Ejemplo: «Para el 31 de diciembre de 2027 tendré $500K USD ahorrados.» Mejor una fecha equivocada por meses que ninguna fecha. Puedes ajustarla después si necesitas, pero comienza con una.",
   },
   {
     n: 4,
     title: "Un plan concreto",
-    prompt: "¿Cuál es tu primer plan, aunque sea imperfecto?",
-    hint: "Ponte en marcha ahora. Ajustarás el plan en el camino.",
+    prompt:
+      "Define los primeros pasos. No tienes que tener el plan completo — Hill insistía en que la mayoría no lo tiene al inicio. Lo importante es empezar a moverte hoy con lo que sí sabes. El plan se afina caminando, no sentado pensando.",
+    hint: "Escribe 3-5 acciones que puedes hacer este mes. Ejemplo: «contactar a 10 clientes potenciales por semana», «aprender X habilidad en 90 días», «crear este producto antes de junio». Acción imperfecta vence planeación perfecta.",
   },
   {
     n: 5,
     title: "Declaración escrita",
-    prompt: "Escribe en una frase: cifra + fecha + qué das + cómo.",
-    hint: "Esta frase la leerás dos veces al día.",
+    prompt:
+      "Junta los 4 pasos anteriores en una sola frase clara y poderosa, en presente como si ya fuera tuya. Esta declaración es el contrato contigo mismo. Hill consideraba este paso como el «núcleo» del método: convierte el deseo en una orden formal a tu subconsciente.",
+    hint: "Plantilla: «Para [fecha] tendré [cifra/meta]. A cambio entregaré [servicio/valor]. Mi plan es [acciones].» Léela cada mañana y cada noche. Repetir esa frase reprograma tu mente para detectar oportunidades alineadas.",
   },
   {
     n: 6,
     title: "Lee y siente",
-    prompt: "Mañana al despertar y antes de dormir: léelo en voz alta.",
-    hint: "Velo, siéntelo y créelo ya tuyo. Eso es autosugestión.",
+    prompt:
+      "Lee tu declaración en voz alta dos veces al día — al despertar y antes de dormir — y mientras la lees, siente que ya la lograste. Esto es autosugestión: el subconsciente no distingue entre lo que vives y lo que imaginas con emoción intensa. La emoción es lo que graba la orden.",
+    hint: "No basta leer mecánicamente. Cierra los ojos, visualiza el momento de tener eso que pides, siente la emoción de tenerlo ya. Hazlo 5-10 minutos. La fe no es creer que pasará — es vivirlo como si ya hubiese pasado, todos los días, hasta que sea real.",
   },
 ];
 

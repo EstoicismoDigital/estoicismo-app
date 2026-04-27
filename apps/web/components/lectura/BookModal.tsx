@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, BookOpen, Loader2 } from "lucide-react";
+import { X, BookOpen, Loader2, Camera, Image as ImageIcon, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
 import type { ReadingBook, CreateBookInput, UpdateBookInput } from "@estoicismo/supabase";
+import { useImageUpload } from "../../hooks/useImageUpload";
 
 export function BookModal(props: {
   open: boolean;
@@ -25,6 +26,9 @@ export function BookModal(props: {
   const [isCurrent, setIsCurrent] = useState(book?.is_current ?? !book);
   const [mySummary, setMySummary] = useState(book?.my_summary ?? "");
   const [notes, setNotes] = useState(book?.notes ?? "");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading } = useImageUpload();
 
   useEffect(() => {
     if (!open) return;
@@ -48,6 +52,15 @@ export function BookModal(props: {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await upload(file, { bucket: "book-covers", purpose: "cover" });
+    if (url) setCoverUrl(url);
+    // Reset input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   if (!mounted || !open) return null;
 
   return createPortal(
@@ -62,6 +75,67 @@ export function BookModal(props: {
           </button>
         </div>
         <div className="px-5 py-4 space-y-3">
+          {/* Cover upload — primero porque es lo más visual */}
+          <div>
+            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-2">
+              Portada
+            </label>
+            <div className="flex items-start gap-3">
+              {/* Preview */}
+              <div className="relative w-20 h-28 rounded-lg overflow-hidden bg-bg border border-line shrink-0 flex items-center justify-center">
+                {coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={coverUrl}
+                    alt="Portada"
+                    className="w-full h-full object-cover"
+                    onError={() => setCoverUrl("")}
+                  />
+                ) : (
+                  <ImageIcon size={20} className="text-muted/40" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <Loader2 size={20} className="animate-spin text-white" />
+                  </div>
+                )}
+              </div>
+              {/* Actions */}
+              <div className="flex-1 space-y-1.5">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full inline-flex items-center justify-center gap-2 h-10 px-3 rounded-lg bg-bg border border-line hover:border-accent text-ink text-sm transition-colors disabled:opacity-40"
+                >
+                  <Camera size={14} />
+                  {coverUrl ? "Cambiar foto" : "Subir foto"}
+                </button>
+                {coverUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCoverUrl("")}
+                    className="w-full inline-flex items-center justify-center gap-2 h-9 px-3 rounded-lg text-muted hover:text-danger text-xs transition-colors"
+                  >
+                    <Trash2 size={12} />
+                    Quitar
+                  </button>
+                )}
+                <p className="text-[10px] text-muted leading-relaxed">
+                  JPG, PNG, HEIC, WebP — máx 10MB. Se redimensiona
+                  automáticamente.
+                </p>
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/heic,image/heif"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+
           <div>
             <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
               Título
@@ -128,18 +202,6 @@ export function BookModal(props: {
               className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
-              Portada (URL)
-            </label>
-            <input
-              type="url"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              placeholder="https://…"
-              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink focus:outline-none focus:border-accent"
-            />
-          </div>
           <label className="flex items-center gap-2 cursor-pointer pt-1">
             <input
               type="checkbox"
@@ -150,34 +212,38 @@ export function BookModal(props: {
             <span className="text-sm text-ink">Marcar como mi libro actual</span>
           </label>
 
-          {/* Mi resumen — el take global del libro entero. */}
-          <div className="pt-2 border-t border-line/50">
-            <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
-              Mi resumen del libro
+          {/* Aprendizajes — el corazón de cada libro */}
+          <div className="pt-4 border-t border-line/50">
+            <label className="block text-[11px] font-mono uppercase tracking-widest text-accent mb-1">
+              ✦ Lo más importante que aprendí
             </label>
+            <p className="text-[11px] text-muted leading-relaxed mb-2">
+              La razón por la que leíste este libro. Las 3-5 ideas que
+              cambiaron tu cabeza, lo que le dirías a un amigo si tuvieras
+              un minuto. <strong className="text-ink/80">Esto es lo que
+              vas a releer dentro de un año</strong> — no las páginas
+              originales.
+            </p>
             <textarea
               value={mySummary}
               onChange={(e) => setMySummary(e.target.value)}
               rows={6}
-              placeholder="Lo que te llevas del libro entero. La idea central, las 3 cosas que cambiaron tu cabeza, lo que le contarías a un amigo si tuvieras un minuto."
+              placeholder={`1. La idea principal del libro es…\n2. Lo que más me marcó fue…\n3. Voy a aplicar esto en mi vida así…`}
               className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink resize-none focus:outline-none focus:border-accent leading-relaxed"
             />
-            <p className="text-[10px] text-muted italic mt-1">
-              Distinto del resumen por sesión — esto es tu visión global, escríbelo cuando lo termines.
-            </p>
           </div>
 
-          {/* Notas / quotes / scratch */}
+          {/* Citas y notas adicionales — opcional */}
           <div>
             <label className="block text-[11px] font-mono uppercase tracking-widest text-muted mb-1">
-              Notas y citas (opcional)
+              Citas favoritas <span className="text-muted/60">(opcional)</span>
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              placeholder="Citas favoritas, páginas a recordar, scratch."
-              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink resize-none focus:outline-none focus:border-accent"
+              placeholder="Páginas a recordar, frases textuales que quieras guardar."
+              className="w-full bg-bg border border-line rounded-lg px-3 py-2 text-ink resize-none focus:outline-none focus:border-accent text-sm"
             />
           </div>
         </div>
@@ -191,7 +257,7 @@ export function BookModal(props: {
           </button>
           <button
             type="button"
-            disabled={!title.trim() || saving}
+            disabled={!title.trim() || saving || isUploading}
             onClick={async () => {
               if (!title.trim()) return;
               await onSave({

@@ -10,3 +10,4 @@ export * from "./budgets";
 export * from "./business";
 export * from "./pegasso";
 export * from "./journal";
+export * from "./storage";

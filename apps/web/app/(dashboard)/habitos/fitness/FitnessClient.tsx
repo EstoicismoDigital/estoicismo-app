@@ -27,7 +27,6 @@ import { ProgressiveOverloadCard } from "../../../../components/fitness/Progress
 import { RestRecommendationCard } from "../../../../components/fitness/RestRecommendationCard";
 import { PersonalizedPlanCard } from "../../../../components/fitness/PersonalizedPlanCard";
 import { PersonalRecordsCard } from "../../../../components/fitness/PersonalRecordsCard";
-import { PlateCalculatorCard } from "../../../../components/fitness/PlateCalculatorCard";
 import { BodyMetricsCard } from "../../../../components/fitness/BodyMetricsCard";
 import { MoodCorrelationCard } from "../../../../components/fitness/MoodCorrelationCard";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
@@ -211,11 +210,6 @@ export function FitnessClient() {
 
         {/* Récords personales — sólo si hay sets suficientes */}
         <PersonalRecordsCard exercises={exercises} sets={allSets} />
-
-        {/* Calculadora de discos — siempre disponible */}
-        <PlateCalculatorCard
-          defaultUnit={profile?.unit_system === "imperial" ? "lbs" : "kg"}
-        />
 
         {/* Medidas corporales — entrada rápida */}
         <BodyMetricsCard />

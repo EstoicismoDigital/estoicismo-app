@@ -54,9 +54,11 @@ export function StickyProgressBar({
     <div
       data-print-hide
       className={clsx(
+        // Solo móvil: en desktop el masthead ya provee orientación y la
+        // progress bar se montaba sobre él (z-40 sobre z-30) creando un
+        // overlay fantasma con números cortados. En móvil sí es útil.
         "fixed top-0 left-0 right-0 z-40 bg-bg/95 backdrop-blur-sm border-b border-line transition-all duration-200 print:hidden",
-        // Push down un poco para no cubrir el masthead desktop fixed
-        "md:top-[64px]"
+        "md:hidden"
       )}
       role="status"
       aria-label={`Ritual del día: ${completed} de ${total} secciones`}

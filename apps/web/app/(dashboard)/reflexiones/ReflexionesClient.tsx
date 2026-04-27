@@ -304,11 +304,28 @@ function MPDEditor({
           <h1 className="font-display italic text-3xl sm:text-4xl leading-tight">
             Tu Propósito Mayor Definido.
           </h1>
-          <p className="font-body text-white/60 text-sm mt-3 max-w-prose leading-relaxed">
-            Napoleón Hill lo llamó el punto de partida de todo logro.
-            Seis pasos, una declaración, y leerlo dos veces al día —
-            mañana al despertar, noche antes de dormir.
-          </p>
+          <div className="font-body text-white/70 text-sm mt-4 max-w-prose leading-relaxed space-y-3">
+            <p>
+              <strong className="text-white">¿Qué es el MPD?</strong> Es
+              el método que Napoleón Hill describió en{" "}
+              <em>Piense y Hágase Rico</em> (1937), después de estudiar
+              durante 25 años a 500 personas exitosas — Carnegie, Edison,
+              Ford, Rockefeller. Descubrió que todas tenían un propósito
+              tan claro y tan vívido que parecía una obsesión.
+            </p>
+            <p>
+              El MPD convierte un deseo vago («quiero ser rico») en una
+              orden precisa que tu mente subconsciente puede ejecutar:
+              cifra exacta, fecha exacta, qué darás a cambio, plan
+              concreto. Y lo lees dos veces al día — al despertar y antes
+              de dormir — sintiéndolo como ya tuyo.
+            </p>
+            <p className="text-white/60 italic">
+              No es positive thinking. Es entrenar tu atención y
+              decisiones diarias hacia una meta tan específica que el
+              mundo empieza a cooperar.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -317,18 +334,29 @@ function MPDEditor({
         className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col gap-6"
       >
         <div className="rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-3">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
             Los 6 pasos de Hill
           </p>
-          <ol className="space-y-3">
+          <p className="font-body text-xs text-muted leading-relaxed mb-5">
+            Estos seis pasos son la columna del método. No te saltes
+            ninguno — cada uno hace algo distinto en tu mente. Los
+            siguientes campos del formulario te guían a llenarlos uno por
+            uno.
+          </p>
+          <ol className="space-y-5">
             {HILL_SIX_STEPS.map((s) => (
               <li key={s.n} className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full border border-accent/30 text-accent font-mono text-[10px] flex items-center justify-center">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full border border-accent/30 text-accent font-mono text-[11px] flex items-center justify-center">
                   {s.n}
                 </span>
-                <div className="flex-1">
-                  <p className="font-body text-sm text-ink">{s.title}</p>
-                  <p className="font-body text-xs text-muted leading-relaxed">
+                <div className="flex-1 space-y-1.5">
+                  <p className="font-body text-sm font-medium text-ink">
+                    {s.title}
+                  </p>
+                  <p className="font-body text-[13px] text-ink/80 leading-relaxed">
+                    {s.prompt}
+                  </p>
+                  <p className="font-body text-xs text-muted leading-relaxed italic">
                     {s.hint}
                   </p>
                 </div>
