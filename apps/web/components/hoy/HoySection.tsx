@@ -86,17 +86,23 @@ export function HoySection({
           <button
             type="button"
             onClick={onSkipToggle}
-            className="font-mono text-[9px] uppercase tracking-widest text-muted hover:text-ink inline-flex items-center gap-1 px-2 py-1 rounded-full hover:bg-bg-alt transition-colors shrink-0"
+            className={clsx(
+              "font-mono text-[9px] uppercase tracking-widest inline-flex items-center gap-1 px-2 py-1 rounded-full transition-colors shrink-0",
+              skipped
+                ? "text-accent hover:bg-bg-alt"
+                : "text-muted/50 hover:text-muted hover:bg-bg-alt"
+            )}
             title={skipped ? "Reactivar sección" : "No aplica hoy"}
+            aria-label={
+              skipped ? "Reactivar sección" : "Marcar como no aplica hoy"
+            }
           >
             {skipped ? (
               <>
                 <RotateCcw size={10} /> Deshacer
               </>
             ) : (
-              <>
-                <X size={10} /> Saltar
-              </>
+              <X size={11} />
             )}
           </button>
         )}
