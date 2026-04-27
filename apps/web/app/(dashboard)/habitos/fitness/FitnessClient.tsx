@@ -26,6 +26,7 @@ import { PersonalizedPlanCard } from "../../../../components/fitness/Personalize
 import { PersonalRecordsCard } from "../../../../components/fitness/PersonalRecordsCard";
 import { PlateCalculatorCard } from "../../../../components/fitness/PlateCalculatorCard";
 import { BodyMetricsCard } from "../../../../components/fitness/BodyMetricsCard";
+import { MoodCorrelationCard } from "../../../../components/fitness/MoodCorrelationCard";
 import { ConfirmDialog } from "../../../../components/ui/ConfirmDialog";
 import type { FitnessWorkout } from "@estoicismo/supabase";
 import type { WorkoutModalSubmit } from "../../../../components/fitness/WorkoutModal";
@@ -206,6 +207,9 @@ export function FitnessClient() {
 
         {/* Medidas corporales — entrada rápida */}
         <BodyMetricsCard />
+
+        {/* Correlación mood × workout */}
+        <MoodCorrelationCard />
 
         {/* Tendencias */}
         <MetricsTrendCard metrics={metrics} />
