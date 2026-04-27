@@ -82,6 +82,7 @@ export function TransactionModal({
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [occurredOn, setOccurredOn] = useState(() => todayIso());
   const [note, setNote] = useState("");
+  const [taxDeductible, setTaxDeductible] = useState(false);
   const [touched, setTouched] = useState(false);
 
   // Voice state
@@ -105,12 +106,14 @@ export function TransactionModal({
       setCategoryId(editing.category_id);
       setOccurredOn(editing.occurred_on);
       setNote(editing.note ?? "");
+      setTaxDeductible(editing.tax_deductible ?? false);
     } else {
       setKind(defaultKind);
       setAmountText("");
       setCategoryId(null);
       setOccurredOn(todayIso());
       setNote("");
+      setTaxDeductible(false);
     }
     setTouched(false);
     setVoiceMsg(null);
@@ -244,6 +247,7 @@ export function TransactionModal({
       occurred_on: occurredOn,
       note: note.trim() ? note.trim() : null,
       source: "manual",
+      tax_deductible: kind === "expense" ? taxDeductible : false,
     };
     await onSave(draft);
   }
@@ -470,6 +474,24 @@ export function TransactionModal({
               />
             </div>
           </div>
+
+          {/* Tax deductible — solo gastos */}
+          {kind === "expense" && (
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={taxDeductible}
+                onChange={(e) => setTaxDeductible(e.target.checked)}
+                className="h-4 w-4 rounded border-line accent-accent"
+              />
+              <span className="font-body text-sm text-ink">
+                Deducible de impuestos
+              </span>
+              <span className="font-body text-xs text-muted">
+                · cuenta para tu declaración
+              </span>
+            </label>
+          )}
         </div>
 
         {/* Footer */}

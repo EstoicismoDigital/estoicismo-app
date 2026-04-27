@@ -69,6 +69,8 @@ const TABLES_BY_USER_ID = [
   "business_sales",
   "business_milestones",
   "business_okrs",
+  "business_competitors",
+  "business_time_entries",
   "pegasso_conversations",
   "pegasso_messages",
   "journal_entries",

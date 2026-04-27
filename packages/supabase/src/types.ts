@@ -329,6 +329,11 @@ export type Database = {
         Insert: Omit<import("./business").BusinessCompetitor, "id" | "created_at" | "updated_at">;
         Update: Partial<import("./business").BusinessCompetitor>;
       };
+      business_time_entries: {
+        Row: import("./business").BusinessTimeEntry;
+        Insert: Omit<import("./business").BusinessTimeEntry, "id" | "created_at" | "updated_at">;
+        Update: Partial<import("./business").BusinessTimeEntry>;
+      };
       pegasso_conversations: {
         Row: PegassoConversation;
         Insert: Omit<PegassoConversation, "id" | "created_at" | "updated_at" | "last_message_at"> & {

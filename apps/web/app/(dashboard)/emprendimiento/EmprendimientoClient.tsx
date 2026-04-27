@@ -46,6 +46,7 @@ import { MilestonesSection } from "../../../components/emprendimiento/Milestones
 import { CustomerLtvCard } from "../../../components/emprendimiento/CustomerLtvCard";
 import { OkrsCard } from "../../../components/emprendimiento/OkrsCard";
 import { CompetitorsCard } from "../../../components/emprendimiento/CompetitorsCard";
+import { TimeTrackerCard } from "../../../components/emprendimiento/TimeTrackerCard";
 import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { ModuleHeroNav } from "../../../components/ui/ModuleHeroNav";
 import { CurrencyBadge } from "../../../components/finanzas/CurrencyBadge";
@@ -385,6 +386,9 @@ function ActiveSection(props: { profileName: string | null }) {
 
       {/* Competidores */}
       <CompetitorsCard />
+
+      {/* Time tracker */}
+      <TimeTrackerCard />
 
       {/* Productos */}
       <div className="space-y-2">

@@ -191,19 +191,36 @@ function SignOutButton() {
 }
 
 function SettingsLink({ active }: { active: boolean }) {
+  const { data: profile } = useProfile();
+  const avatarUrl = profile?.avatar_url ?? null;
+
   return (
     <Link
       href="/ajustes"
       aria-label="Ajustes"
       aria-current={active ? "page" : undefined}
       className={clsx(
-        "inline-flex items-center justify-center w-9 h-9 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        "inline-flex items-center justify-center w-9 h-9 rounded-full overflow-hidden transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         active
-          ? "text-ink bg-bg-alt"
+          ? "text-ink bg-bg-alt ring-2 ring-accent/40"
           : "text-muted hover:text-ink hover:bg-bg-alt"
       )}
     >
-      <Settings size={16} aria-hidden />
+      {avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={avatarUrl}
+          alt=""
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            // Si la URL falla, ocultar la imagen para mostrar el ícono fallback
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        <Settings size={16} aria-hidden />
+      )}
     </Link>
   );
 }

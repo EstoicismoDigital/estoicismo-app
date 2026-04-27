@@ -614,3 +614,87 @@ User: "sigue".
 
 **56 ítems del plan-100 cerrados** · 10 migraciones · 7 sesiones ·
 build clean en cada paso.
+
+---
+
+## Resultado · sesión 8 (2026-04-29)
+
+User: "SIGUE TODO LO QUE PUEDAS NO ME PREGUNTES" + interrupción
+mid-batch: "quiero que haya un selector de monedas también en
+finanzas y negocio."
+
+### Features
+
+**Currency selector global (pedido explícito del user)**
+- Migration `default_currency` agrega columna a `profiles` con default
+  `MXN`. Lista curada de 14 monedas LATAM/USA/EU + custom 3-letter ISO.
+- `CurrencySelector` card en /ajustes con chips por moneda + input
+  para cualquier código (ej. BTC). Una sola moneda activa.
+- `useDefaultCurrency()` hook leyendo profile + fallback `MXN`.
+- `CurrencyBadge` clickeable en hero de /finanzas y /emprendimiento,
+  navega a `/ajustes#finanzas-y-negocio`.
+- `QuickAddTransactionRow` y `QuickAddSaleRow` ahora pasan la moneda
+  preferida del user al crear ventas/transacciones (no más `MXN`
+  hardcodeado).
+
+**#11 Avatar URL en perfil**
+- Card de profile en /ajustes con preview circular + input de URL
+  externa. Save/cancel con feedback. Sin Supabase Storage — el user
+  pega URL pública (Gravatar, Cloudinary, etc.).
+- `SettingsLink` del topbar muestra el avatar si está set, fallback
+  al ícono Settings. Onerror → fallback automático.
+
+**#55 Tax bucket category**
+- Migration `tax_deductible BOOLEAN` en `finance_transactions` +
+  partial index para queries rápidas. Toggle en `TransactionModal`
+  solo visible para gastos.
+- `TaxBucketCard` en /finanzas suma YTD de transacciones marcadas.
+  Hidden hasta que el user marque al menos una.
+
+**#23 Diario PDF export**
+- Botón printer en hero de /notas. CSS print rules ocultan chrome
+  (search, filtro, CTA). Print-only header con título y fecha.
+
+**#22 iCal export hábitos**
+- `lib/ical-export.ts` builds RFC 5545 con VEVENT/RRULE/VALARM.
+  Soporta daily, weekly, weekly-by-days. Recordatorio configurable.
+- `IcalExportButton` en /ajustes → descarga `.ics` con todos los
+  hábitos no archivados.
+
+**#98 Competidores a vigilar**
+- Migration `business_competitors` con name, website, strengths,
+  weaknesses, notes, position. RLS manage-own.
+- `CompetitorsCard` en /emprendimiento: form inline + lista
+  expandible con detalles. Borrar inline.
+
+**#95 Time tracking lite**
+- Migration `business_time_entries` con start/end + label + project
+  texto libre. Partial unique index garantiza máximo 1 entry activa
+  por user.
+- `TimeTrackerCard` en /emprendimiento: input para qué estás
+  haciendo + Play, contador en vivo (mm:ss), Stop. Resumen del día
+  y semana. Historial de últimas 6 entries con duración y borrar.
+- Hook `totalMinutesSince(entries, sinceIso)` suma minutos trabajados
+  desde una fecha.
+
+### Migraciones aplicadas (sesión 8)
+- 20260428500000_business_competitors.sql
+- 20260428600000_default_currency.sql
+- 20260428700000_tax_deductible.sql
+- 20260428800000_time_tracking.sql
+
+### Items adicionales del plan-100 cerrados
+
+- #11 Avatar URL en perfil
+- #22 iCal export
+- #23 Diario PDF export
+- #55 Tax bucket category
+- #95 Time tracking lite
+- #98 Competidores a vigilar
+- + currency selector global (no estaba en el plan original — pedido
+  explícito del user)
+
+### Total acumulado
+
+**62 ítems del plan-100 cerrados** · 14 migraciones · 8 sesiones ·
+build clean en cada paso.

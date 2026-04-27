@@ -826,3 +826,137 @@ export async function deleteCompetitor(sb: SB, id: string): Promise<void> {
     .eq("id", id);
   if (error) throw error;
 }
+
+// ─────────────────────────────────────────────────────────────
+// TIME TRACKING — bloques de tiempo trabajados (#95)
+// ─────────────────────────────────────────────────────────────
+
+export type BusinessTimeEntry = {
+  id: string;
+  user_id: string;
+  label: string;
+  project: string | null;
+  started_at: string;
+  ended_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StartTimeEntryInput = {
+  label?: string;
+  project?: string | null;
+};
+
+export type UpdateTimeEntryInput = {
+  label?: string;
+  project?: string | null;
+  started_at?: string;
+  ended_at?: string | null;
+};
+
+export async function fetchTimeEntries(
+  sb: SB,
+  userId: string,
+  limit = 50
+): Promise<BusinessTimeEntry[]> {
+  const { data, error } = await sb
+    .from("business_time_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .order("started_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as BusinessTimeEntry[];
+}
+
+export async function fetchActiveTimeEntry(
+  sb: SB,
+  userId: string
+): Promise<BusinessTimeEntry | null> {
+  const { data, error } = await sb
+    .from("business_time_entries")
+    .select("*")
+    .eq("user_id", userId)
+    .is("ended_at", null)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as unknown as BusinessTimeEntry | null;
+}
+
+export async function startTimeEntry(
+  sb: SB,
+  userId: string,
+  input: StartTimeEntryInput
+): Promise<BusinessTimeEntry> {
+  const { data, error } = await sb
+    .from("business_time_entries")
+    .insert({
+      user_id: userId,
+      label: (input.label ?? "").trim(),
+      project: input.project?.trim() || null,
+      started_at: new Date().toISOString(),
+      ended_at: null,
+    } as never)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessTimeEntry;
+}
+
+export async function stopTimeEntry(
+  sb: SB,
+  id: string
+): Promise<BusinessTimeEntry> {
+  const { data, error } = await sb
+    .from("business_time_entries")
+    .update({ ended_at: new Date().toISOString() } as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessTimeEntry;
+}
+
+export async function updateTimeEntry(
+  sb: SB,
+  id: string,
+  input: UpdateTimeEntryInput
+): Promise<BusinessTimeEntry> {
+  const { data, error } = await sb
+    .from("business_time_entries")
+    .update(input as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as BusinessTimeEntry;
+}
+
+export async function deleteTimeEntry(sb: SB, id: string): Promise<void> {
+  const { error } = await sb
+    .from("business_time_entries")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}
+
+/**
+ * Suma minutos trabajados desde `since` (ISO date YYYY-MM-DD).
+ * Las entries todavía corriendo (ended_at NULL) no cuentan.
+ */
+export function totalMinutesSince(
+  entries: BusinessTimeEntry[],
+  sinceIso: string
+): number {
+  const cutoff = new Date(sinceIso + "T00:00:00").getTime();
+  let mins = 0;
+  for (const e of entries) {
+    if (!e.ended_at) continue;
+    const end = new Date(e.ended_at).getTime();
+    const start = new Date(e.started_at).getTime();
+    if (end < cutoff) continue;
+    const effectiveStart = start < cutoff ? cutoff : start;
+    mins += Math.max(0, (end - effectiveStart) / 60_000);
+  }
+  return Math.round(mins);
+}

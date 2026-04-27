@@ -543,3 +543,103 @@ export function useDeleteCompetitor() {
       qc.invalidateQueries({ queryKey: ["business", "competitors"] }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// TIME TRACKING (#95)
+// ─────────────────────────────────────────────────────────────
+
+export function useTimeEntries(): UseQueryResult<
+  import("@estoicismo/supabase").BusinessTimeEntry[]
+> {
+  return useQuery({
+    queryKey: ["business", "time-entries"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchTimeEntries } = await import("@estoicismo/supabase");
+      return fetchTimeEntries(sb, await getUserId());
+    },
+    staleTime: 1000 * 30,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useActiveTimeEntry(): UseQueryResult<
+  import("@estoicismo/supabase").BusinessTimeEntry | null
+> {
+  return useQuery({
+    queryKey: ["business", "time-entries", "active"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchActiveTimeEntry } = await import("@estoicismo/supabase");
+      return fetchActiveTimeEntry(sb, await getUserId());
+    },
+    staleTime: 1000 * 10,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useStartTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: import("@estoicismo/supabase").StartTimeEntryInput
+    ) => {
+      const sb = getSupabaseBrowserClient();
+      const { startTimeEntry } = await import("@estoicismo/supabase");
+      return startTimeEntry(sb, await getUserId(), input);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "time-entries"] });
+    },
+    onError: (err) =>
+      toast.error("No pude iniciar el timer.", {
+        description: extractErrorMessage(err),
+      }),
+  });
+}
+
+export function useStopTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { stopTimeEntry } = await import("@estoicismo/supabase");
+      return stopTimeEntry(sb, id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["business", "time-entries"] });
+    },
+  });
+}
+
+export function useUpdateTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: import("@estoicismo/supabase").UpdateTimeEntryInput;
+    }) => {
+      const sb = getSupabaseBrowserClient();
+      const { updateTimeEntry } = await import("@estoicismo/supabase");
+      return updateTimeEntry(sb, id, input);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "time-entries"] }),
+  });
+}
+
+export function useDeleteTimeEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const sb = getSupabaseBrowserClient();
+      const { deleteTimeEntry } = await import("@estoicismo/supabase");
+      await deleteTimeEntry(sb, id);
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["business", "time-entries"] }),
+  });
+}
