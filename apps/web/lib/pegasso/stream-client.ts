@@ -9,11 +9,14 @@
 
 export type StreamEvent =
   | { type: "text"; value: string }
+  | { type: "status"; value: string }
   | { type: "done"; message_id: string; input_tokens: number; output_tokens: number; model: string }
   | { type: "error"; message: string };
 
 export type StreamHandlers = {
   onText?: (chunk: string, fullText: string) => void;
+  /** Estado de Pegasso mientras procesa (ej. "consultando finanzas…"). */
+  onStatus?: (label: string) => void;
   onDone?: (data: { message_id: string; input_tokens: number; output_tokens: number; model: string }) => void;
   onError?: (error: string) => void;
 };
@@ -78,6 +81,8 @@ export async function streamPegassoChat(
         if (parsed.type === "text") {
           fullText += parsed.value;
           handlers.onText?.(parsed.value, fullText);
+        } else if (parsed.type === "status") {
+          handlers.onStatus?.(parsed.value);
         } else if (parsed.type === "done") {
           handlers.onDone?.({
             message_id: parsed.message_id,

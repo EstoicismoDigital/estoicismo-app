@@ -1,6 +1,6 @@
 "use client";
 import { clsx } from "clsx";
-import { Sparkles, User2, Pin, PinOff, Copy, Check } from "lucide-react";
+import { Sparkles, User2, Pin, PinOff, Copy, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import type { PegassoMessageRole } from "@estoicismo/supabase";
 import { useTogglePinMessage } from "../../hooks/usePegasso";
@@ -16,8 +16,10 @@ export function MessageBubble(props: {
   id?: string;
   /** ¿Está fijado como insight? Solo aplica a assistant. */
   pinned?: boolean;
+  /** Estado mientras Pegasso ejecuta tools ("consultando finanzas…"). */
+  statusLabel?: string | null;
 }) {
-  const { role, content, streaming, error, id, pinned } = props;
+  const { role, content, streaming, error, id, pinned, statusLabel } = props;
   const isUser = role === "user";
   const togglePin = useTogglePinMessage();
   const [copied, setCopied] = useState(false);
@@ -58,12 +60,19 @@ export function MessageBubble(props: {
               : "bg-bg-alt border border-line text-ink rounded-bl-sm"
         )}
       >
-        <p className="whitespace-pre-wrap break-words">
-          {content}
-          {streaming && (
-            <span className="inline-block w-1.5 h-3.5 bg-current ml-0.5 align-middle animate-pulse" />
-          )}
-        </p>
+        {statusLabel ? (
+          <p className="flex items-center gap-2 text-muted italic text-[13px]">
+            <Loader2 size={12} className="animate-spin" />
+            {statusLabel}
+          </p>
+        ) : (
+          <p className="whitespace-pre-wrap break-words">
+            {content}
+            {streaming && (
+              <span className="inline-block w-1.5 h-3.5 bg-current ml-0.5 align-middle animate-pulse" />
+            )}
+          </p>
+        )}
         {error && (
           <p className="mt-1.5 text-[11px] text-danger italic">⚠️ {error}</p>
         )}

@@ -12,22 +12,36 @@ import {
   type PegassoPersonaId,
 } from "../../../../lib/pegasso/personas";
 import { fetchMessages, createMessage } from "@estoicismo/supabase";
+import {
+  getAnthropicTools,
+  findTool,
+} from "../../../../lib/pegasso/tools";
 
 /**
  * POST /api/pegasso/chat
  *
  * Body: { conversation_id: string, model?: PegassoModelKey }
  *
- * Lee TODOS los mensajes de la conversación, los pasa a Anthropic,
- * y devuelve un stream SSE con el texto del assistant. Cuando termina,
- * persiste el mensaje completo en la DB con tokens.
+ * Lee TODOS los mensajes de la conversación, los pasa a Anthropic
+ * con tools de lectura habilitados, y devuelve un stream SSE.
  *
- * Convención del response: text/event-stream con 3 tipos de eventos:
- *   { type: "text", value: string } — chunk de texto
- *   { type: "done", message_id: string, output_tokens: number, input_tokens: number }
- *   { type: "error", message: string }
+ * Tool use loop:
+ *  1. Mandamos el historial a Claude con tools.
+ *  2. Si Claude pide tools, las ejecutamos server-side y enviamos
+ *     status events al cliente ("consultando finanzas…").
+ *  3. Mandamos los resultados de vuelta a Claude.
+ *  4. Streameamos su respuesta final al cliente.
+ *  5. Persistimos el mensaje completo cuando termina.
+ *
+ * Eventos SSE:
+ *   { type: "status", value: string }   — actividad de tool
+ *   { type: "text", value: string }     — chunk de respuesta final
+ *   { type: "done", message_id, ... }
+ *   { type: "error", message }
  */
 export const runtime = "nodejs";
+
+const MAX_TOOL_ITERATIONS = 5;
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -65,7 +79,6 @@ export async function POST(req: NextRequest) {
   const persona: PegassoPersonaId = body.persona ?? PEGASSO_DEFAULT_PERSONA;
   const systemPrompt = buildPersonaPrompt(persona);
 
-  // Auth: tomamos el user id del session de Supabase. Si falla, 401.
   const sb = await createSupabaseServer();
   const {
     data: { user },
@@ -75,8 +88,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  // Cargamos los mensajes existentes de esta conversación. RLS ya
-  // filtra por user; si la conv no es del user, viene vacío.
   let history;
   try {
     history = await fetchMessages(sb, conversationId);
@@ -104,15 +115,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Convertimos el historial al formato del SDK.
-  const anthropicMessages = history.map((m) => ({
+  // Mensajes en formato Anthropic. content puede ser string o blocks (cuando
+  // hay tool_use/tool_result en el historial multi-turno de esta request).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const messages: any[] = history.map((m) => ({
     role: m.role,
     content: m.content,
   }));
 
   const client = new Anthropic({ apiKey });
+  const anthropicTools = getAnthropicTools();
 
-  // Stream SSE manual usando ReadableStream.
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -126,32 +139,98 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const messageStream = client.messages.stream({
-          model: modelId,
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: anthropicMessages,
-        });
+        // Tool-use loop. Cada iteración:
+        //  - Llama a Claude
+        //  - Si pide tools: ejecuta y reagrupa en el siguiente mensaje
+        //  - Si stop_reason="end_turn": streamea texto y termina
+        for (let iter = 0; iter < MAX_TOOL_ITERATIONS; iter++) {
+          // Para iteraciones intermedias (con tool calls): no streameamos
+          // texto al cliente, solo capturamos. La última iteración (sin
+          // tool_use) sí streamea.
+          //
+          // Estrategia simple: siempre llamada non-streaming, y al final
+          // emitimos el texto en chunks de ~30 chars para sensación de
+          // streaming sin la complejidad de manejar tool_use mid-stream.
+          const response = await client.messages.create({
+            model: modelId,
+            max_tokens: 1024,
+            system: systemPrompt,
+            tools: anthropicTools,
+            messages,
+          });
 
-        // Iterar text deltas
-        for await (const event of messageStream) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            const text = event.delta.text;
-            fullText += text;
-            send({ type: "text", value: text });
-          } else if (event.type === "message_delta" && event.usage) {
-            outputTokens = event.usage.output_tokens ?? outputTokens;
+          inputTokens += response.usage.input_tokens;
+          outputTokens += response.usage.output_tokens;
+
+          // Si hay tool_use blocks, ejecutarlos
+          const toolUseBlocks = response.content.filter(
+            (b) => b.type === "tool_use"
+          ) as Array<{
+            type: "tool_use";
+            id: string;
+            name: string;
+            input: unknown;
+          }>;
+
+          if (toolUseBlocks.length > 0 && response.stop_reason === "tool_use") {
+            // Ejecutar todos los tools en paralelo
+            const results = await Promise.all(
+              toolUseBlocks.map(async (block) => {
+                const tool = findTool(block.name);
+                if (!tool) {
+                  return {
+                    tool_use_id: block.id,
+                    is_error: true,
+                    content: `Tool desconocida: ${block.name}`,
+                  };
+                }
+                send({ type: "status", value: tool.statusLabel });
+                try {
+                  const result = await tool.execute(sb, user.id, block.input);
+                  return {
+                    tool_use_id: block.id,
+                    content: JSON.stringify(result),
+                  };
+                } catch (err) {
+                  return {
+                    tool_use_id: block.id,
+                    is_error: true,
+                    content: err instanceof Error ? err.message : "Error",
+                  };
+                }
+              })
+            );
+
+            // Append assistant message + tool results al historial
+            messages.push({ role: "assistant", content: response.content });
+            messages.push({
+              role: "user",
+              content: results.map((r) => ({
+                type: "tool_result" as const,
+                tool_use_id: r.tool_use_id,
+                content: r.content,
+                ...(r.is_error ? { is_error: true } : {}),
+              })),
+            });
+            // Continúa el loop — Claude verá los resultados y responderá
+            continue;
           }
-        }
 
-        const final = await messageStream.finalMessage();
-        inputTokens = final.usage.input_tokens;
-        outputTokens = final.usage.output_tokens;
+          // No más tools. Extraer texto final y "streamearlo" al cliente
+          // en chunks (efecto de typing) para mantener UX de stream.
+          const textBlocks = response.content.filter(
+            (b) => b.type === "text"
+          ) as Array<{ type: "text"; text: string }>;
+          const finalText = textBlocks.map((b) => b.text).join("\n\n");
+          fullText = finalText;
+
+          // Chunk a ~30 chars o por palabra
+          await chunkAndSend(finalText, send);
+          break;
+        }
       } catch (err) {
         errored = true;
         const message = err instanceof Error ? err.message : String(err);
-        // Persistimos el error como mensaje assistant para que el
-        // historial quede consistente y el user lo vea.
         try {
           await createMessage(sb, user.id, {
             conversation_id: conversationId,
@@ -163,12 +242,11 @@ export async function POST(req: NextRequest) {
             error: message,
           });
         } catch {
-          /* ignoramos el error de persistencia para no enmascarar el original */
+          /* swallow */
         }
         send({ type: "error", message });
       }
 
-      // Persistimos el mensaje completo si no hubo error.
       if (!errored) {
         try {
           const saved = await createMessage(sb, user.id, {
@@ -209,4 +287,28 @@ export async function POST(req: NextRequest) {
       Connection: "keep-alive",
     },
   });
+}
+
+/**
+ * Manda el texto al cliente en chunks pequeños con un pequeño delay
+ * para dar sensación de streaming. Total ~ texto.length / 30 ms.
+ */
+async function chunkAndSend(
+  text: string,
+  send: (p: Record<string, unknown>) => void
+) {
+  if (!text) return;
+  // Split por palabras manteniendo whitespace
+  const tokens = text.split(/(\s+)/);
+  let buffer = "";
+  for (const tok of tokens) {
+    buffer += tok;
+    if (buffer.length >= 25) {
+      send({ type: "text", value: buffer });
+      buffer = "";
+      // Pequeño breath para que el browser pueda renderizar entre chunks
+      await new Promise((r) => setTimeout(r, 15));
+    }
+  }
+  if (buffer) send({ type: "text", value: buffer });
 }

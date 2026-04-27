@@ -43,6 +43,7 @@ export function PegassoClient() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [streamingText, setStreamingText] = useState("");
+  const [streamingStatus, setStreamingStatus] = useState<string | null>(null);
   const [streamingError, setStreamingError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const { persona, setPersona } = usePegassoPersona();
@@ -68,6 +69,7 @@ export function PegassoClient() {
   // Reset estado streaming cuando cambia la conv.
   useEffect(() => {
     setStreamingText("");
+    setStreamingStatus(null);
     setStreamingError(null);
     setIsStreaming(false);
     abortRef.current?.abort();
@@ -130,6 +132,7 @@ export function PegassoClient() {
 
     setInput("");
     setStreamingText("");
+    setStreamingStatus(null);
     setStreamingError(null);
 
     // 1. Persistir mensaje del user.
@@ -151,14 +154,20 @@ export function PegassoClient() {
     await streamPegassoChat(
       convId,
       {
-        onText: (_, full) => setStreamingText(full),
+        onText: (_, full) => {
+          setStreamingStatus(null);
+          setStreamingText(full);
+        },
+        onStatus: (label) => setStreamingStatus(label),
         onDone: async () => {
           setIsStreaming(false);
           setStreamingText("");
+          setStreamingStatus(null);
           await refetchMessages();
         },
         onError: async (msg) => {
           setIsStreaming(false);
+          setStreamingStatus(null);
           setStreamingError(msg);
           await refetchMessages();
         },
@@ -270,6 +279,11 @@ export function PegassoClient() {
                   role="assistant"
                   content={streamingText || "·"}
                   streaming
+                  statusLabel={
+                    !streamingText && streamingStatus
+                      ? streamingStatus
+                      : null
+                  }
                 />
               )}
               {streamingError && !isStreaming && (
