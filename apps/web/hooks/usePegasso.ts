@@ -113,3 +113,44 @@ export function useCreateMessage() {
     }),
   });
 }
+
+// ─────────────────────────────────────────────────────────────
+// PINS
+// ─────────────────────────────────────────────────────────────
+
+export function useTogglePinMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, pin }: { id: string; pin: boolean }) => {
+      const sb = getSupabaseBrowserClient();
+      const { togglePinMessage } = await import("@estoicismo/supabase");
+      return togglePinMessage(sb, id, pin);
+    },
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: ["pegasso", "pinned"] });
+      qc.invalidateQueries({ queryKey: ["pegasso", "messages", data.conversation_id] });
+      toast.success(variables.pin ? "Insight guardado" : "Insight removido", {
+        description: variables.pin
+          ? "Lo encontrarás en /pegasso/insights"
+          : undefined,
+      });
+    },
+    onError: (err) => toast.error("No se pudo actualizar.", {
+      description: extractErrorMessage(err),
+    }),
+  });
+}
+
+export function usePinnedMessages(): UseQueryResult<
+  import("@estoicismo/supabase").PinnedMessage[]
+> {
+  return useQuery({
+    queryKey: ["pegasso", "pinned"],
+    queryFn: async () => {
+      const sb = getSupabaseBrowserClient();
+      const { fetchPinnedMessages } = await import("@estoicismo/supabase");
+      return fetchPinnedMessages(sb, await getUserId());
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+}

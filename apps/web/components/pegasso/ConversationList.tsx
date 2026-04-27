@@ -1,5 +1,14 @@
 "use client";
-import { Plus, MessageSquare, Trash2, Archive } from "lucide-react";
+import Link from "next/link";
+import {
+  Plus,
+  MessageSquare,
+  Trash2,
+  Archive,
+  Pin,
+  CalendarRange,
+  Loader2,
+} from "lucide-react";
 import { clsx } from "clsx";
 import type { PegassoConversation } from "@estoicismo/supabase";
 
@@ -10,8 +19,19 @@ export function ConversationList(props: {
   onCreate: () => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
+  onWeeklyReview?: () => void;
+  weeklyReviewLoading?: boolean;
 }) {
-  const { conversations, activeId, onSelect, onCreate, onDelete, onArchive } = props;
+  const {
+    conversations,
+    activeId,
+    onSelect,
+    onCreate,
+    onDelete,
+    onArchive,
+    onWeeklyReview,
+    weeklyReviewLoading,
+  } = props;
   return (
     <aside className="w-full lg:w-72 lg:border-r lg:border-line lg:bg-bg-alt/30 flex flex-col">
       <div className="px-4 py-3 border-b border-line flex items-center justify-between">
@@ -26,6 +46,32 @@ export function ConversationList(props: {
         >
           <Plus size={14} />
         </button>
+      </div>
+
+      {/* Quick actions */}
+      <div className="px-3 py-2 border-b border-line space-y-1">
+        {onWeeklyReview && (
+          <button
+            type="button"
+            onClick={onWeeklyReview}
+            disabled={weeklyReviewLoading}
+            className="w-full inline-flex items-center gap-2 px-2.5 h-9 rounded-md text-[12px] text-ink hover:bg-accent/10 hover:text-accent transition-colors disabled:opacity-50"
+          >
+            {weeklyReviewLoading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <CalendarRange size={14} />
+            )}
+            <span className="font-body">Review semanal</span>
+          </button>
+        )}
+        <Link
+          href="/pegasso/insights"
+          className="w-full inline-flex items-center gap-2 px-2.5 h-9 rounded-md text-[12px] text-ink hover:bg-accent/10 hover:text-accent transition-colors"
+        >
+          <Pin size={14} />
+          <span className="font-body">Mis insights</span>
+        </Link>
       </div>
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
@@ -46,7 +92,12 @@ export function ConversationList(props: {
                   )}
                   onClick={() => onSelect(c.id)}
                 >
-                  <p className="text-[13px] font-medium truncate pr-12">{c.title}</p>
+                  <div className="flex items-center gap-1.5 pr-12">
+                    {c.kind === "weekly_review" && (
+                      <CalendarRange size={11} className="text-accent shrink-0" />
+                    )}
+                    <p className="text-[13px] font-medium truncate">{c.title}</p>
+                  </div>
                   <p className="text-[10px] text-muted">
                     {formatRelative(c.last_message_at)}
                   </p>

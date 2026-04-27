@@ -6,12 +6,16 @@ type SB = SupabaseClient<Database, any, any>;
 
 export type PegassoMessageRole = "user" | "assistant";
 
+export type PegassoConversationKind = "standard" | "weekly_review" | "onboarding";
+
 export type PegassoConversation = {
   id: string;
   user_id: string;
   title: string;
   last_message_at: string;
   is_archived: boolean;
+  /** Tipo de conversación. weekly_review = generada por el botón de review. */
+  kind: PegassoConversationKind;
   created_at: string;
   updated_at: string;
 };
@@ -26,11 +30,15 @@ export type PegassoMessage = {
   input_tokens: number | null;
   output_tokens: number | null;
   error: string | null;
+  /** Si el user marcó este mensaje como insight para revisitar. */
+  is_pinned: boolean;
+  pinned_at: string | null;
   created_at: string;
 };
 
 export type CreateConversationInput = {
   title?: string;
+  kind?: PegassoConversationKind;
 };
 
 export type CreateMessageInput = {
@@ -73,6 +81,7 @@ export async function createConversation(
     .insert({
       user_id: userId,
       title: input.title ?? "Conversación con Pegasso",
+      kind: input.kind ?? "standard",
     } as never)
     .select()
     .single();
@@ -150,4 +159,55 @@ export async function createMessage(
 export async function deleteMessage(sb: SB, id: string): Promise<void> {
   const { error } = await sb.from("pegasso_messages").delete().eq("id", id);
   if (error) throw error;
+}
+
+// ─────────────────────────────────────────────────────────────
+// PINS — insights del user
+// ─────────────────────────────────────────────────────────────
+
+export async function togglePinMessage(
+  sb: SB,
+  id: string,
+  pin: boolean
+): Promise<PegassoMessage> {
+  const { data, error } = await sb
+    .from("pegasso_messages")
+    .update({
+      is_pinned: pin,
+      pinned_at: pin ? new Date().toISOString() : null,
+    } as never)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as unknown as PegassoMessage;
+}
+
+/**
+ * Trae todos los mensajes pineados del user — incluye conversation_id
+ * y title para que la UI pueda enlazar de regreso al hilo original.
+ */
+export type PinnedMessage = PegassoMessage & {
+  conversation_title: string;
+};
+
+export async function fetchPinnedMessages(
+  sb: SB,
+  userId: string
+): Promise<PinnedMessage[]> {
+  const { data, error } = await sb
+    .from("pegasso_messages")
+    .select("*, pegasso_conversations!inner(title)")
+    .eq("user_id", userId)
+    .eq("is_pinned", true)
+    .order("pinned_at", { ascending: false });
+  if (error) throw error;
+  // Flatten conversation title into row
+  type Raw = PegassoMessage & {
+    pegasso_conversations: { title: string } | null;
+  };
+  return (data as unknown as Raw[]).map((r) => ({
+    ...r,
+    conversation_title: r.pegasso_conversations?.title ?? "",
+  }));
 }

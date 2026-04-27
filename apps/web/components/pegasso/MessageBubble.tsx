@@ -1,7 +1,9 @@
 "use client";
 import { clsx } from "clsx";
-import { Sparkles, User2 } from "lucide-react";
+import { Sparkles, User2, Pin, PinOff, Copy, Check } from "lucide-react";
+import { useState } from "react";
 import type { PegassoMessageRole } from "@estoicismo/supabase";
+import { useTogglePinMessage } from "../../hooks/usePegasso";
 
 export function MessageBubble(props: {
   role: PegassoMessageRole;
@@ -10,27 +12,50 @@ export function MessageBubble(props: {
   streaming?: boolean;
   /** Mensaje de error si aplica. */
   error?: string | null;
+  /** ID de DB — si está presente, el bubble muestra acciones (pin, copy). */
+  id?: string;
+  /** ¿Está fijado como insight? Solo aplica a assistant. */
+  pinned?: boolean;
 }) {
-  const { role, content, streaming, error } = props;
+  const { role, content, streaming, error, id, pinned } = props;
   const isUser = role === "user";
+  const togglePin = useTogglePinMessage();
+  const [copied, setCopied] = useState(false);
+
+  const showActions = !isUser && id && !streaming && !error;
+
+  function copy() {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    });
+  }
+
   return (
     <div
       className={clsx(
-        "flex gap-2 max-w-full",
+        "group flex gap-2 max-w-full",
         isUser ? "justify-end" : "justify-start"
       )}
     >
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-accent/20 text-accent flex items-center justify-center shrink-0">
-          <Sparkles size={14} />
+        <div
+          className={clsx(
+            "w-7 h-7 rounded-full flex items-center justify-center shrink-0",
+            pinned ? "bg-accent text-bg" : "bg-accent/20 text-accent"
+          )}
+        >
+          {pinned ? <Pin size={14} /> : <Sparkles size={14} />}
         </div>
       )}
       <div
         className={clsx(
-          "max-w-[85%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed",
+          "max-w-[85%] rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed relative",
           isUser
             ? "bg-accent text-bg rounded-br-sm"
-            : "bg-bg-alt border border-line text-ink rounded-bl-sm"
+            : pinned
+              ? "bg-accent/10 border border-accent/40 text-ink rounded-bl-sm"
+              : "bg-bg-alt border border-line text-ink rounded-bl-sm"
         )}
       >
         <p className="whitespace-pre-wrap break-words">
@@ -41,6 +66,34 @@ export function MessageBubble(props: {
         </p>
         {error && (
           <p className="mt-1.5 text-[11px] text-danger italic">⚠️ {error}</p>
+        )}
+
+        {showActions && (
+          <div className="mt-2 pt-2 border-t border-line/50 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={() => togglePin.mutate({ id, pin: !pinned })}
+              className={clsx(
+                "inline-flex items-center gap-1 h-6 px-2 rounded-full font-mono text-[9px] uppercase tracking-widest",
+                pinned
+                  ? "bg-accent text-bg"
+                  : "text-muted hover:bg-bg hover:text-ink"
+              )}
+              title={pinned ? "Quitar insight" : "Guardar como insight"}
+            >
+              {pinned ? <PinOff size={9} /> : <Pin size={9} />}
+              {pinned ? "Quitar" : "Insight"}
+            </button>
+            <button
+              type="button"
+              onClick={copy}
+              className="inline-flex items-center gap-1 h-6 px-2 rounded-full font-mono text-[9px] uppercase tracking-widest text-muted hover:bg-bg hover:text-ink"
+              title="Copiar"
+            >
+              {copied ? <Check size={9} /> : <Copy size={9} />}
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+          </div>
         )}
       </div>
       {isUser && (

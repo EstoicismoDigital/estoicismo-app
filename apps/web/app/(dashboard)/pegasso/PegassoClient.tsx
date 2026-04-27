@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { clsx } from "clsx";
+import { toast } from "sonner";
 import {
   useConversations,
   useCreateConversation,
@@ -13,6 +14,11 @@ import {
 import { ConversationList } from "../../../components/pegasso/ConversationList";
 import { MessageBubble } from "../../../components/pegasso/MessageBubble";
 import { streamPegassoChat } from "../../../lib/pegasso/stream-client";
+import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
+import {
+  gatherWeeklySnapshot,
+  buildWeeklyReviewPrompt,
+} from "../../../lib/pegasso/weekly-review";
 import type { PegassoMessage } from "@estoicismo/supabase";
 
 /**
@@ -68,6 +74,37 @@ export function PegassoClient() {
   async function handleNewConv() {
     const c = await createConvM.mutateAsync({});
     setActiveId(c.id);
+  }
+
+  const [weeklyReviewLoading, setWeeklyReviewLoading] = useState(false);
+  async function handleWeeklyReview() {
+    if (weeklyReviewLoading || isStreaming) return;
+    setWeeklyReviewLoading(true);
+    try {
+      const sb = getSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await sb.auth.getUser();
+      if (!user) {
+        toast.error("Sesión expirada");
+        return;
+      }
+      const snapshot = await gatherWeeklySnapshot(sb, user.id);
+      const prompt = buildWeeklyReviewPrompt(snapshot);
+      const c = await createConvM.mutateAsync({
+        title: `Review · ${snapshot.weekStart} – ${snapshot.weekEnd}`,
+        kind: "weekly_review",
+      });
+      setActiveId(c.id);
+      // Use a microtask so activeId state takes effect before send
+      setTimeout(() => void handleSend(prompt), 50);
+    } catch (err) {
+      toast.error("No se pudo generar el review", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setWeeklyReviewLoading(false);
+    }
   }
 
   async function handleSend(prompt?: string) {
@@ -151,6 +188,8 @@ export function PegassoClient() {
           updateConvM.mutate({ id, input: { is_archived: true } });
           if (activeId === id) setActiveId(null);
         }}
+        onWeeklyReview={handleWeeklyReview}
+        weeklyReviewLoading={weeklyReviewLoading}
       />
 
       <main className="flex-1 flex flex-col h-screen min-h-screen">
@@ -178,9 +217,11 @@ export function PegassoClient() {
               {messages.map((m: PegassoMessage) => (
                 <MessageBubble
                   key={m.id}
+                  id={m.id}
                   role={m.role}
                   content={m.content}
                   error={m.error}
+                  pinned={m.is_pinned}
                 />
               ))}
               {isStreaming && (
