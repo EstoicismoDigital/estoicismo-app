@@ -36,6 +36,7 @@ import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import { DailyQuote } from "../../../components/ui/DailyQuote";
 import { BudgetsAlertBanner } from "../../../components/presupuestos/BudgetsAlertBanner";
 import { NetWorthCard } from "../../../components/finanzas/NetWorthCard";
+import { SavingsRateCard } from "../../../components/finanzas/SavingsRateCard";
 import { FINANCE_QUOTES } from "../../../lib/quotes";
 
 /**
@@ -135,6 +136,9 @@ export function FinanzasClient() {
 
         {/* Net worth — sólo aparece si hay cuentas/deudas/cards/savings con saldo */}
         <NetWorthCard />
+
+        {/* Tasa de ahorro del mes */}
+        <SavingsRateCard />
 
         {/* KPIs del mes */}
         <section aria-label="Resumen del mes">

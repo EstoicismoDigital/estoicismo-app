@@ -174,3 +174,60 @@ Total estimado: ~14h. Pragmático: si me falta tiempo, los últimos 3 quedan par
 - **Tests sólo para libs puras** (no perder tiempo en RTL para UI esta noche)
 - **Lazy-load** todo modal pesado nuevo
 - **Sin librerías nuevas** salvo que ahorren mucho (`react-day-picker` para recurring, quizá `recharts` para mood charts)
+
+---
+
+## Resultado · sesión 2026-04-27
+
+**Top-20 cerrado** + 6 bonus features. Total ~26 items.
+
+| # | Feature | Status |
+|---|---|---|
+| 1 | Recurring + subscriptions | ✓ DB + UI + page |
+| 2 | Net worth tracking | ✓ NetWorthCard en /finanzas |
+| 3 | Multi-account | ✓ /finanzas/cuentas |
+| 4 | Bill reminder dates | ✓ via due_day en recurring |
+| 5 | Rest timer entre series | ✓ floating widget en QuickLog |
+| 6 | Plate calculator | ✓ visual + per-side |
+| 7 | PR celebration animation | ✓ confetti overlay 3.5s |
+| 8 | Body measurements UI | ✓ 6 inputs auto-save |
+| 9 | Photos progress (parcial) | ✓ image_url field, no Storage upload |
+| 10 | Streak freeze infra | ✓ DB + lib (UI integration TBD) |
+| 11 | Vision board | ✓ grid + categorías + weight |
+| 12 | Stoic exercise of the day | ✓ 30 ejercicios determinísticos |
+| 13 | Mood tracker first-class | ✓ tabla propia + auto-save |
+| 14 | Future-self letter | ✓ sealed/ready/opened states |
+| 15 | Pegasso pinned insights | ✓ /pegasso/insights + bubble actions |
+| 16 | Pegasso weekly review | ✓ snapshot + structured prompt |
+| 17 | Annual reading goal | ✓ con on-track indicator |
+| 18 | Goal milestones (negocio) | ✓ progress bars vs sales/clients |
+| 19 | Cmd+K command palette | ✓ global, kbd nav, fuzzy search |
+| 20 | Annual report (anuario) | ✓ /anuario printable |
+
+**Bonus completados en la noche**:
+- ✓ Search in Pegasso conversations (#90)
+- ✓ Breathwork timer (#76) — /reflexiones/respira con 5 patrones
+- ✓ Backup JSON completo (#25) — 41 tablas
+- ✓ Gratitude streak first-class (#73)
+- ✓ Mood-aware journal prompts (#79)
+- ✓ A11y: skip-to-content (#15) + reduce-motion (#14)
+
+**Features queuadas para futuras sesiones** (parcial):
+- Heatmap GitHub-style (ya hay 91d en /progreso, ampliar a 365d)
+- Image upload via Supabase Storage (#16) — desbloquea avatares,
+  vision board con upload, photos de progreso reales
+- Time-of-day analysis (#38)
+- Mood-after-workout correlation (#65)
+- Idea-to-action conversion (#99)
+- CSV import transacciones (#17)
+- Workout templates one-click (#62)
+- Pull-to-refresh mobile (#4)
+- Tour de onboarding (#10)
+
+**Migraciones aplicadas esta sesión**:
+1. `20260427400000_finance_recurring_subscriptions.sql`
+2. `20260427500000_habit_streak_freezes.sql`
+3. `20260427600000_mentalidad_extended.sql`
+4. `20260427700000_pegasso_pins_review.sql`
+5. `20260427800000_reading_goals_business_milestones.sql`
+6. `20260427900000_gratitude.sql`
