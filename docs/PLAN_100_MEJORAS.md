@@ -397,3 +397,83 @@ nota + monto. El user valida visualmente "sí, registré ese gasto".
 subnav). El user sabe dónde está y qué encontrará. Hábitos vive
 junto a Hoy pero como vecino — el ritual del día (Hoy) NO es lo
 mismo que la administración de hábitos (Hábitos).
+
+---
+
+## Resultado · sesión 4 (2026-04-28)
+
+User pidió:
+> "Puedes continuar con la lista de 100 y si terminaste proponer
+> mejoras de diseño y ejecutarlas. haz un backup de todo y sigue
+> trabajando"
+
+### Backup
+- git tag `backup-v3-20260427-1025`
+- Tarball `~/Desktop/ESTOICIMO ARCHIVOS METRICAS/estoicismo-backup-20260427-1025.tar.gz`
+  (6 MB, sin node_modules ni .next)
+
+### Más features del plan completadas
+
+**#52 FIRE Calculator** — `FireCalculatorCard` aplica regla del 4%:
+target = gasto_anual × 25. Calcula años a FIRE con dos escenarios
+(sin retorno y con 4% real anual usando fórmula cerrada de anualidad).
+4 status bands. Insights contextuales.
+
+**#92 Customer LTV** — `CustomerLtvCard` agrega ventas por cliente,
+calcula avg LTV, avg ticket, repeat rate. Top 5 clientes por LTV.
+Insight según repeat rate: "Recurrencia sólida" (≥40%) / "Mitad
+vuelven, contacta a los que no" (20-40%) / "¿Qué falta para que
+regresen?" (<20%).
+
+**#62 Repeat Workout** — `RepeatWorkoutCard` lista las últimas 3
+sesiones distintas (por nombre). Click crea workout nuevo idéntico
+con sets prellenados (peso/reps anterior como hint). Sin tabla DB
+nueva — templates inferidos del historial.
+
+**#58 Progressive Overload** — `ProgressiveOverloadCard` con
+heurística simple sin AI:
+- Reps mantenidos/subiendo → +2.5kg
+- 3 sesiones consistentes → +5kg (salto grande)
+- Reps cayendo → mantén peso
+- Reps cayendo en 2 sesiones → -5kg deload
+Top 5 sugerencias por ejercicio con peso actual → sugerido + delta
+destacado (verde/rojo/gris).
+
+**#40 Graduate Habit** — Distinción semántica entre archivar y
+graduar. Migration agrega `graduated_at` a habits. Botón "🎓 Graduar"
+en HabitContextMenu, visible SOLO si streak ≥30 días. /historial
+separa "Logros" (graduados, en verde con badge 🎓) de archivados
+normales. Toast: "🎓 Hábito graduado · Lo dominaste."
+
+**Error Boundaries** — `app/global-error.tsx` + `(dashboard)/error.tsx`
+— el user vio "missing required error components" en /finanzas y
+los agregué. Hardening de cards nuevas con try/catch en useMemo
+para evitar que una card crashed tumbe la página.
+
+### Mejoras de diseño ejecutadas
+
+**HoySection focus-within** — Cuando hay foco dentro de una sección
+(input, textarea), aparece un border-l-2 acento sutil. Padding-left
+siempre reservado para que no salte el layout.
+
+**BackToTopButton** — Floating button (h-11 w-11, bg-ink) que
+aparece cuando scrollY > 800px. Posicionado bottom-right justo arriba
+del bottom-nav móvil (calc safe-area). Smooth scroll al click.
+
+**iOS zoom prevention** — `@supports (-webkit-touch-callout: none)`
+detecta iOS y fuerza font-size: max(16px, 1em) en inputs/textarea/
+select. Sin afectar desktop.
+
+**Skip button menos prominente** — Antes "X SALTAR" mono uppercase
+visible. Ahora solo X en text-muted/50, hover lo trae a muted. El
+estado "Saltado" sigue siendo visible (text-accent + "Deshacer").
+Tooltip + aria-label mantienen accesibilidad.
+
+### Filosofía del diseño
+
+Calidad medida en lo que NO se nota. La app debe sentirse calmada
+por default — los elementos saltan sólo cuando son relevantes
+(hover, focus, error). Todo lo demás vive en el background.
+
+### Migraciones aplicadas
+- 20260428000000_habit_graduate.sql — graduated_at + index parcial.
