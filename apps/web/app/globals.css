@@ -197,6 +197,30 @@ button {
   font-weight: 500;
 }
 
+/* iOS zoom-on-focus prevention.
+   Safari móvil hace auto-zoom cuando un input tiene font-size < 16px.
+   Forzamos mínimo 16px en iOS específicamente — el detect es por el
+   pseudo-feature -webkit-touch-callout que solo iOS Safari/iOS Chrome
+   tienen. Mantiene el design original en desktop. */
+@supports (-webkit-touch-callout: none) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="time"],
+  input[type="url"],
+  input[type="week"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* Reduce motion · respetar preferencia del sistema.
    Desactiva transitions y animations para users con vestibular issues.
    Mantenemos opacity transitions porque no inducen mareo. */

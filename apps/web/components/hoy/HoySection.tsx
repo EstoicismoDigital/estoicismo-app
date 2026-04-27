@@ -10,6 +10,11 @@ import { clsx } from "clsx";
  *  - hecho: check verde, título tachado suave.
  *  - saltado hoy: estilo gris, contenido oculto, link "deshacer".
  *
+ * Subtle UX:
+ *  - Border-l acento cuando hay foco dentro (focus-within) — feedback
+ *    sutil de "estás trabajando aquí".
+ *  - Padding-left para que el border no salte al hacer focus.
+ *
  * El usuario puede:
  *  - Tocar "saltar hoy" si no aplica hoy (día de descanso, etc).
  *  - Tocar "deshacer" para reactivar la sección.
@@ -40,7 +45,14 @@ export function HoySection({
   return (
     <section
       id={anchor}
-      className={clsx("scroll-mt-20", skipped && "opacity-60")}
+      className={clsx(
+        "scroll-mt-20 relative",
+        // Subtle accent border-l aparece SOLO cuando hay foco dentro.
+        // No salta el layout porque siempre reservamos el padding-left.
+        "pl-3 -ml-3 border-l-2 border-transparent transition-colors duration-200",
+        "focus-within:border-accent/40",
+        skipped && "opacity-60"
+      )}
       aria-labelledby={`${anchor}-title`}
     >
       <header className="flex items-center gap-3 mb-3">

@@ -20,6 +20,7 @@ import { getStoicExerciseOfDay } from "../../../lib/mindset/stoic-exercises";
 
 import { RitualProgressRing } from "../../../components/hoy/RitualProgressRing";
 import { StickyProgressBar } from "../../../components/hoy/StickyProgressBar";
+import { BackToTopButton } from "../../../components/hoy/BackToTopButton";
 import { AffirmationStripe } from "../../../components/hoy/AffirmationStripe";
 import { HoySection } from "../../../components/hoy/HoySection";
 import { TodayHabitsList } from "../../../components/hoy/TodayHabitsList";
@@ -111,6 +112,9 @@ export function TodayClient() {
           sections={status.sections}
         />
       )}
+
+      {/* Floating "volver arriba" cuando el user scrolleó profundo */}
+      <BackToTopButton />
 
       {/* Hero */}
       <section className="bg-bg-deep text-white">
