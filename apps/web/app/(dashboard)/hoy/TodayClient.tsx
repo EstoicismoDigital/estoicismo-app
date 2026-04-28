@@ -34,6 +34,7 @@ import { WeeklyInsightsCard } from "../../../components/hoy/WeeklyInsightsCard";
 import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
 import { BillsTodayPrompt } from "../../../components/hoy/BillsTodayPrompt";
 import { StreakRescueAlert } from "../../../components/hoy/StreakRescueAlert";
+import { ModuleGridNav } from "../../../components/habits/ModuleGridNav";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -168,6 +169,11 @@ export function TodayClient() {
 
       {/* Tour de bienvenida — modal full-screen para nuevos usuarios */}
       <OnboardingTour />
+
+      {/* Navegación visual principal — 4 módulos con sus estoicos */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+        <ModuleGridNav variant="full" />
+      </div>
 
       {/* Body — secciones */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">

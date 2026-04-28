@@ -41,15 +41,13 @@ type Module = {
   matches: string[];
 };
 
+/**
+ * 4 módulos principales. Cada uno está representado por un estoico
+ * en el ModuleGridNav visual de /hoy. El "home" (`/`, ritual diario)
+ * NO es un módulo — se accede via el logo del brand (top-left) o
+ * el bottom nav en mobile.
+ */
 const MODULES: Module[] = [
-  {
-    key: "hoy",
-    // `/` es el ritual diario. Comparte accent dorado con Hábitos
-    // (data-module="hoy" en globals.css espeja --brand-habits).
-    label: "Hoy",
-    href: "/",
-    matches: ["/", "/anuario"],
-  },
   {
     key: "habits",
     label: "Hábitos",
@@ -69,6 +67,12 @@ const MODULES: Module[] = [
     matches: ["/finanzas"],
   },
   {
+    key: "emprendimiento",
+    label: "Emprendimiento",
+    href: "/emprendimiento",
+    matches: ["/emprendimiento"],
+  },
+  {
     key: "reflexiones",
     // Etiqueta visible: "Mentalidad". La ruta interna permanece como
     // /reflexiones (y el data-module sigue siendo "reflexiones" para
@@ -76,12 +80,6 @@ const MODULES: Module[] = [
     label: "Mentalidad",
     href: "/reflexiones",
     matches: ["/reflexiones"],
-  },
-  {
-    key: "emprendimiento",
-    label: "Negocio",
-    href: "/emprendimiento",
-    matches: ["/emprendimiento"],
   },
 ];
 
