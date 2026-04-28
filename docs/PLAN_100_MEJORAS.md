@@ -700,3 +700,177 @@ finanzas y negocio."
 
 **63 ítems del plan-100 cerrados** · 15 migraciones · 8 sesiones ·
 build clean en cada paso.
+
+---
+
+## Resultado · sesión 9 (2026-04-28)
+
+User: "Sigamos mejorando, tienes carta abierta" → ronda larga de
+fixes, polish UX, y features de Pegasso + WhatsApp.
+
+### Features
+
+**Image upload reutilizable + currency default global**
+- `<ImageUploadField>` componente compartido en components/ui/.
+  Reemplaza el patrón viejo de `<input type="url">` en 4 lugares:
+  BookModal (portadas), AjustesClient (avatar), VisionBoardSection
+  (vision board), SavingsGoalModal (foto motivacional).
+- Sube a Supabase Storage. Acepta JPG/PNG/HEIC/WebP/GIF; convierte
+  HEIC en cliente con heic2any (lazy import); resize a 1200px max.
+- Migration `more_storage_buckets` crea avatars, vision-board,
+  savings-goals (RLS folder=user_id).
+- 7 cards de finanzas que usaban "MXN" hardcodeado ahora consultan
+  `useDefaultCurrency()` del profile. Aplica a NetWorth, FIRE,
+  EmergencyFund, CashFlowProjection, SavingsRate, Investments,
+  TaxBucket + TodayClient.
+
+**Cmd+Enter en modales (#9 inline polish)**
+- Hook `useModalShortcuts` listo para futuros modales. Aplicado
+  manualmente en TransactionModal, JournalEntryModal, BookModal.
+  Tooltip en el botón guardar muestra "⌘ + Enter".
+
+**Hill 13 principios expandidos**
+- Resúmenes de 1 línea (sin contexto) reemplazados por explicaciones
+  de 2-3 frases con el porqué de cada principio.
+- Accordion colapsable "Aprende más" al final del MPD form en
+  /reflexiones.
+
+**Evening Review (#nuevo) — práctica estoica**
+- EveningReviewCard en /hoy aparece después de las 19h con 3 prompts:
+  ✓ Victoria · × Fricción · ✦ Lección. Inspirado en Séneca y Marco
+  Aurelio (revisión vespertina).
+- Auto-detecta si ya se hizo (tag "evening-review"). Crea
+  journal_entry estructurado al guardar. "Ahora no" guarda en
+  localStorage para no insistir.
+
+**AlertsBar (#nuevo)**
+- Banner compacto al inicio de /hoy con cosas accionables HOY:
+  presupuestos al 75%+, recurring/subscriptions próximas a vencer
+  (3 días). Si no hay nada, no renderiza. Tono editorial.
+- Helper `lib/finance/upcoming.ts` con `findUpcomingDue()` reusable.
+
+**OnboardingTour (#10)**
+- Modal full-screen en 5 pasos para usuarios nuevos: Bienvenida,
+  Nombre, Moneda (top 6 LATAM/USA + dropdown), Zona horaria, Listo.
+- Migration `onboarding_completed` en profiles. Default TRUE para
+  existentes (no se les fuerza), FALSE para nuevos signups.
+- useUpdateProfile suprime el toast cuando solo se actualiza
+  onboarding_completed (acción silenciosa).
+
+**WeeklyInsightsCard (#nuevo)**
+- "Tu semana en 30s" — compara últimos 7 vs 7 anteriores en 4 KPIs:
+  hábitos, gasto (color invertido — bajar es bueno), ánimo prom,
+  lectura (minutos).
+- Highlights extra: mejor día con N hábitos, días que escribió
+  diario.
+- Si no hay datos en ninguna dimensión, no renderiza.
+
+**Pegasso · Fase 1 · context-aware con tool use (#nuevo, #82-83)**
+- 6 read tools que dan a Claude acceso a datos del user:
+  get_finances_summary, get_habits_status, get_mpd,
+  get_recent_journals, get_books_status, get_business_summary.
+- Chat route refactored para tool_use loop (max 5 iters).
+- Streaming: status events ("consultando finanzas…") mientras
+  ejecuta tools, luego texto final en chunks.
+- System prompt actualizado con sección sobre cuándo usar las tools.
+
+**Pegasso · Fase 2 · Suggested actions (#85)**
+- 4 action tools: create_transaction, create_habit,
+  create_journal_entry, create_business_idea.
+- NO ejecutan automáticamente — generan una "suggested action" que
+  se guarda en `pegasso_messages.metadata.suggested_actions`.
+- Migration agrega columna `metadata JSONB`.
+- UI: SuggestedActionCard renderiza debajo del mensaje del assistant
+  con [Confirmar]/[Cancelar]. 3 estados: pending, confirmed, cancelled.
+- Endpoint /api/pegasso/action ejecuta la action al confirmar
+  + actualiza metadata + invalida queries relevantes.
+
+**Pegasso · Fase 3 · WhatsApp via Twilio (#nuevo)**
+- Migration añade phone_e164 + whatsapp_enabled a profiles, y
+  channel ('web'|'whatsapp') a pegasso_conversations.
+- Endpoint /api/whatsapp/webhook recibe form-urlencoded de Twilio,
+  identifica al user por phone (service role), busca/crea
+  conversación whatsapp, llama a Pegasso con el mismo tool loop,
+  manda respuesta de vuelta por Twilio.
+- WhatsappCard en /ajustes para conectar número, activar/pausar,
+  ver instrucciones.
+- lib/whatsapp/twilio.ts cliente mínimo (sin SDK, REST directo).
+- docs/WHATSAPP_SETUP.md con guía completa de Twilio Sandbox.
+
+**Sub-nav redesign minimalista**
+- Pills rounded-full con CAPS + tracking-widest reemplazadas por
+  tabs minimalistas: texto regular, font-body 13px, underline 2px
+  en accent del módulo.
+- Ahorra ~50% del peso visual.
+- Sub-rutas de finanzas (/cuentas, /tarjetas, etc.) prefetchean
+  sus datos en hover/touch via `usePrefetchSubRoute()`. Cuando
+  el user click, los datos ya están en cache → render instantáneo.
+- Fix `isActiveSubnavHref`: el index del módulo (Propósito, Resumen)
+  ya no se queda activo en sub-rutas; solo el más específico.
+
+**F · Búsqueda global (#nuevo, originalmente parte del Cmd+K)**
+- `useGlobalSearch` busca en paralelo: journal, books, ideas,
+  transactions, conversaciones Pegasso. ILIKE pattern, top 5/fuente.
+- CommandPalette renderiza hits encima de las acciones, agrupados
+  por kind con icono y snippet con la palabra encontrada.
+
+**G · BillsTodayPrompt (#nuevo, parte de #48 bill reminders)**
+- Recurring/subscriptions con due date HOY (kind=expense) aparecen
+  como cards en /hoy con [Pagado] / [Saltar].
+- Pagado crea finance_transaction con monto + nombre como nota.
+- localStorage por bill+fecha para no insistir.
+
+**H · StreakRescueAlert (#nuevo, parte de #38 streak rescue)**
+- Después de las 18h muestra hábitos con racha activa >= 3 días
+  que aún no se completaron hoy.
+- Botón [Listo] toggle el hábito como hecho (mismo flow que /habitos).
+
+### Bugs fixes destacados
+
+- StickyProgressBar montaba sobre masthead desktop con z-40 vs z-30
+  → ahora md:hidden, solo en móvil.
+- Plate calculator de fitness eliminado — ruido visual + el módulo
+  es para registrar UNA vez al día, no para usarse mientras
+  entrenas. Misma razón: RestTimer eliminado del QuickLogCard.
+- BookModal: file picker reemplaza URL input. Resumen renombrado a
+  "✦ Lo más importante que aprendí" con placeholder estructurado.
+- Hydration mismatches: greeting en TodayClient + RitualProgressRing
+  rendían distinto en SSR (sin profile/cache) vs cliente (con
+  cache de IDB) → mounted gate.
+- Sub-nav active: el primer item del módulo se quedaba activo en
+  sub-rutas porque isActiveHref usaba startsWith → nuevo
+  isActiveSubnavHref filtra por match más específico.
+- 11 archivos loading.tsx eliminados de finanzas/hábitos/reflexiones
+  — flasheaban skeleton pesado en cada navegación incluso con
+  datos cached. Ahora la nav entre tabs es instantánea.
+- Errores de extensiones de Chrome (MetaMask, etc.) silenciados con
+  filtro inline en <head> del layout (se instala antes que cualquier
+  extensión inyecte).
+- Calculadora de placas eliminada de /habitos/fitness.
+
+### Migraciones aplicadas (sesión 9)
+- 20260429000000_book_covers_storage.sql
+- 20260429100000_more_storage_buckets.sql
+- 20260429200000_onboarding.sql
+- 20260429300000_pegasso_actions.sql
+- 20260429400000_whatsapp.sql
+
+### Items adicionales del plan-100 cerrados
+
+- #9 Validación inline / shortcuts en modales (Cmd+Enter)
+- #10 Tour de onboarding completo
+- #16 Subida de imágenes vía Supabase Storage
+- #38 Time-of-day analysis (parcial — streak rescue después de 18h)
+- #48 Bill reminder notifications (BillsTodayPrompt)
+- #82 Pegasso lee tu diario para contexto (read tools)
+- #83 Pegasso lee tu finanzas para advice (read tools)
+- #85 Pegasso suggested actions con confirmación
+- + Búsqueda global content (parte de #6 mejorada)
+- + Pegasso por WhatsApp (no estaba en plan original)
+- + Insights semanales en /hoy
+- + Evening Review estoico
+
+### Total acumulado
+
+**73 ítems del plan-100 cerrados** · 20 migraciones · 9 sesiones ·
+build clean en cada paso.
