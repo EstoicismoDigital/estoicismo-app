@@ -138,88 +138,118 @@ function ModuleCardItem({
   const isCompact = variant === "compact";
 
   return (
-    <Link
-      href={m.href}
-      data-module={m.key}
-      onMouseEnter={onPrefetch}
-      onFocus={onPrefetch}
-      onTouchStart={onPrefetch}
-      className={clsx(
-        "group relative overflow-hidden rounded-card border border-line bg-bg-alt/30",
-        "transition-all duration-200 focus:outline-none",
-        "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-        "focus-visible:ring-offset-bg",
-        "hover:shadow-lg hover:-translate-y-0.5",
-        isCompact ? "aspect-[3/4]" : "aspect-[3/4] sm:aspect-[4/5]"
-      )}
+    <div
+      className="group relative"
       style={
         {
-          // Tinte color del módulo en hover
           "--mod-color": m.color,
         } as React.CSSProperties
       }
     >
-      {/* Imagen del estoico */}
-      <div className="absolute inset-0">
-        {m.image && !imgError ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={m.image}
-            alt={m.philosopher}
-            className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <MonogramFallback initial={m.initial} color={m.color} />
+      {/* AURA exterior — halo brillante detrás del card. No está clipped
+          porque vive afuera del Link (que tiene overflow-hidden). En
+          hover intensifica; en idle ya hay un glow sutil. */}
+      <div
+        aria-hidden
+        className="absolute -inset-2 sm:-inset-3 rounded-card blur-2xl opacity-30 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none -z-10"
+        style={{
+          background: `radial-gradient(ellipse at center, ${m.color} 0%, ${m.color}80 35%, transparent 70%)`,
+        }}
+      />
+
+      <Link
+        href={m.href}
+        data-module={m.key}
+        onMouseEnter={onPrefetch}
+        onFocus={onPrefetch}
+        onTouchStart={onPrefetch}
+        className={clsx(
+          "block relative overflow-hidden rounded-card border border-line bg-bg-alt/30",
+          "transition-all duration-300 focus:outline-none",
+          "focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+          "focus-visible:ring-offset-bg",
+          "group-hover:-translate-y-0.5 group-hover:border-line-strong",
+          isCompact ? "aspect-[3/4]" : "aspect-[3/4] sm:aspect-[4/5]"
         )}
-      </div>
+      >
+        {/* AURA interior — radial gradient del color saliendo desde
+            atrás del estoico. Visible especialmente en bordes y sobre
+            áreas oscuras de la imagen. */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-40 group-hover:opacity-70 transition-opacity duration-500"
+          style={{
+            background: `radial-gradient(circle at 50% 35%, ${m.color}AA 0%, ${m.color}55 25%, transparent 65%)`,
+          }}
+        />
 
-      {/* Gradient overlay (oscurece la parte baja para legibilidad del label) */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"
-      />
-
-      {/* Tinte de color sutil */}
-      <div
-        aria-hidden
-        className="absolute inset-0 mix-blend-multiply opacity-0 group-hover:opacity-30 transition-opacity duration-300"
-        style={{ background: m.color }}
-      />
-
-      {/* Top accent bar */}
-      <div
-        aria-hidden
-        className="absolute top-0 left-0 right-0 h-1 transition-all"
-        style={{ background: m.color }}
-      />
-
-      {/* Label inferior */}
-      <div className={clsx("absolute left-0 right-0 bottom-0 px-3", isCompact ? "py-2" : "py-3 sm:py-4")}>
-        <p
-          className={clsx(
-            "font-mono uppercase tracking-widest opacity-80",
-            isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]"
+        {/* Imagen del estoico */}
+        <div className="absolute inset-0">
+          {m.image && !imgError ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={m.image}
+              alt={m.philosopher}
+              className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <MonogramFallback initial={m.initial} color={m.color} />
           )}
-          style={{ color: m.color }}
-        >
-          {m.philosopher}
-        </p>
-        <h2
+        </div>
+
+        {/* Gradient overlay (oscurece la parte baja para legibilidad del label) */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent"
+        />
+
+        {/* Tinte de color sutil sobre toda la imagen en hover */}
+        <div
+          aria-hidden
+          className="absolute inset-0 mix-blend-multiply opacity-0 group-hover:opacity-25 transition-opacity duration-300"
+          style={{ background: m.color }}
+        />
+
+        {/* Top accent bar */}
+        <div
+          aria-hidden
+          className="absolute top-0 left-0 right-0 h-1 transition-all"
+          style={{ background: m.color }}
+        />
+
+        {/* Label inferior */}
+        <div
           className={clsx(
-            "font-display italic text-white leading-tight",
-            isCompact ? "text-base" : "text-xl sm:text-2xl"
+            "absolute left-0 right-0 bottom-0 px-3",
+            isCompact ? "py-2" : "py-3 sm:py-4"
           )}
         >
-          {m.label}
-        </h2>
-        {!isCompact && (
-          <p className="hidden sm:block font-body text-[11px] text-white/70 mt-1 leading-snug line-clamp-2">
-            {m.tagline}
+          <p
+            className={clsx(
+              "font-mono uppercase tracking-widest opacity-80",
+              isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]"
+            )}
+            style={{ color: m.color }}
+          >
+            {m.philosopher}
           </p>
-        )}
-      </div>
-    </Link>
+          <h2
+            className={clsx(
+              "font-display italic text-white leading-tight",
+              isCompact ? "text-base" : "text-xl sm:text-2xl"
+            )}
+          >
+            {m.label}
+          </h2>
+          {!isCompact && (
+            <p className="hidden sm:block font-body text-[11px] text-white/70 mt-1 leading-snug line-clamp-2">
+              {m.tagline}
+            </p>
+          )}
+        </div>
+      </Link>
+    </div>
   );
 }
 
