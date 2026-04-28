@@ -132,7 +132,7 @@ export function TodayClient() {
 
       {/* Hero */}
       <section className="bg-bg-deep text-white">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1 min-h-[14px]">
             {mounted ? `${greetingByHour()} · ${prettyDate()}` : "·"}
           </p>
@@ -171,12 +171,12 @@ export function TodayClient() {
       <OnboardingTour />
 
       {/* Navegación visual principal — 4 módulos con sus estoicos */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <ModuleGridNav variant="full" />
       </div>
 
       {/* Body — secciones */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
 

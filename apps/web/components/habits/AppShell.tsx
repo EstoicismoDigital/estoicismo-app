@@ -360,7 +360,7 @@ function DesktopMasthead({
       className="hidden md:block sticky top-0 z-30 bg-bg/95 backdrop-blur-sm border-b border-line"
       aria-label="Navegación principal"
     >
-      <div className="max-w-6xl mx-auto px-6 pt-4 pb-3">
+      <div className="max-w-screen-2xl mx-auto px-6 pt-4 pb-3">
         {/* Row 1 — brand + utilities */}
         <div className="flex items-center justify-between mb-3">
           <Link
@@ -442,7 +442,7 @@ function DesktopMasthead({
         showFinanzasSub ||
         showMentalidadSub) && (
         <div className="border-t border-line/60">
-          <div className="max-w-6xl mx-auto px-6">
+          <div className="max-w-screen-2xl mx-auto px-6">
             <nav
               aria-label={
                 showHoySub

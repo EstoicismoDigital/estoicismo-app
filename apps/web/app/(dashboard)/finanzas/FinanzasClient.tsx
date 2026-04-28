@@ -125,7 +125,7 @@ export function FinanzasClient() {
     <div data-module="finanzas" className="min-h-screen bg-bg">
       {/* Hero */}
       <section className="bg-bg-deep text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
               Finanzas · {monthLabel}
@@ -152,7 +152,7 @@ export function FinanzasClient() {
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         {/* Próximos vencimientos (recurrentes + suscripciones) */}
         <UpcomingDueBanner />
 

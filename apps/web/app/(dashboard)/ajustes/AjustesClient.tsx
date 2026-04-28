@@ -101,7 +101,7 @@ export function AjustesClient({
   return (
     <div className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
             Tu cuenta
           </p>
@@ -109,7 +109,7 @@ export function AjustesClient({
         </div>
       </section>
 
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col gap-10">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col gap-10">
         {/* Profile section */}
         <div className="flex flex-col gap-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent">

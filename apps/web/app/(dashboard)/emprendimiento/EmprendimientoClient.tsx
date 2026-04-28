@@ -82,7 +82,7 @@ export function EmprendimientoClient() {
   return (
     <div data-module="emprendimiento" className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1">
               Emprendimiento
@@ -118,7 +118,7 @@ export function EmprendimientoClient() {
         </div>
       </section>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {(status === "exploring" || status === "starting") && <ExploringSection />}
         {(status === "active" || status === "starting") && (
           <ActiveSection profileName={profile?.name ?? null} />

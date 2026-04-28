@@ -95,7 +95,7 @@ export function ReflexionesClient() {
     <div className="min-h-screen">
       {/* Hero — afirmación del día */}
       <section className="bg-bg-deep text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="flex items-center gap-2 mb-3">
             <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
               Tu Propósito Mayor Definido
@@ -155,7 +155,7 @@ export function ReflexionesClient() {
       </section>
 
       {/* Stats + cita */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <StatCard
             icon={<Flame size={14} />}
@@ -189,22 +189,22 @@ export function ReflexionesClient() {
       </section>
 
       {/* Stoic exercise of the day */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <StoicExerciseCard />
       </section>
 
       {/* Mood tracker — registro emocional del día */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <MoodTrackerCard />
       </section>
 
       {/* Gratitud diaria · 3 cosas */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <GratitudeCard />
       </section>
 
       {/* Check-in de hoy */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <DailyCheckIn
           date={today}
           initial={todayLog ?? null}
@@ -214,17 +214,17 @@ export function ReflexionesClient() {
       </section>
 
       {/* Vision board */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-6">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <VisionBoardSection />
       </section>
 
       {/* Future-self letters */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-10">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <FutureLetterSection />
       </section>
 
       {/* Atajos al resto del módulo */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
+      <section className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted mb-3">
           Más en Mentalidad
         </p>
@@ -297,7 +297,7 @@ function MPDEditor({
   return (
     <div className="min-h-screen">
       <section className="bg-bg-deep text-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
             {initial ? "Editar tu MPD" : "Escribe tu MPD"}
           </p>
@@ -331,7 +331,7 @@ function MPDEditor({
 
       <form
         onSubmit={handleSubmit}
-        className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col gap-6"
+        className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col gap-6"
       >
         <div className="rounded-card border border-line bg-bg-alt/50 p-5 sm:p-6">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
@@ -458,7 +458,7 @@ function MPDEditor({
       </form>
 
       {/* Aprende más — los 13 principios completos de Hill */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-12">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <HillPrinciplesAccordion />
       </div>
     </div>
