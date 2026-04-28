@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Settings, LogOut, Crown, Sparkles, NotebookPen } from "lucide-react";
+import { Settings, LogOut, Crown, Sparkles, NotebookPen, Home } from "lucide-react";
 import { clsx } from "clsx";
 import { useProfile } from "../../hooks/useProfile";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
@@ -257,6 +257,31 @@ function SettingsLink({ active }: { active: boolean }) {
  * Acceso al Diario global desde cualquier pantalla. Vive junto a
  * Pegasso/Settings — el diario cruza áreas, no pertenece a una.
  */
+/**
+ * Botón explícito de "Inicio" (Hoy). Replica el comportamiento del
+ * brand logo pero como icon button discoverable. Visible en todas
+ * las pantallas — la forma más rápida de volver al menú visual.
+ */
+function HomeLink({ active, compact = false }: { active: boolean; compact?: boolean }) {
+  return (
+    <Link
+      href="/"
+      aria-label="Ir a Hoy · Inicio"
+      title="Ir a Inicio"
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+        compact ? "w-8 h-8" : "w-9 h-9",
+        active
+          ? "bg-accent text-bg"
+          : "text-muted bg-bg-alt hover:text-ink hover:bg-bg-alt/80"
+      )}
+    >
+      <Home size={compact ? 13 : 15} aria-hidden />
+    </Link>
+  );
+}
+
 function JournalLink({ active, compact = false }: { active: boolean; compact?: boolean }) {
   return (
     <Link
@@ -338,8 +363,17 @@ function DesktopMasthead({
       <div className="max-w-6xl mx-auto px-6 pt-4 pb-3">
         {/* Row 1 — brand + utilities */}
         <div className="flex items-center justify-between mb-3">
-          <Link href="/" className="block group" aria-label="Estoicismo Digital · Ir a Hoy">
-            <Logo variant="full" size="md" className="block group-hover:opacity-80 transition-opacity" />
+          <Link
+            href="/"
+            className="block group cursor-pointer"
+            aria-label="Estoicismo Digital · Ir a Inicio"
+            title="Ir a Inicio"
+          >
+            <Logo
+              variant="full"
+              size="md"
+              className="block group-hover:opacity-80 group-hover:scale-[1.02] transition-all duration-150"
+            />
           </Link>
           <div className="flex items-center gap-2">
             {onOpenPalette && (
@@ -356,6 +390,7 @@ function DesktopMasthead({
                 </kbd>
               </button>
             )}
+            <HomeLink active={pathname === "/"} />
             <PlanPill />
             <JournalLink active={pathname.startsWith("/notas")} />
             <PegassoLink active={pathname.startsWith("/pegasso")} />
@@ -519,6 +554,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Logo variant="full" size="sm" />
           </Link>
           <div className="flex items-center gap-1">
+            <HomeLink active={pathname === "/"} compact />
             <JournalLink active={pathname.startsWith("/notas")} compact />
             <PegassoLink active={pathname.startsWith("/pegasso")} compact />
             <SettingsLink active={onAjustes} />
