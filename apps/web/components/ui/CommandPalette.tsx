@@ -37,6 +37,8 @@ import {
   X,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useGlobalSearch, type SearchHitKind } from "../../hooks/useGlobalSearch";
+import { MessageSquare, Lightbulb, FileText } from "lucide-react";
 
 /**
  * Cmd+K command palette · paleta global de navegación + acciones
@@ -49,6 +51,25 @@ import { clsx } from "clsx";
  */
 
 type CommandKind = "nav" | "action";
+
+const SEARCH_GROUP_LABEL: Record<SearchHitKind, string> = {
+  journal: "Diario",
+  book: "Libros",
+  idea: "Ideas",
+  transaction: "Transacciones",
+  conversation: "Conversaciones Pegasso",
+};
+
+const SEARCH_KIND_ICON: Record<
+  SearchHitKind,
+  React.ComponentType<{ size?: number; className?: string }>
+> = {
+  journal: FileText,
+  book: BookOpen,
+  idea: Lightbulb,
+  transaction: Receipt,
+  conversation: MessageSquare,
+};
 
 type Command = {
   id: string;
@@ -364,11 +385,28 @@ export function CommandPalette({
     [router]
   );
 
+  // Búsqueda en contenido del user (notas, libros, ideas, etc.)
+  const { data: searchHits = [], isFetching: searching } = useGlobalSearch(query);
+
+  // Convierte hits de búsqueda a Command-like items para mostrarlos
+  // junto a las acciones predefinidas.
+  const searchCommands = useMemo<Command[]>(() => {
+    return searchHits.map((h) => ({
+      id: `hit-${h.kind}-${h.id}`,
+      title: h.title,
+      description: h.snippet,
+      group: SEARCH_GROUP_LABEL[h.kind],
+      kind: "nav" as CommandKind,
+      icon: SEARCH_KIND_ICON[h.kind],
+      href: h.href,
+    }));
+  }, [searchHits]);
+
   // Filter
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return commands;
-    return commands.filter((c) => {
+    const matchingCommands = commands.filter((c) => {
       const haystack = [
         c.title,
         c.description ?? "",
@@ -377,10 +415,12 @@ export function CommandPalette({
       ]
         .join(" ")
         .toLowerCase();
-      // Permite búsqueda por palabras separadas
       return q.split(/\s+/).every((token) => haystack.includes(token));
     });
-  }, [query, commands]);
+    // Coloca los hits de contenido al inicio (lo que el user busca
+    // suele ser el contenido, no las acciones).
+    return [...searchCommands, ...matchingCommands];
+  }, [query, commands, searchCommands]);
 
   // Group filtered for display
   const grouped = useMemo(() => {
@@ -465,9 +505,14 @@ export function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Busca módulos, acciones, palabras…"
+            placeholder="Busca módulos, acciones, o contenido…"
             className="flex-1 bg-transparent border-0 font-body text-base text-ink placeholder:text-muted focus:outline-none"
           />
+          {searching && (
+            <span className="text-muted text-[10px] font-mono uppercase tracking-widest">
+              buscando…
+            </span>
+          )}
           <button
             type="button"
             onClick={onClose}

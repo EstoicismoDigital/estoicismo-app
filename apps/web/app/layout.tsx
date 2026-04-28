@@ -82,6 +82,14 @@ const PALETTE_IDS = ["negro", "rosa"] as const;
 const FONT_SIZE_IDS = ["small", "normal", "large", "xl"] as const;
 const themeBootScript = `(function(){try{var s=localStorage.getItem('theme');var d;if(s==='dark'){d=true;}else if(s==='light'){d=false;}else{d=window.matchMedia('(prefers-color-scheme: dark)').matches;}var h=document.documentElement;if(d){h.classList.add('dark');}var valid=${JSON.stringify(PALETTE_IDS)};var p=localStorage.getItem('palette');if(valid.indexOf(p)===-1){p='negro';}h.classList.add('palette-'+p);var fs=localStorage.getItem('fontSize');var fsv=${JSON.stringify(FONT_SIZE_IDS)};if(fsv.indexOf(fs)===-1){fs='normal';}h.classList.add('font-'+fs);}catch(e){}})();`;
 
+/**
+ * Filtro inline de errores de extensiones de Chrome (MetaMask,
+ * Phantom, ad blockers). Se instala ANTES de cualquier script de
+ * extensión via inline en <head>, así captura errores que disparan
+ * en page-load antes de que React monte.
+ */
+const extensionFilterScript = `(function(){try{function isExt(s){return typeof s==='string'&&(s.indexOf('chrome-extension://')!==-1||s.indexOf('moz-extension://')!==-1||s.indexOf('safari-web-extension://')!==-1);}function looksLikeExt(reason){if(!reason)return false;var stack=(reason&&reason.stack)?String(reason.stack):'';var msg=(reason&&reason.message)?String(reason.message):String(reason);return isExt(stack)||msg.indexOf('MetaMask')!==-1||msg.indexOf('Failed to connect to MetaMask')!==-1||msg.indexOf('ethereum')!==-1;}window.addEventListener('error',function(e){if(isExt(e.filename)||looksLikeExt(e.error)){e.preventDefault();e.stopImmediatePropagation();return false;}},true);window.addEventListener('unhandledrejection',function(e){if(looksLikeExt(e.reason)){e.preventDefault();e.stopImmediatePropagation();return false;}},true);}catch(_){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -90,6 +98,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${lora.variable} ${montserrat.variable}`}
     >
       <head>
+        {/* Filtro de errores de extensiones — debe ir PRIMERO para
+            instalarse antes que cualquier script externo dispare. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: extensionFilterScript }}
+        />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body className="bg-bg text-ink font-body antialiased">

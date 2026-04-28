@@ -32,6 +32,8 @@ import { AlertsBar } from "../../../components/hoy/AlertsBar";
 import { EveningReviewCard } from "../../../components/hoy/EveningReviewCard";
 import { WeeklyInsightsCard } from "../../../components/hoy/WeeklyInsightsCard";
 import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
+import { BillsTodayPrompt } from "../../../components/hoy/BillsTodayPrompt";
+import { StreakRescueAlert } from "../../../components/hoy/StreakRescueAlert";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -171,6 +173,13 @@ export function TodayClient() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
+
+        {/* Rachas en riesgo — después de las 18h, hábitos con racha
+            activa que aún no se completaron hoy */}
+        <StreakRescueAlert />
+
+        {/* Pagos del día — recurring/subs con due date hoy */}
+        <BillsTodayPrompt />
 
         {/* Resumen semanal — comparativo últimos 7 vs 7 anteriores */}
         <WeeklyInsightsCard />
