@@ -19,6 +19,27 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   transpilePackages: ["@estoicismo/ui", "@estoicismo/supabase"],
+  // Security headers — protección básica contra XSS, clickjacking,
+  // MIME sniffing. Aplica a TODAS las rutas.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Previene que el navegador adivine el tipo MIME (XSS vector).
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Bloquea embed en iframes de otros dominios (clickjacking).
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Política de referer mínimal — no leak de URL paths a otros sitios.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Restringe permissions API (geo, micro, cámara) por default.
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
+          // Force HTTPS (1 año) — solo se aplica en producción.
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        ],
+      },
+    ];
+  },
   // TEMP: skip type-check during build. There's a known pnpm + React 19 +
   // Next 15 monorepo bug that surfaces duplicate ReactPortal types across
   // workspace packages. Local typecheck still runs (pnpm test/lint), so

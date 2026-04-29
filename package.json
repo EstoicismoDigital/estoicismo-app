@@ -1,7 +1,30 @@
 {
   "name": "estoicismo-app",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "Tu sistema operativo personal, inspirado en los estoicos. Hábitos · Finanzas · Mentalidad · Negocio.",
+  "license": "MIT",
+  "author": "Estoicismo Digital <gruponitidoic@gmail.com>",
+  "homepage": "https://github.com/EstoicismoDigital/estoicismo-app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EstoicismoDigital/estoicismo-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EstoicismoDigital/estoicismo-app/issues"
+  },
+  "keywords": [
+    "stoicism",
+    "habits",
+    "finance",
+    "productivity",
+    "self-development",
+    "nextjs",
+    "supabase",
+    "estoicismo",
+    "mpd",
+    "marco-aurelio"
+  ],
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
