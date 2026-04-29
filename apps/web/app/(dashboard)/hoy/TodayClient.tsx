@@ -495,6 +495,7 @@ export function TodayClient() {
             <ShortcutLink href="/notas" emoji="✍️" label="Diario" />
             <ShortcutLink href="/calendario" emoji="📆" label="Calendario" />
             <ShortcutLink href="/revision" emoji="🔍" label="Revisión" />
+            <ShortcutLink href="/revision-semanal" emoji="📓" label="Cierre semanal" />
           </div>
         </section>
 
