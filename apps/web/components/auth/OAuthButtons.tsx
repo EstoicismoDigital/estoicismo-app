@@ -2,15 +2,13 @@
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
 
-type Provider = "google" | "apple";
-
 export function OAuthButtons({ next }: { next?: string }) {
-  const [loading, setLoading] = useState<Provider | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function signInWith(provider: Provider) {
+  async function signInWithGoogle() {
     setError(null);
-    setLoading(provider);
+    setLoading(true);
     const supabase = getSupabaseBrowserClient();
     const origin =
       typeof window !== "undefined" ? window.location.origin : "";
@@ -19,19 +17,16 @@ export function OAuthButtons({ next }: { next?: string }) {
     }`;
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: "google",
       options: {
         redirectTo,
-        queryParams:
-          provider === "google"
-            ? { access_type: "offline", prompt: "consent" }
-            : undefined,
+        queryParams: { access_type: "offline", prompt: "consent" },
       },
     });
 
     if (error) {
-      setError(`No pudimos iniciar con ${provider === "google" ? "Google" : "Apple"}.`);
-      setLoading(null);
+      setError("No pudimos iniciar con Google.");
+      setLoading(false);
     }
   }
 
@@ -39,22 +34,12 @@ export function OAuthButtons({ next }: { next?: string }) {
     <div className="flex flex-col gap-3">
       <button
         type="button"
-        onClick={() => signInWith("google")}
-        disabled={loading !== null}
+        onClick={signInWithGoogle}
+        disabled={loading}
         className="h-12 rounded-lg border border-line bg-bg-alt text-ink font-body font-medium text-base flex items-center justify-center gap-3 hover:bg-bg transition-colors disabled:opacity-40"
       >
         <GoogleIcon />
-        {loading === "google" ? "Conectando…" : "Continuar con Google"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => signInWith("apple")}
-        disabled={loading !== null}
-        className="h-12 rounded-lg border border-line bg-ink text-bg font-body font-medium text-base flex items-center justify-center gap-3 hover:opacity-90 transition-opacity disabled:opacity-40"
-      >
-        <AppleIcon />
-        {loading === "apple" ? "Conectando…" : "Continuar con Apple"}
+        {loading ? "Conectando…" : "Continuar con Google"}
       </button>
 
       {error && (
@@ -85,14 +70,6 @@ function GoogleIcon() {
         fill="#EA4335"
         d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
       />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
     </svg>
   );
 }

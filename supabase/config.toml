@@ -66,23 +66,12 @@ enable_confirmations = true
 secure_password_change = true
 
 [auth.sms]
-enable_signup = true
-enable_confirmations = true
-template = "Tu código de Estoicismo Digital es {{ .Code }}"
-
-# Twilio SMS provider — configure credentials in the Supabase dashboard
-# (Auth > Providers > Phone) since secrets must NOT live in this file.
-[auth.sms.twilio]
-enabled = false
-account_sid = "env(TWILIO_ACCOUNT_SID)"
-message_service_sid = "env(TWILIO_MESSAGE_SERVICE_SID)"
-auth_token = "env(TWILIO_AUTH_TOKEN)"
+enable_signup = false
+enable_confirmations = false
+template = "Your code is {{ .Code }} ."
 
 [auth.external.apple]
-enabled = true
-client_id = "env(SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID)"
-secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
-redirect_uri = "https://app.estoicismodigital.com/auth/callback"
+enabled = false
 
 [auth.external.google]
 enabled = true
