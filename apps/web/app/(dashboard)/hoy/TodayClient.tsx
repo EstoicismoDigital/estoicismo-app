@@ -35,6 +35,8 @@ import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
 import { BillsTodayPrompt } from "../../../components/hoy/BillsTodayPrompt";
 import { StreakRescueAlert } from "../../../components/hoy/StreakRescueAlert";
 import { ModuleGridNav } from "../../../components/habits/ModuleGridNav";
+import { SolCard } from "../../../components/hoy/SolCard";
+import { LunaCard } from "../../../components/hoy/LunaCard";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -177,6 +179,11 @@ export function TodayClient() {
 
       {/* Body — secciones */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+        {/* SOL — la mañana de tu agenda. Replica la página izquierda
+            de la Agenda de Zeus física: hora de inicio, intención
+            del día, hasta 7 tareas con bloques de tiempo. */}
+        <SolCard />
+
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
 
@@ -443,6 +450,11 @@ export function TodayClient() {
             <DailyPromptCard />
           </div>
         </HoySection>
+
+        {/* LUNA — la noche de tu agenda. Replica la página derecha
+            de la Agenda de Zeus física: reflexión del día, vitales,
+            estado, balance, objetivos de mañana. */}
+        <LunaCard />
 
         {/* Atajos al final */}
         <section className="pt-4 border-t border-line">
