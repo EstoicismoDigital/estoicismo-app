@@ -1,55 +1,44 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "../../../lib/supabase-client";
 import { OAuthButtons } from "../../../components/auth/OAuthButtons";
 import { PhoneAuth } from "../../../components/auth/PhoneAuth";
 import { AuthMethodTabs, AuthDivider } from "../../../components/auth/AuthMethodTabs";
 
-export default function SignUpPage() {
+export function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (oauthError) {
+      const map: Record<string, string> = {
+        missing_code: "El proveedor no devolvió un código válido.",
+        exchange_failed: "No pudimos completar el inicio de sesión.",
+      };
+      setError(map[oauthError] ?? "No pudimos iniciar sesión. Intenta de nuevo.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setInfo(null);
-    if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
-      return;
-    }
     setLoading(true);
     const supabase = getSupabaseBrowserClient();
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "";
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${origin}/auth/callback`,
-      },
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setError("No pudimos crear tu cuenta. Intenta con otro email.");
+      setError("Email o contraseña incorrectos.");
       setLoading(false);
       return;
     }
-    setLoading(false);
-
-    if (data.session) {
-      router.push("/");
-      router.refresh();
-      return;
-    }
-
-    setInfo(
-      "Revisa tu email para confirmar la cuenta. Si no ves el correo, mira en spam."
-    );
+    router.push("/");
+    router.refresh();
   }
 
   const emailForm = (
@@ -85,9 +74,9 @@ export default function SignUpPage() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mínimo 8 caracteres"
+          placeholder="Tu contraseña"
           required
-          autoComplete="new-password"
+          autoComplete="current-password"
           className="h-12 px-4 rounded-lg border border-line bg-bg-alt font-body text-base text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
@@ -98,48 +87,30 @@ export default function SignUpPage() {
         </p>
       )}
 
-      {info && (
-        <p role="status" className="text-accent text-sm font-body">
-          {info}
-        </p>
-      )}
-
       <button
         type="submit"
         disabled={loading}
         className="h-12 rounded-lg bg-accent text-bg font-body font-medium text-base hover:opacity-90 disabled:opacity-40 transition-opacity"
       >
-        {loading ? "Creando cuenta..." : "Crear cuenta gratis"}
+        {loading ? "Iniciando sesión..." : "Iniciar sesión"}
       </button>
+
+      <p className="text-center font-body text-muted text-sm">
+        <Link
+          href="/forgot-password"
+          className="text-muted hover:text-ink hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
     </form>
   );
 
   return (
-    <main className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <p className="font-mono text-xs uppercase tracking-widest text-accent mb-2">
-          ESTOICISMO DIGITAL
-        </p>
-        <h1 className="font-display text-4xl font-bold text-ink mb-1">
-          Crea tu cuenta.
-        </h1>
-        <p className="font-body text-muted text-sm mb-6">
-          Gratis. Sin tarjeta de crédito.
-        </p>
-
-        <OAuthButtons />
-
-        <AuthDivider label="O regístrate con" />
-
-        <AuthMethodTabs email={emailForm} phone={<PhoneAuth />} />
-
-        <p className="text-center font-body text-muted text-sm mt-6">
-          ¿Ya tienes cuenta?{" "}
-          <Link href="/sign-in" className="text-accent font-medium hover:underline">
-            Inicia sesión
-          </Link>
-        </p>
-      </div>
-    </main>
+    <>
+      <OAuthButtons />
+      <AuthDivider />
+      <AuthMethodTabs email={emailForm} phone={<PhoneAuth />} />
+    </>
   );
 }

@@ -31,6 +31,7 @@ export async function middleware(request: NextRequest) {
     "/sign-up",
     "/forgot-password",
     "/reset-password",
+    "/auth/callback",
   ];
   // `/` is the dashboard root — treated as protected (moved out of the
   // public list). This lets every dashboard page.tsx drop its own

@@ -43,8 +43,14 @@ file_size_limit = "50MiB"
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+site_url = "https://app.estoicismodigital.com"
+additional_redirect_urls = [
+  "http://127.0.0.1:3000",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000/auth/callback",
+  "http://localhost:3000/auth/callback",
+  "https://app.estoicismodigital.com/auth/callback",
+]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -56,15 +62,30 @@ minimum_password_length = 8
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = false
+enable_confirmations = true
+secure_password_change = true
 
 [auth.sms]
-enable_signup = false
-enable_confirmations = false
-template = "Your code is {{ .Code }} ."
+enable_signup = true
+enable_confirmations = true
+template = "Tu código de Estoicismo Digital es {{ .Code }}"
+
+# Twilio SMS provider — configure credentials in the Supabase dashboard
+# (Auth > Providers > Phone) since secrets must NOT live in this file.
+[auth.sms.twilio]
+enabled = false
+account_sid = "env(TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(TWILIO_MESSAGE_SERVICE_SID)"
+auth_token = "env(TWILIO_AUTH_TOKEN)"
 
 [auth.external.apple]
-enabled = false
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_APPLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+redirect_uri = "https://app.estoicismodigital.com/auth/callback"
 
 [auth.external.google]
-enabled = false
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = "https://app.estoicismodigital.com/auth/callback"
