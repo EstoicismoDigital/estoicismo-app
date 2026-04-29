@@ -48,28 +48,42 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Gate del manifiesto: si el user está autenticado y NO ha firmado,
-  // redirige a /onboarding/manifiesto. Excepción: rutas del propio
-  // flujo de onboarding y rutas públicas.
+  // Gates de onboarding: el flujo es manifiesto → wizard (MPD).
+  // Si NO ha firmado → /onboarding/manifiesto
+  // Si firmó pero no tiene MPD → /onboarding/wizard
+  // Si tiene ambos → continúa normal
   //
-  // Fail-open: si la tabla user_signed_manifesto no existe (porque
-  // todavía no se aplicó la migración) o el query falla por cualquier
-  // razón, NO bloquea — la app sigue funcionando como antes. Esto
-  // permite hacer deploy del código frontend antes de la migración
-  // sin romper a usuarios existentes.
+  // Fail-open: si las tablas no existen (porque todavía no se aplicó
+  // la migración) o el query falla por cualquier razón, NO bloquea —
+  // la app sigue funcionando como antes. Permite hacer deploy del
+  // código frontend antes de la migración sin romper a usuarios.
   if (user && !isPublic && !isOnboardingFlow) {
     try {
-      const { data: sig, error } = await supabase
+      const { data: sig, error: sigErr } = await supabase
         .from("user_signed_manifesto")
         .select("user_id")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      // Si la tabla no existe (42P01) o cualquier otro error, fail-open.
-      if (!error && !sig) {
+      if (!sigErr && !sig) {
         return NextResponse.redirect(
           new URL("/onboarding/manifiesto", request.url)
         );
+      }
+
+      // Solo chequea MPD si la firma existe
+      if (sig) {
+        const { data: mpd, error: mpdErr } = await supabase
+          .from("mindset_mpd")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!mpdErr && !mpd) {
+          return NextResponse.redirect(
+            new URL("/onboarding/wizard", request.url)
+          );
+        }
       }
     } catch {
       // fail-open: continúa al dashboard
