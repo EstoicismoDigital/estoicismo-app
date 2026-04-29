@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { fileURLToPath } from "url";
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
@@ -9,13 +8,11 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   throw new Error("NEXT_PUBLIC_SUPABASE_ANON_KEY is not set");
 }
 
-// Root del workspace pnpm. Next.js 16 + Turbopack falla a
-// auto-detectarlo con paths con espacios ("ESTOICIMO ARCHIVOS
-// METRICAS"), tirando "Next.js package not found". Setearlo
-// explícito lo arregla.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const monorepoRoot = path.resolve(__dirname, "../..");
+// Root del workspace pnpm. Cuando se usa --turbopack, Next.js falla
+// a auto-detectarlo con paths con espacios ("ESTOICIMO ARCHIVOS
+// METRICAS"). process.cwd() durante `next dev` es apps/web/, así
+// que el monorepo root está dos niveles arriba.
+const monorepoRoot = path.resolve(process.cwd(), "../..");
 
 const nextConfig: NextConfig = {
   turbopack: {
