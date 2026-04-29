@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SaveIndicator } from "../../../components/ui/SaveIndicator";
+import type { SaveState } from "../../../hooks/useSavedState";
 import {
   Crown,
   LogOut,
@@ -56,6 +58,24 @@ export function AjustesClient({
   const [nameDraft, setNameDraft] = useState(username ?? "");
   const [tz, setTz] = useState(timezone);
 
+  // Estado consolidado del autosave del perfil. Cualquier mutate
+  // (timezone, avatar, nombre) dispara el indicador para que el
+  // usuario vea cuándo se guardó la última vez.
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  useEffect(() => {
+    if (updateProfile.isPending) setSaveState("saving");
+    else if (updateProfile.isSuccess) {
+      setSaveState("saved");
+      setSavedAt(Date.now());
+      setSaveError(null);
+    } else if (updateProfile.isError) {
+      setSaveState("error");
+      setSaveError(updateProfile.error instanceof Error ? updateProfile.error.message : "Error al guardar");
+    }
+  }, [updateProfile.isPending, updateProfile.isSuccess, updateProfile.isError, updateProfile.error]);
+
   async function handleSignOut() {
     setSigningOut(true);
     const sb = getSupabaseBrowserClient();
@@ -102,10 +122,17 @@ export function AjustesClient({
     <div className="min-h-screen bg-bg">
       <section className="bg-bg-deep text-white">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
-            Tu cuenta
-          </p>
-          <h1 className="font-display italic text-3xl sm:text-4xl">Ajustes</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2">
+                Tu cuenta
+              </p>
+              <h1 className="font-display italic text-3xl sm:text-4xl">Ajustes</h1>
+            </div>
+            <div className="pt-2">
+              <SaveIndicator state={saveState} savedAt={savedAt} error={saveError} />
+            </div>
+          </div>
         </div>
       </section>
 
