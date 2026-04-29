@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
   // Supabase client init + getUser() call, since middleware already
   // guards the route. Shaves one roundtrip per navigation.
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isOnboardingFlow = pathname.startsWith("/onboarding");
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -45,6 +46,34 @@ export async function middleware(request: NextRequest) {
 
   if (user && isPublic) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // Gate del manifiesto: si el user está autenticado y NO ha firmado,
+  // redirige a /onboarding/manifiesto. Excepción: rutas del propio
+  // flujo de onboarding y rutas públicas.
+  //
+  // Fail-open: si la tabla user_signed_manifesto no existe (porque
+  // todavía no se aplicó la migración) o el query falla por cualquier
+  // razón, NO bloquea — la app sigue funcionando como antes. Esto
+  // permite hacer deploy del código frontend antes de la migración
+  // sin romper a usuarios existentes.
+  if (user && !isPublic && !isOnboardingFlow) {
+    try {
+      const { data: sig, error } = await supabase
+        .from("user_signed_manifesto")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      // Si la tabla no existe (42P01) o cualquier otro error, fail-open.
+      if (!error && !sig) {
+        return NextResponse.redirect(
+          new URL("/onboarding/manifiesto", request.url)
+        );
+      }
+    } catch {
+      // fail-open: continúa al dashboard
+    }
   }
 
   return response;
