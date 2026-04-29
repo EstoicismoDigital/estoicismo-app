@@ -20,6 +20,7 @@ import {
   CommandPalette,
   useCommandPaletteShortcut,
 } from "../ui/CommandPalette";
+import { PilaresFooter } from "../PilaresFooter";
 
 /**
  * Top-level modules. Each owns a colored accent (see globals.css
@@ -42,12 +43,17 @@ type Module = {
 };
 
 /**
- * 4 módulos principales. Cada uno está representado por un estoico
- * en el ModuleGridNav visual de /hoy. El "home" (`/`, ritual diario)
- * NO es un módulo — se accede via el logo del brand (top-left) o
- * el bottom nav en mobile.
+ * Módulos principales del top nav. "Hoy" abre primero porque es el
+ * centro de la app (ritual diario). Su href es `/` (root) — el home
+ * real monta TodayClient. Los otros 4 son los pilares estoicos.
  */
 const MODULES: Module[] = [
+  {
+    key: "hoy",
+    label: "Hoy",
+    href: "/",
+    matches: ["/", "/hoy", "/anuario"],
+  },
   {
     key: "habits",
     label: "Hábitos",
@@ -506,6 +512,23 @@ function DesktopMasthead({
   );
 }
 
+/**
+ * Renderiza el PilaresFooter cuando estás en la raíz de un pilar
+ * (Hoy, Hábitos, Finanzas, Emprendimiento, Mentalidad). Filtra el
+ * pilar actual para no mostrar un link a sí mismo. Inyectado desde
+ * el layout para no tocar los *Client.tsx individuales.
+ */
+function PilarFooterFromPathname({ pathname }: { pathname: string }) {
+  // Solo en raíz de pilar — sub-rutas (/habitos/fitness, /finanzas/cuentas)
+  // mantienen su propio flujo sin footer cross-pilar.
+  if (pathname === "/" || pathname === "/hoy") return <PilaresFooter current="hoy" />;
+  if (pathname === "/habitos") return <PilaresFooter current="habitos" />;
+  if (pathname === "/finanzas") return <PilaresFooter current="finanzas" />;
+  if (pathname === "/emprendimiento") return <PilaresFooter current="emprendimiento" />;
+  if (pathname === "/reflexiones") return <PilaresFooter current="reflexiones" />;
+  return null;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeModule = moduleFromPathname(pathname);
@@ -629,6 +652,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="min-h-screen pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0"
       >
         {children}
+        <PilarFooterFromPathname pathname={pathname} />
       </main>
 
       <BottomNav pathname={pathname} />
