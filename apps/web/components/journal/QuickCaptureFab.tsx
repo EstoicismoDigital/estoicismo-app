@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Pencil } from "lucide-react";
@@ -30,6 +30,21 @@ export function QuickCaptureFab() {
 
   // Inferir área desde la ruta actual.
   const area: JournalArea = inferAreaFromPath(pathname);
+
+  // Atajo: Cmd+J (mac) / Ctrl+J (win/linux) abre Reflexión rápida
+  // desde cualquier lugar. Coexiste con Cmd+K (command palette).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      if (cmdOrCtrl && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setOpen(true);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // No mostrar en /pegasso (interfiere con el chat) ni en /sign-in,
   // ni en /notas (ya hay un botón principal).
@@ -64,15 +79,18 @@ export function QuickCaptureFab() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Reflexión rápida"
-        title="Reflexión rápida — captura un mood + nota en segundos"
+        aria-label="Reflexión rápida (Cmd+J)"
+        title="Reflexión rápida · Cmd+J"
         data-print-hide
-        className="hidden md:inline-flex fixed right-6 bottom-6 z-30 items-center gap-2 h-11 px-4 rounded-full bg-ink text-bg shadow-lg hover:opacity-90 active:scale-95 transition-all print:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="hidden md:inline-flex fixed right-6 bottom-6 z-30 items-center gap-2 h-11 pl-4 pr-2 rounded-full bg-ink text-bg shadow-lg hover:opacity-90 active:scale-95 transition-all print:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Pencil size={15} aria-hidden />
         <span className="font-mono text-[11px] uppercase tracking-widest">
           Reflexión rápida
         </span>
+        <kbd className="font-mono text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded bg-bg/15 border border-bg/20">
+          ⌘J
+        </kbd>
       </button>
 
       <JournalEntryModal

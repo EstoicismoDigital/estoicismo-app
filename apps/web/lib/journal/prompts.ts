@@ -438,8 +438,12 @@ export const MOOD_PROMPTS: JournalPrompt[] = [
   },
 ];
 
-// Pool combinado para el random / day-of-year fallback
-const ALL_PROMPTS: JournalPrompt[] = [...JOURNAL_PROMPTS, ...MOOD_PROMPTS];
+// Pool combinado para el random / day-of-year fallback.
+// Incluye los 140 STOIC_PILLAR_PROMPTS (declarados después en este
+// archivo — `let` permite reasignación al final). RECOVERY y
+// CELEBRATION se mantienen separados para que NO aparezcan en el
+// pool diario regular (solo cuando aplican).
+let ALL_PROMPTS: JournalPrompt[] = [...JOURNAL_PROMPTS, ...MOOD_PROMPTS];
 
 /**
  * Día del año (1-365/6) — compatible con timezone local del user.
@@ -757,3 +761,12 @@ export function allPrompts(): JournalPrompt[] {
     ...CELEBRATION_PROMPTS,
   ];
 }
+
+// Reasignar el pool diario para incluir los STOIC_PILLAR_PROMPTS.
+// Hecho al final porque las constantes deben estar declaradas antes.
+// (RECOVERY y CELEBRATION quedan fuera porque tienen contexto propio.)
+ALL_PROMPTS = [
+  ...JOURNAL_PROMPTS,
+  ...MOOD_PROMPTS,
+  ...STOIC_PILLAR_PROMPTS,
+];
