@@ -46,14 +46,33 @@ export function QuickCaptureFab() {
 
   return (
     <>
+      {/* Mobile: FAB redondo abajo-izquierda */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Captura rápida en diario"
+        aria-label="Reflexión rápida"
+        title="Reflexión rápida"
         data-print-hide
         className="md:hidden fixed left-4 bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] z-30 w-12 h-12 rounded-full bg-ink text-bg shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all print:hidden"
       >
-        <Pencil size={18} />
+        <Pencil size={18} aria-hidden />
+      </button>
+
+      {/* Desktop: pill flotante abajo-derecha con etiqueta visible.
+          El user pidió "abrir 5 min y llenar todo" → el FAB necesita
+          ser descubrible sin que el user busque. */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Reflexión rápida"
+        title="Reflexión rápida — captura un mood + nota en segundos"
+        data-print-hide
+        className="hidden md:inline-flex fixed right-6 bottom-6 z-30 items-center gap-2 h-11 px-4 rounded-full bg-ink text-bg shadow-lg hover:opacity-90 active:scale-95 transition-all print:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        <Pencil size={15} aria-hidden />
+        <span className="font-mono text-[11px] uppercase tracking-widest">
+          Reflexión rápida
+        </span>
       </button>
 
       <JournalEntryModal

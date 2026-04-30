@@ -268,7 +268,19 @@ export function useRitualStreak() {
           .map(([d]) => d)
       );
 
-      // Streak hacia atrás desde hoy
+      // Streak hacia atrás desde hoy con regla "Never Miss Twice".
+      //
+      // Inspirado en Atomic Habits (James Clear): "Missing once is
+      // an accident. Missing twice is the start of a new habit."
+      // Mecánica:
+      //   - Si hoy no cuenta, no rompe racha (estar revisando temprano).
+      //   - Si AYER no cuenta pero hoy SÍ → la racha sobrevive
+      //     (gap único = "freeze" automático, sin pedir nada).
+      //   - Solo se rompe cuando hay 2 días consecutivos sin ritual.
+      //
+      // Esto desincentiva el "tirar la toalla" después de 1 día de
+      // ausencia: el user sabe que volver al día siguiente protege
+      // todo lo construido.
       let streak = 0;
       const cur = new Date(today + "T00:00:00");
       // Si hoy no cuenta, empezamos desde ayer (no perder racha por
@@ -276,10 +288,15 @@ export function useRitualStreak() {
       if (!ritualDates.has(today)) {
         cur.setDate(cur.getDate() - 1);
       }
+      let gapBudget = 1; // 1 día perdido permitido en toda la racha
       while (true) {
         const iso = cur.toISOString().slice(0, 10);
         if (ritualDates.has(iso)) {
           streak += 1;
+          cur.setDate(cur.getDate() - 1);
+        } else if (gapBudget > 0) {
+          // Permite 1 gap dentro de la racha (Never Miss Twice)
+          gapBudget -= 1;
           cur.setDate(cur.getDate() - 1);
         } else {
           break;

@@ -35,6 +35,8 @@ import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
 import { BillsTodayPrompt } from "../../../components/hoy/BillsTodayPrompt";
 import { StreakRescueAlert } from "../../../components/hoy/StreakRescueAlert";
 import { ModuleGridNav } from "../../../components/habits/ModuleGridNav";
+import { RecoveryBanner } from "../../../components/hoy/RecoveryBanner";
+import { HoverPrefetchLink } from "../../../components/ui/HoverPrefetchLink";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -177,6 +179,10 @@ export function TodayClient() {
 
       {/* Body — secciones */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+        {/* Recovery banner: solo aparece si volvió después de 3+ días.
+            Tono sin guilt, autoreplazable, dismissable. */}
+        <RecoveryBanner />
+
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
 
@@ -467,17 +473,21 @@ export function TodayClient() {
           </div>
         </section>
 
-        {/* Cierre del día */}
+        {/* Cierre del día — copy sin guilt, sin presión */}
         {status?.ritualMet && (
           <section className="rounded-card border border-success/30 bg-success/5 p-5 sm:p-6 text-center">
             <Sparkles size={20} className="text-success mx-auto mb-2" />
             <p className="font-display italic text-xl text-ink mb-1">
-              Ritual completo.
+              {streak >= 7 ? "Constancia." : streak >= 3 ? "Bien hecho." : "Ritual completo."}
             </p>
             <p className="font-body text-sm text-muted leading-relaxed max-w-prose mx-auto">
-              {streak > 0
-                ? `Llevas ${streak} ${streak === 1 ? "día" : "días"} seguidos. La consistencia es la única magia que existe.`
-                : "Vuelve mañana — la racha se construye un día a la vez."}
+              {streak >= 30
+                ? `${streak} días. Esto ya no es esfuerzo, es identidad.`
+                : streak >= 7
+                  ? `${streak} días seguidos. Tu yo de hace un mes no creía esto posible.`
+                  : streak > 0
+                    ? `Llevas ${streak} ${streak === 1 ? "día" : "días"}. Lo único que importa es volver mañana.`
+                    : "Lo importante es haber estado hoy."}
             </p>
           </section>
         )}
@@ -499,14 +509,17 @@ function ShortcutLink({
   emoji: string;
   label: string;
 }) {
+  // HoverPrefetchLink: prefetch SOLO al hover/touch. La grid de 10
+  // shortcuts no necesita prefetch agresivo al cargar — quema bandwidth
+  // sin beneficio real porque la mayoría no se clickean.
   return (
-    <Link
+    <HoverPrefetchLink
       href={href}
       className="flex items-center gap-2 rounded-lg border border-line bg-bg-alt/30 p-3 hover:border-line-strong hover:bg-bg-alt/60 transition-all"
     >
       <span className="text-base">{emoji}</span>
       <span className="font-body text-xs text-ink truncate">{label}</span>
-    </Link>
+    </HoverPrefetchLink>
   );
 }
 
