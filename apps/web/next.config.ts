@@ -58,6 +58,11 @@ const nextConfig: NextConfig = {
       "date-fns",
       "@tanstack/react-query",
     ],
+    // View Transitions API — animaciones nativas del navegador entre
+    // navegaciones de cliente. Cuando se activa, los layout shifts
+    // entre rutas se interpolan suavemente sin código extra. Ver
+    // https://nextjs.org/docs/app/api-reference/config/next-config-js/viewTransition
+    viewTransition: true,
   },
 };
 

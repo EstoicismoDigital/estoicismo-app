@@ -20,5 +20,11 @@ export function useProfile() {
       if (error) throw error;
       return data as Profile;
     },
+    // Profile cambia poco: timezone, plan, display name. 5 min de
+    // stale evita refetch en cada navegación. Las mutations invalidan
+    // explícitamente con qc.invalidateQueries({queryKey:["profile"]}).
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnWindowFocus: false,
   });
 }
