@@ -12,6 +12,8 @@ import { clsx } from "clsx";
 import { useProfile } from "../../../hooks/useProfile";
 import { useTodayRitual, useRitualStreak } from "../../../hooks/useTodayRitual";
 import { useTodaySkips } from "../../../hooks/useTodaySkips";
+import { useMoodLogForDate } from "../../../hooks/useMindset";
+import { moodBucket } from "../../../lib/journal/prompts";
 import { useTransactions } from "../../../hooks/useFinance";
 import { useDefaultCurrency } from "../../../hooks/useDefaultCurrency";
 import { useExercises, useFitnessProfile } from "../../../hooks/useFitness";
@@ -62,6 +64,9 @@ export function TodayClient() {
   const { data: rawStatus, isLoading: statusLoading } = useTodayRitual();
   const { data: streak = 0 } = useRitualStreak();
   const { isSkipped, toggle: toggleSkip } = useTodaySkips();
+  // Para celebración mood-aware
+  const { data: todayMood } = useMoodLogForDate(today);
+  const moodToday = moodBucket(todayMood?.mood);
   // Mounted gate: el saludo y la fecha dependen de new Date() y del
   // profile (client-side), así que evitamos render durante SSR para
   // que no haya hydration mismatch al hidratar con datos reales.
@@ -473,21 +478,31 @@ export function TodayClient() {
           </div>
         </section>
 
-        {/* Cierre del día — copy sin guilt, sin presión */}
+        {/* Cierre del día — copy sin guilt, sin presión, mood-aware.
+            Cuando el user reportó un día duro (mood low), el copy
+            reconoce el esfuerzo extra de aparecer cuando cuesta. */}
         {status?.ritualMet && (
           <section className="rounded-card border border-success/30 bg-success/5 p-5 sm:p-6 text-center">
             <Sparkles size={20} className="text-success mx-auto mb-2" />
             <p className="font-display italic text-xl text-ink mb-1">
-              {streak >= 7 ? "Constancia." : streak >= 3 ? "Bien hecho." : "Ritual completo."}
+              {moodToday === "low"
+                ? "Hoy contó doble."
+                : streak >= 7
+                  ? "Constancia."
+                  : streak >= 3
+                    ? "Bien hecho."
+                    : "Ritual completo."}
             </p>
             <p className="font-body text-sm text-muted leading-relaxed max-w-prose mx-auto">
-              {streak >= 30
-                ? `${streak} días. Esto ya no es esfuerzo, es identidad.`
-                : streak >= 7
-                  ? `${streak} días seguidos. Tu yo de hace un mes no creía esto posible.`
-                  : streak > 0
-                    ? `Llevas ${streak} ${streak === 1 ? "día" : "días"}. Lo único que importa es volver mañana.`
-                    : "Lo importante es haber estado hoy."}
+              {moodToday === "low"
+                ? "Aparecer cuando duele es la única magia que existe."
+                : streak >= 30
+                  ? `${streak} días. Esto ya no es esfuerzo, es identidad.`
+                  : streak >= 7
+                    ? `${streak} días seguidos. Tu yo de hace un mes no creía esto posible.`
+                    : streak > 0
+                      ? `Llevas ${streak} ${streak === 1 ? "día" : "días"}. Lo único que importa es volver mañana.`
+                      : "Lo importante es haber estado hoy."}
             </p>
           </section>
         )}

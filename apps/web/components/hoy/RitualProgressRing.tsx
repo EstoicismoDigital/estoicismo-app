@@ -73,8 +73,14 @@ export function RitualProgressRing({
       {/* Sections + streak */}
       <div className="flex-1 min-w-0">
         {streak > 0 && (
-          <p className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1.5">
+          <p
+            className="font-mono text-[10px] uppercase tracking-widest text-accent mb-1.5 inline-flex items-center gap-1.5 cursor-help"
+            title="Si fallas un día, no se rompe la racha. Solo se pierde si pasan 2 días seguidos sin ritual. Vuelve cuando puedas."
+          >
             🔥 {streak}d ritual
+            <span className="text-muted/70 text-[8px] normal-case tracking-normal">
+              · 1 día gratis
+            </span>
           </p>
         )}
         <div className="flex flex-wrap gap-1">
