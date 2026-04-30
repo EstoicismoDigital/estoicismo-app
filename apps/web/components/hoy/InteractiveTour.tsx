@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { X, ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 
 type Step = {
   selector: string;
@@ -8,57 +8,69 @@ type Step = {
   body: string;
 };
 
+// Tour minimalista: solo 3 puntos clave, todos saltables.
+// Si no encuentra un elemento, salta al siguiente. Si nada se
+// encuentra, se cierra solo.
 const TOUR_STEPS: Step[] = [
   {
     selector: "#sol-card",
-    title: "Sol — tu mañana",
-    body: "Cada mañana antes de empezar, escribe cómo quieres vivir el día. Define tu intención, agradece, y planea hasta 7 tareas con bloque de tiempo. Es la página izquierda de tu agenda.",
+    title: "Tu mañana",
+    body: "Cada día escribe tu intención y planea hasta 7 tareas con bloque de tiempo.",
   },
   {
     selector: "#luna-card",
-    title: "Luna — tu noche",
-    body: "Antes de dormir, registra cómo viviste el día. Marca tus vitales, define tu estado, anota el balance financiero y los objetivos de mañana. Es la página derecha.",
-  },
-  {
-    selector: "#vitales",
-    title: "Vitales de tu Olimpo",
-    body: "Éter (meditación), Forja (ejercicio), Néctar (hidratación), Kleos (lectura). Son los 4 pilares de un día estoico. Si los cumples a diario, todo lo demás se acomoda.",
-  },
-  {
-    selector: "#estado",
-    title: "Estado de tu Olimpo",
-    body: "Eudaimonía es el ideal — claridad total. Identifica honestamente cómo terminaste el día. La autoobservación sin juicio es la práctica estoica fundamental.",
-  },
-  {
-    selector: "#balance",
-    title: "Balance financiero",
-    body: "Anota cuánto entró y cuánto salió. La consciencia financiera empieza con la observación diaria. Marco Aurelio administraba un imperio así.",
+    title: "Tu noche",
+    body: "Antes de dormir, registra cómo viviste el día y prepara el siguiente.",
   },
 ];
 
 /**
- * InteractiveTour — tooltip-based walkthrough que se dispara la
- * primera vez que el usuario llega a /hoy después del onboarding.
- * Usa getBoundingClientRect para posicionarse encima del elemento
- * destacado, scroll-into-view y un overlay oscuro alrededor.
+ * InteractiveTour — overlay con tooltips paso a paso. La primera
+ * vista pregunta si quiere ver el tour (no asume). Si sí, recorre
+ * 2 puntos clave. Es saltable en cualquier momento (botón X, ESC,
+ * o "Saltar").
  *
- * El estado de visto se persiste en profiles.tour_seen_v2 (flag).
+ * Si un elemento no se encuentra, salta al siguiente. Nunca bloquea.
  */
 export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
-  const [stepIdx, setStepIdx] = useState(0);
+  // -1 = pantalla inicial (¿quieres ver el tour?), 0+ = paso del tour
+  const [stepIdx, setStepIdx] = useState<number>(-1);
   const [rect, setRect] = useState<DOMRect | null>(null);
-  const step = TOUR_STEPS[stepIdx];
+  const finishedRef = useRef(false);
 
+  function finish() {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    onFinish();
+  }
+
+  // ESC para cerrar
   useEffect(() => {
-    if (!step) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") finish();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Posicionar tooltip cuando cambia el paso
+  useEffect(() => {
+    if (stepIdx < 0) {
+      setRect(null);
+      return;
+    }
+    const step = TOUR_STEPS[stepIdx];
+    if (!step) {
+      finish();
+      return;
+    }
     const el = document.querySelector(step.selector);
     if (!el) {
-      // Si no encuentra el elemento (p.ej. si LunaCard no se ha
-      // renderizado todavía), salta al siguiente
+      // Si no encuentra, salta al siguiente o termina
       const t = setTimeout(() => {
         if (stepIdx < TOUR_STEPS.length - 1) setStepIdx(stepIdx + 1);
-        else onFinish();
-      }, 500);
+        else finish();
+      }, 200);
       return () => clearTimeout(t);
     }
     el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -66,14 +78,68 @@ export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
     updateRect();
     window.addEventListener("resize", updateRect);
     window.addEventListener("scroll", updateRect, true);
-    const interval = setInterval(updateRect, 250); // por si scroll smooth aún no terminó
+    const interval = setInterval(updateRect, 250);
     return () => {
       window.removeEventListener("resize", updateRect);
       window.removeEventListener("scroll", updateRect, true);
       clearInterval(interval);
     };
-  }, [step, stepIdx, onFinish]);
+  }, [stepIdx]);
 
+  // Pantalla inicial — pregunta si quiere ver el tour
+  if (stepIdx === -1) {
+    return (
+      <div
+        role="dialog"
+        aria-labelledby="tour-intro-title"
+        className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
+      >
+        <div className="bg-bg border border-line rounded-xl shadow-2xl p-6 max-w-sm">
+          <div className="flex items-start justify-between mb-3 gap-3">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
+              BIENVENIDA
+            </p>
+            <button
+              type="button"
+              onClick={finish}
+              aria-label="Cerrar"
+              className="text-muted hover:text-ink"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <h2
+            id="tour-intro-title"
+            className="font-display text-2xl text-ink mb-2"
+          >
+            ¿Quieres un tour rápido?
+          </h2>
+          <p className="font-body text-sm text-ink leading-relaxed mb-6">
+            Te muestro en 30 segundos las 2 secciones clave de tu día (Sol y
+            Luna). Puedes saltarte y explorar por tu cuenta.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={finish}
+              className="flex-1 h-11 rounded-lg border border-line text-ink font-body font-medium hover:bg-bg-alt transition-colors"
+            >
+              Ahora no
+            </button>
+            <button
+              type="button"
+              onClick={() => setStepIdx(0)}
+              className="flex-1 h-11 rounded-lg bg-accent text-bg font-body font-medium hover:opacity-90 transition-opacity"
+            >
+              Sí, muéstrame
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const step = TOUR_STEPS[stepIdx];
   if (!step || !rect) {
     return (
       <div className="fixed inset-0 z-[150] bg-black/40 backdrop-blur-sm pointer-events-none" />
@@ -82,18 +148,21 @@ export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
 
   function next() {
     if (stepIdx < TOUR_STEPS.length - 1) setStepIdx(stepIdx + 1);
-    else onFinish();
+    else finish();
   }
 
-  // Posicionar tooltip debajo del elemento (o arriba si no hay espacio)
+  // Posición del tooltip: debajo si hay espacio, arriba si no
   const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
-  const tooltipBelow = rect.bottom + 16;
-  const placeBelow = tooltipBelow + 200 < viewportH;
-  const tooltipTop = placeBelow ? rect.bottom + 16 : Math.max(16, rect.top - 220);
+  const placeBelow = rect.bottom + 200 < viewportH;
+  const tooltipTop = placeBelow ? rect.bottom + 16 : Math.max(16, rect.top - 200);
 
   return (
-    <div className="fixed inset-0 z-[150] pointer-events-none">
-      {/* Overlay oscuro con recorte alrededor del elemento */}
+    <div
+      className="fixed inset-0 z-[150] pointer-events-none"
+      role="dialog"
+      aria-labelledby="tour-step-title"
+    >
+      {/* Overlay con recorte alrededor del elemento */}
       <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
         <defs>
           <mask id="tour-mask">
@@ -116,7 +185,6 @@ export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
         />
       </svg>
 
-      {/* Borde resaltado alrededor del elemento */}
       <div
         className="absolute border-2 border-accent rounded-xl pointer-events-none transition-all"
         style={{
@@ -127,33 +195,30 @@ export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
         }}
       />
 
-      {/* Tooltip */}
       <div
-        role="dialog"
-        aria-labelledby="tour-title"
         className="absolute bg-bg border border-line rounded-xl shadow-2xl p-5 max-w-sm pointer-events-auto"
         style={{
           left: Math.min(
             Math.max(16, rect.left + rect.width / 2 - 192),
-            (typeof window !== "undefined" ? window.innerWidth : 0) - 400
+            (typeof window !== "undefined" ? window.innerWidth - 400 : 0)
           ),
           top: tooltipTop,
         }}
       >
-        <div className="flex items-start justify-between mb-3 gap-3">
+        <div className="flex items-start justify-between mb-2 gap-3">
           <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
             Paso {stepIdx + 1} de {TOUR_STEPS.length}
           </p>
           <button
             type="button"
-            onClick={onFinish}
+            onClick={finish}
             aria-label="Cerrar tutorial"
-            className="text-muted hover:text-ink transition-colors"
+            className="text-muted hover:text-ink"
           >
             <X size={16} />
           </button>
         </div>
-        <h3 id="tour-title" className="font-display text-xl text-ink mb-2">
+        <h3 id="tour-step-title" className="font-display text-xl text-ink mb-2">
           {step.title}
         </h3>
         <p className="font-body text-sm text-ink leading-relaxed mb-4">
@@ -162,18 +227,17 @@ export function InteractiveTour({ onFinish }: { onFinish: () => void }) {
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={onFinish}
+            onClick={finish}
             className="font-mono text-xs uppercase tracking-widest text-muted hover:text-ink"
           >
-            Saltar tutorial
+            Saltar
           </button>
           <button
             type="button"
             onClick={next}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90"
+            className="h-10 px-4 rounded-lg bg-accent text-bg font-body font-medium text-sm hover:opacity-90"
           >
             {stepIdx < TOUR_STEPS.length - 1 ? "Siguiente" : "Listo"}
-            <ArrowRight size={14} />
           </button>
         </div>
       </div>

@@ -2,7 +2,17 @@
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "../../lib/supabase-client";
 
-const PILARES = [
+type PilarExtra = { id: string; label: string };
+type Pilar = {
+  key: "habits" | "finance" | "mindset" | "business";
+  title: string;
+  philosopher: string;
+  intro: string;
+  visual: string;
+  extras?: PilarExtra[];
+};
+
+const PILARES: Pilar[] = [
   {
     key: "habits",
     title: "Hábitos",
@@ -39,7 +49,7 @@ const PILARES = [
       { id: "target_revenue", label: "¿Cuánto generará al lograr mi MPD?" },
     ],
   },
-] as const;
+];
 
 type IntrospectionData = {
   habits_bad?: string;
@@ -72,7 +82,7 @@ export function StepIntrospection({
     setData((d) => ({ ...d, [field]: value }));
   }
 
-  function fieldsForPilar(p: (typeof PILARES)[number]): {
+  function fieldsForPilar(p: Pilar): {
     intro: keyof IntrospectionData;
     visual: keyof IntrospectionData;
   } {
@@ -82,8 +92,18 @@ export function StepIntrospection({
     return { intro: "business_current", visual: "business_target" };
   }
 
+  // Detecta si el usuario llenó al menos un campo. Si no, salta el
+  // upsert y avanza directo (todo opcional).
+  function hasAnyData(): boolean {
+    return Object.values(data).some((v) => v !== undefined && v !== "");
+  }
+
   async function handleFinish() {
     setError(null);
+    if (!hasAnyData()) {
+      onNext();
+      return;
+    }
     setSaving(true);
     try {
       const sb = getSupabaseBrowserClient();
@@ -108,16 +128,25 @@ export function StepIntrospection({
         completed_at: new Date().toISOString(),
       };
 
-      const { error: e } = await sb
-        .from("user_introspection")
-        .upsert(payload, { onConflict: "user_id" });
-      if (e) throw e;
+      // Cast: tabla user_introspection se agrega en migración posterior;
+      // los Database types generados no la incluyen todavía.
+      const { error: e } = await (
+        sb.from("user_introspection") as unknown as {
+          upsert: (
+            row: typeof payload,
+            opts: { onConflict: string }
+          ) => Promise<{ error: { code?: string; message: string } | null }>;
+        }
+      ).upsert(payload, { onConflict: "user_id" });
+      // Si la tabla no existe (42P01), avanzamos sin guardar — el
+      // user no debe quedarse atorado por una migración pendiente.
+      if (e && e.code !== "42P01") throw e;
       onNext();
     } catch (e) {
       setError(
         e instanceof Error
           ? e.message
-          : "No pudimos guardar tu introspección. Intenta de nuevo."
+          : "No pudimos guardar. Puedes saltarte este paso."
       );
     } finally {
       setSaving(false);

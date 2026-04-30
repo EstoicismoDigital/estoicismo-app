@@ -38,7 +38,6 @@ export async function middleware(request: NextRequest) {
   // Supabase client init + getUser() call, since middleware already
   // guards the route. Shaves one roundtrip per navigation.
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-  const isOnboardingFlow = pathname.startsWith("/onboarding");
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
@@ -48,47 +47,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Gates de onboarding: el flujo es manifiesto → wizard (MPD).
-  // Si NO ha firmado → /onboarding/manifiesto
-  // Si firmó pero no tiene MPD → /onboarding/wizard
-  // Si tiene ambos → continúa normal
+  // Onboarding (manifiesto + wizard) ahora es OPCIONAL — el usuario
+  // puede acceder al dashboard libremente y completarlo cuando quiera
+  // desde un banner en /hoy. Esto evita que un usuario quede bloqueado
+  // si la migración aún no se aplicó o si simplemente quiere explorar
+  // la app antes de comprometerse a firmar/llenar el MPD.
   //
-  // Fail-open: si las tablas no existen (porque todavía no se aplicó
-  // la migración) o el query falla por cualquier razón, NO bloquea —
-  // la app sigue funcionando como antes. Permite hacer deploy del
-  // código frontend antes de la migración sin romper a usuarios.
-  if (user && !isPublic && !isOnboardingFlow) {
-    try {
-      const { data: sig, error: sigErr } = await supabase
-        .from("user_signed_manifesto")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!sigErr && !sig) {
-        return NextResponse.redirect(
-          new URL("/onboarding/manifiesto", request.url)
-        );
-      }
-
-      // Solo chequea MPD si la firma existe
-      if (sig) {
-        const { data: mpd, error: mpdErr } = await supabase
-          .from("mindset_mpd")
-          .select("user_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!mpdErr && !mpd) {
-          return NextResponse.redirect(
-            new URL("/onboarding/wizard", request.url)
-          );
-        }
-      }
-    } catch {
-      // fail-open: continúa al dashboard
-    }
-  }
+  // Si en el futuro se quiere obligar de nuevo, restaurar los gates
+  // aquí — pero recomendado solo para usuarios nuevos, con flag por
+  // cuenta (created_at > X).
 
   return response;
 }

@@ -18,8 +18,10 @@ export function StepMPD({
 
   async function handleNext() {
     setError(null);
-    if (!aim.trim() || aim.trim().length < 5) {
-      setError("Define con claridad qué quieres lograr.");
+    // Campo opcional: si no hay aim, simplemente avanzamos sin guardar
+    // (el user puede llenar el MPD después desde /reflexiones)
+    if (!aim.trim()) {
+      onNext();
       return;
     }
     const affirmation = date
@@ -35,7 +37,7 @@ export function StepMPD({
       });
       onNext();
     } catch {
-      setError("No pudimos guardar tu MPD. Intenta de nuevo.");
+      setError("No pudimos guardar tu MPD. Puedes saltarte este paso.");
     }
   }
 
@@ -49,6 +51,9 @@ export function StepMPD({
       </h1>
       <p className="font-body text-muted text-sm italic">
         "No puedes llegar a un lugar que tu cerebro no cree que existe."
+      </p>
+      <p className="font-body text-xs text-muted">
+        Todos los campos son opcionales — puedes llenarlos después desde Mentalidad.
       </p>
 
       <div className="flex flex-col gap-1">
@@ -80,7 +85,6 @@ export function StepMPD({
           value={aim}
           onChange={(e) => setAim(e.target.value)}
           placeholder="Ej: Generar $10,000 USD/mes con mi negocio"
-          required
           maxLength={200}
           className="h-12 px-4 rounded-lg border border-line bg-bg-alt font-body text-base text-ink"
         />

@@ -40,13 +40,21 @@ export function ManifiestoForm() {
       setLoading(false);
       return;
     }
-    const { error: insertError } = await supabase
-      .from("user_signed_manifesto")
-      .insert({
-        user_id: userId,
-        signed_name: name.trim(),
-        signed_place: place.trim() || null,
-      });
+    // Cast: la tabla user_signed_manifesto se agrega en una migración
+    // posterior; los Database types generados todavía no la incluyen.
+    const { error: insertError } = await (
+      supabase.from("user_signed_manifesto") as unknown as {
+        insert: (row: {
+          user_id: string;
+          signed_name: string;
+          signed_place: string | null;
+        }) => Promise<{ error: { code?: string; message: string } | null }>;
+      }
+    ).insert({
+      user_id: userId,
+      signed_name: name.trim(),
+      signed_place: place.trim() || null,
+    });
     if (insertError) {
       setError(
         insertError.code === "23505"
@@ -166,6 +174,15 @@ export function ManifiestoForm() {
           className="h-12 rounded-lg bg-accent text-bg font-body font-medium text-base hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {loading ? "Firmando…" : "Firmar y continuar"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          disabled={loading}
+          className="font-body text-sm text-muted hover:text-ink underline-offset-2 hover:underline transition-colors disabled:opacity-40"
+        >
+          Más tarde — entrar a la app
         </button>
       </div>
     </form>

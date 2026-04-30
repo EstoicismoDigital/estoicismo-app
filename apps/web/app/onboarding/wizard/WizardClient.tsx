@@ -18,7 +18,6 @@ export function WizardClient() {
   function next() {
     if (idx < STEPS.length - 1) {
       setStep(STEPS[idx + 1]);
-      // Scroll al inicio en móvil
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -37,10 +36,26 @@ export function WizardClient() {
     }
   }
 
+  function skipAll() {
+    router.push("/");
+    router.refresh();
+  }
+
   return (
     <main className="min-h-screen bg-bg px-4 py-10">
       <div className="max-w-2xl mx-auto">
-        <StepProgress current={idx} total={STEPS.length} />
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex-1">
+            <StepProgress current={idx} total={STEPS.length} />
+          </div>
+          <button
+            type="button"
+            onClick={skipAll}
+            className="font-mono text-[10px] uppercase tracking-widest text-muted hover:text-ink whitespace-nowrap underline-offset-2 hover:underline"
+          >
+            Saltar todo
+          </button>
+        </div>
         <div className="mt-8">
           {step === "welcome" && <StepWelcome onNext={next} />}
           {step === "mpd" && <StepMPD onNext={next} onBack={back} />}
