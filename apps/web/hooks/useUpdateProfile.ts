@@ -9,7 +9,6 @@ export type UpdateProfileInput = {
   default_currency?: string;
   avatar_url?: string | null;
   onboarding_completed?: boolean;
-  tour_seen_v2?: boolean;
   phone_e164?: string | null;
   whatsapp_enabled?: boolean;
 };
@@ -40,14 +39,10 @@ export function useUpdateProfile() {
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["profile"] });
-      // Skip toast cuando solo se está marcando onboarding/tour
-      // (acciones silenciosas, no cambios explícitos del usuario).
+      // Skip toast cuando solo se está marcando onboarding completado
+      // (acción silenciosa al cerrar el tour, no un cambio explícito).
       const keys = Object.keys(vars);
-      if (
-        keys.length === 1 &&
-        (keys[0] === "onboarding_completed" || keys[0] === "tour_seen_v2")
-      )
-        return;
+      if (keys.length === 1 && keys[0] === "onboarding_completed") return;
       toast.success("Cambios guardados");
     },
     onError: (err: unknown) => {

@@ -35,10 +35,6 @@ import { OnboardingTour } from "../../../components/hoy/OnboardingTour";
 import { BillsTodayPrompt } from "../../../components/hoy/BillsTodayPrompt";
 import { StreakRescueAlert } from "../../../components/hoy/StreakRescueAlert";
 import { ModuleGridNav } from "../../../components/habits/ModuleGridNav";
-import { SolCard } from "../../../components/hoy/SolCard";
-import { LunaCard } from "../../../components/hoy/LunaCard";
-import { InteractiveTour } from "../../../components/hoy/InteractiveTour";
-import { useUpdateProfile } from "../../../hooks/useUpdateProfile";
 import { UpcomingDueBanner } from "../../../components/finanzas/UpcomingDueBanner";
 import { MoodTrackerCard } from "../../../components/mindset/MoodTrackerCard";
 import { GratitudeCard } from "../../../components/mindset/GratitudeCard";
@@ -69,15 +65,6 @@ export function TodayClient() {
   // que no haya hydration mismatch al hidratar con datos reales.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
-  // Tour interactivo (Fase 5): se muestra una sola vez, después
-  // del onboarding wizard, cuando el user llega a /hoy. Se persiste
-  // con el flag tour_seen_v2 en profiles.
-  const updateProfile = useUpdateProfile();
-  const showTour =
-    mounted &&
-    profile?.onboarding_completed === true &&
-    (profile as { tour_seen_v2?: boolean })?.tour_seen_v2 !== true;
 
   // Mezclar skips locales con el status del DB: skipped sections cuentan
   // como done.
@@ -183,15 +170,6 @@ export function TodayClient() {
       {/* Tour de bienvenida — modal full-screen para nuevos usuarios */}
       <OnboardingTour />
 
-      {/* Tour interactivo paso a paso (post-onboarding) */}
-      {showTour && (
-        <InteractiveTour
-          onFinish={() =>
-            updateProfile.mutate({ tour_seen_v2: true })
-          }
-        />
-      )}
-
       {/* Navegación visual principal — 4 módulos con sus estoicos */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         <ModuleGridNav variant="full" />
@@ -199,11 +177,6 @@ export function TodayClient() {
 
       {/* Body — secciones */}
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
-        {/* SOL — la mañana de tu agenda. Replica la página izquierda
-            de la Agenda de Zeus física: hora de inicio, intención
-            del día, hasta 7 tareas con bloques de tiempo. */}
-        <SolCard />
-
         {/* Alertas — solo aparece si hay algo accionable */}
         <AlertsBar />
 
@@ -470,11 +443,6 @@ export function TodayClient() {
             <DailyPromptCard />
           </div>
         </HoySection>
-
-        {/* LUNA — la noche de tu agenda. Replica la página derecha
-            de la Agenda de Zeus física: reflexión del día, vitales,
-            estado, balance, objetivos de mañana. */}
-        <LunaCard />
 
         {/* Atajos al final */}
         <section className="pt-4 border-t border-line">
